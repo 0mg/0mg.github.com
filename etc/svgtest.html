@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8"/>
+<title>SVG TEST</title>
+<style>
+*{margin:0;padding:0;}
+html{background:white;}
+</style>
+</head>
+<body>
+<script>//<![CDATA[[
+function genColor() {
+  return "#" + ("00000" + (Math.random() * 0xFFFFFF | 0).toString(16)
+         ).slice(-6);
+}
+var size = 8;
+var dotSize = 64;
+var svgns = "http://www.w3.org/2000/svg";
+var svg = document.createElementNS(svgns, "svg");
+svg.setAttribute("width", size * dotSize);
+svg.setAttribute("height", size * dotSize);
+for (var i = 0; i < size; ++i) {
+  for (var j = 0; j < size; ++j) {
+    var rect = document.createElementNS(svgns, "rect");
+    rect.setAttribute("x", j * dotSize);
+    rect.setAttribute("y", i * dotSize);
+    rect.setAttribute("width", dotSize);
+    rect.setAttribute("height", dotSize);
+    var color = "white";
+    rect.setAttribute("fill", color);
+
+    var animateColor = document.createElementNS(svgns, "animate");
+    animateColor.setAttribute("attributeType", "XML");
+    animateColor.setAttribute("attributeName", "fill");
+    var values = [
+      "#0000ff",
+      "#000000",
+      "#c0c0c0",
+      "#ffffff",
+    ].sort(function() {
+      return 0;
+    }).join(";");
+    animateColor.setAttribute("values", values);
+    animateColor.setAttribute("begin", "0");
+    animateColor.setAttribute("dur", (1000 + Math.random() * 20000 | 0) + "ms");
+    animateColor.setAttribute("repeatCount", "indefinite");
+
+    rect.appendChild(animateColor);
+    svg.appendChild(rect);
+  }
+}
+document.body.appendChild(svg);
+//]]></script>
+</body>
+</html>

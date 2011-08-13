@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Shuffling Cards</title>
+<style>
+body {
+  background-color: black;
+  overflow: hidden;
+}
+.card {
+  position: absolute;
+  background-color: white;
+  border: 1px solid black;
+  font-size: 1em;
+  text-align: center;
+  width: 1em;
+  height: 2em;
+  padding: 0.6ex 0.8ex;
+}
+</style>
+</head>
+<body>
+<script>
+function Card(mark, num) {
+  // 描画領域全体の幅と高さ
+  var innerWidth = window.innerWidth || document.documentElement.clientWidth;
+  var innerHeight = window.innerHeight || document.documentElement.clientHeight;
+
+  // カードが円運動する際の半径の最大値
+  var max_radius = 150;
+
+  // カードが円運動する際の方向（時計回り: -1, 半時計回り: 1）
+  this.step_direction = Math.random() * 2 | 0 || -1;
+
+  // カードがプランク時間で移動する距離
+  this.step_size = 1 + Math.random() * 3 | 0;
+
+  // カードが円運動する際の中心位置
+  this.axis_x =
+  max_radius + (Math.random() * (innerWidth - max_radius * 2)) | 0;
+  this.axis_y =
+  max_radius + (Math.random() * (innerHeight - max_radius * 2)) | 0;
+
+  // カードが円運動する際の半径の大きさ
+  this.round_width = Math.random() * max_radius | 0;
+  this.round_height = Math.random() * max_radius | 0;
+
+  // カードの初期位置：円周上のどの点に位置しているか（角度で指定）
+  this.angle = Math.random() * 360 | 0;
+
+  // カードの文字色
+  this.color = mark > 1 ? "red" : "black";
+
+  // カードの数字
+  this.num =
+  num === 1 ? "A" :
+  num === 11 ? "J" :
+  num === 12 ? "Q" :
+  num === 13 ? "K" : num;
+
+  // カードのマーク
+  this.mark =
+  mark < 1 ? "\u2660" :
+  mark < 2 ? "\u2663" :
+  mark < 3 ? "\u2665" : "\u2666";
+
+}
+function makeCards(card_case) {
+  // カードオブジェクトを 52 枚つくり、カードケースに入れる
+  for (var mark = 0; mark < 4; ++mark) {
+    for (var num = 1; num <= 13; ++num) {
+      card_case.push(new Card(mark, num));
+    }
+  }
+}
+function bearCards(card_case) {
+  // カードケース内のカードオブジェクトを実体化する
+  for (var i = 0; i < card_case.length; ++i) {
+    var card = card_case[i];
+    card.element = document.createElement("p");
+    card.element.className = "card";
+    card.element.style.color = card.color;
+    card.element.appendChild(document.createTextNode(
+      card.num + " " + card.mark
+    ));
+    card.element.style.left = "-100em";
+    document.body.appendChild(card.element);
+  }
+}
+function animateCards(card_case) {
+  // カードケースの中身をぶちまけてアニメーションさせる
+  for (var i = 0; i < card_case.length; ++i) {
+    var card = card_case[i];
+
+    // カードの角度を正あるいは負の方向に増加させる
+    card.angle = (card.angle + card.step_size * card.step_direction) % 360 | 0;
+
+    // カードの水平位置（画面左から距離で指定）
+    // 回転軸 ＋（半径 1 の円周上を移動する点の水平位置 ＊ 半径）
+    // Math.sin(ラジアン)
+    card.element.style.left =
+    card.axis_x + Math.sin(card.angle * (Math.PI / 180)) * card.round_width +
+    "px";
+
+    // カードの垂直位置（画面上から距離で指定）
+    card.element.style.top =
+    card.axis_y + Math.cos(card.angle * (Math.PI / 180)) * card.round_height +
+    "px";
+
+  }
+}
+var card_case = [];
+makeCards(card_case);
+bearCards(card_case);
+setInterval(function() {
+  animateCards(card_case);
+  var debugbox = document.getElementById("debugbox");
+  debugbox.style.backgroundColor = "white";
+  debugbox.style.color = "black";
+  var stat = "<table>";
+  for (var i in card_case[0]) {
+    stat += "<tr><th>" + i + "<td>" + card_case[0][i];
+  }
+  debugbox.innerHTML = stat + "</table>";
+}, 10);
+</script>
+<div style="background:white;color:black" id="debugbox"></div>
+</body>
+</html>

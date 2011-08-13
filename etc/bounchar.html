@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Bounding Chars</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background-color: black;
+  overflow: hidden;
+}
+.box {
+  display: block;
+  position: absolute;
+  line-height: 1;
+  font-family: serif;
+  text-align: center;
+  border: 1px solid silver;
+}
+</style>
+</head>
+<body>
+<script>
+var innerWidth = window.innerWidth || document.documentElement.clientWidth;
+var innerHeight = window.innerHeight || document.documentElement.clientHeight;
+
+Array.prototype.forEach = Array.prototype.forEach || function(f) {
+  for (var i = 0; i < this.length; ++i) f(this[i]);
+};
+
+function Box(text) {
+  this.text = String.fromCharCode(0x3041 + (Math.random() * 83 | 0));
+  this.size = 10 + (Math.random() * 255) | 0;
+  this.x = (Math.random() * (innerWidth - this.size)) | 0;
+  this.y = (Math.random() * (innerHeight - this.size)) | 0;
+  this.stepX = (1 + Math.random() * 5 | 0) * (Math.random() * 2 | 0 || -1);
+  this.stepY = (1 + Math.random() * 5 | 0) * (Math.random() * 2 | 0 || -1);
+  this.color = "#" + ["ff0000", "ffff00", "00ff00", "00ffff", "0000ff",
+  "ff00ff", "ffffff"][Math.random() * 7 | 0];
+}
+function makeBoxes(boxes) {
+  for (var i = 0; i < 16; ++i) {
+    boxes.push(new Box());
+  }
+}
+function bearBoxes(boxes) {
+  boxes.forEach(function(box) {
+    box.element = document.createElement("p");
+    box.element.appendChild(document.createTextNode(box.text));
+    box.element.style.width = box.size + "px";
+    box.element.style.height = box.size + "px";
+    box.element.style.fontSize = box.size + "px";
+    box.element.style.color = box.color;
+    box.element.style.left = box.x + "px";
+    box.element.style.top = box.y + "px";
+    box.element.className = "box";
+    document.body.appendChild(box.element);
+  });
+}
+function animateBoxes(boxes) {
+  boxes.forEach(function(box) {
+    if (box.x < 0 || box.x > innerWidth - box.size) {
+      box.stepX *= -1;
+    }
+    if (box.y < 0 || box.y > innerHeight - box.size) {
+      box.stepY *= -1;
+    }
+    box.x += box.stepX;
+    box.y += box.stepY;
+    box.element.style.left = box.x + "px";
+    box.element.style.top = box.y + "px";
+  });
+}
+function main() {
+  var boxes = [];
+  makeBoxes(boxes);
+  bearBoxes(boxes);
+  var timer = setInterval(function() { animateBoxes(boxes); }, 10);
+  document.onclick = function() { clearInterval(timer); };
+}
+main();
+</script>
+</body>
+</html>

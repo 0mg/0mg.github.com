@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="rfc3986.js"></script>
+<script>
+  function validate(input) {
+
+    function SyntaxError(srcStr, index, length) {
+
+      var passed = document.createElement("span");
+      passed.className = "passed-string";
+      var passedStr = srcStr.slice(0, index);
+      passed.appendChild(document.createTextNode(passedStr));
+
+      var invalid = document.createElement("strong");
+      invalid.className = "invalid-string";
+      var invalidStr = srcStr.substr(index, length);
+      invalid.appendChild(document.createTextNode(invalidStr));
+
+      var uncheck = document.createElement("em");
+      uncheck.className = "uncheck-string";
+      var uncheckStr = srcStr.slice(index + length);
+      uncheck.appendChild(document.createTextNode(uncheckStr));
+
+      var code = document.createElement("code");
+      code.appendChild(passed);
+      code.appendChild(invalid);
+      code.appendChild(uncheck);
+
+      var error = document.createElement("p");
+      error.className = "error";
+      error.appendChild(code);
+
+      return {
+        valid: false,
+        node: error
+      };
+    }
+
+    function RequireError(srcStr, pLength, reqStr) {
+
+      var passed = document.createElement("span");
+      passed.className = "passed-string";
+      var passedStr = srcStr.slice(0, pLength);
+      passed.appendChild(document.createTextNode(passedStr));
+
+      var uncheck = document.createElement("em");
+      uncheck.className = "uncheck-string";
+      var uncheckStr = srcStr.slice(pLength);
+      uncheck.appendChild(document.createTextNode(uncheckStr));
+
+      var require = document.createElement("strong");
+      require.className = "require-string";
+      require.appendChild(document.createTextNode(reqStr));
+
+      var code = document.createElement("code");
+      code.appendChild(passed);
+      code.appendChild(uncheck);
+      code.appendChild(require);
+
+      var error = document.createElement("p");
+      error.className = "error";
+      error.appendChild(code);
+
+      return {
+        valid: false,
+        node: error
+      };
+    }
+
+    var URIExp = {
+      URI: RegExp("^" + URISyntax.URI),
+      scheme: RegExp("^" + URISyntax.scheme),
+      mightIPLiteral: RegExp("^" + URISyntax.scheme + "://" +
+                             URISyntax.c("?", URISyntax.userInfo + "@") +
+                             "(\\[[^\\]]*\\]?)"),
+      validIPLiteral: RegExp("^" + URISyntax.scheme + "://" +
+                             URISyntax.c("?", URISyntax.userInfo + "@") +
+                             URISyntax.IPLiteral),
+      decOctet: RegExp("^" + URISyntax.decOctet + "$"),
+      mightIPv4address: RegExp("^(" + URISyntax.scheme + "://" +
+                             URISyntax.c("?", URISyntax.userInfo + "@") + ")" +
+                             "(\\d+\\.\\d+\\.\\d+\\.\\d+)(?=$|[:/?#])"),
+      validIPv4address: RegExp("^" + URISyntax.scheme + "://" +
+                             URISyntax.c("?", URISyntax.userInfo + "@") +
+                             URISyntax.IPv4address)
+    };
+
+    var match = URIExp.URI.exec(input);
+    if (match === null) {
+      if (input.indexOf(":") >= 0) {
+        var $0 = (URIExp.scheme.exec(input) || [""])[0];
+        return new SyntaxError(input, $0.length, 1);
+      } else {
+        return new RequireError(input, 0, ":");
+      }
+    } else if (!URIExp.validIPv4address.test(input) &&
+                URIExp.mightIPv4address.test(input)) {
+      var $1 = RegExp.$1;
+      var $2 = RegExp.$2;
+      var index = $1.length;
+      var length = $2.length;
+      var ipv4address = $2.split(".");
+      for (var i = 0; i < 4; ++i) {
+        if (URIExp.decOctet.test(ipv4address[i])) {
+          index += ipv4address[i].length + 1;
+        } else {
+          length = ipv4address[i].length;
+          break;
+        }
+      }
+      return new SyntaxError(input, index, length);
+    } else if (match[0] !== input) {
+      if (!URIExp.validIPLiteral.test(input) &&
+           URIExp.mightIPLiteral.test(input)) {
+        var $1 = RegExp.$1;
+        if (input.indexOf("]") >= 0) {
+          return new SyntaxError(input, match[0].length, $1.length);
+        } else {
+          return new RequireError(input, match[0].length + 1, "]");
+        }
+      } else if (input[match[0].length] === "%") {
+        if (URIExp.URI.exec(match[0] + "%22")[0] === match[0]) {
+          return new SyntaxError(input, match[0].length, 1);
+        } else {
+          return new SyntaxError(input, match[0].length, 3);
+        }
+      } else {
+        return new SyntaxError(input, match[0].length, 1);
+      }
+    } else {
+      var valid = document.createElement("code");
+      valid.className = "valid-string";
+      valid.appendChild(document.createTextNode(input));
+      return {
+        valid: true,
+        node: valid
+      };
+    }
+  }
+
+  function writeResult(result) {
+    var dst = document.getElementById("result");
+    while (dst.hasChildNodes()) dst.removeChild(dst.lastChild);
+    var resultTitle = document.createElement("h2");
+    resultTitle.className = result.valid ? "title-valid" : "title-invalid";
+    resultTitle.appendChild(document.createTextNode(result.valid ?
+                            "It's a Valid URI" : "It's an Invalid URI"));
+    dst.appendChild(resultTitle);
+    dst.appendChild(result.node);
+  }
+
+  window.onload = function() {
+    var form = document.getElementById("form");
+    var src = document.getElementById("src");
+    form.onsubmit = function() {
+      var result = validate(src.value);
+      writeResult(result);
+    };
+  };
+</script>
+<style>
+code {
+  white-space: pre;
+}
+#result {
+  background-color: white;
+  color: black;
+}
+#src {
+  width: 100%;
+  max-width: 100%;
+}
+#form {
+  text-align: center;
+}
+#submit {
+}
+.title-valid,
+.title-invalid {
+  text-align: center;
+}
+.title-valid {
+  background-color: green;
+  color: lime;
+}
+.title-invalid {
+  background-color: red;
+  color: white;
+}
+.invalid-string,
+.require-string {
+  display: inline-block;
+  margin: 0.5ex;
+  font-weight: bold;
+  font-size: x-large;
+}
+.invalid-string {
+  text-decoration: underline;
+  color: red;
+}
+.require-string {
+  padding: 0.5ex;
+  border: 1px dotted;
+}
+.uncheck-string {
+  color: silver;
+  font-style: normal;
+}
+</style>
+<title>URI Validator</title>
+</head>
+<body>
+<h1>URI Validator &beta; (<a href="http://www.ietf.org/rfc/rfc3986.txt">RFC3986</a>)</h1>
+<p>Input string to validate
+<form action="javascript:" id="form"><input id="src" value="http://1.2.333.43"><input id="submit" type="submit"></form>
+<div id="result"></div>
+</body>
+</html>

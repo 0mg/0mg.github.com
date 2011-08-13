@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8"/>
+<title>CANVAS TEST</title>
+<style>
+*{margin:0;padding:0;}
+html{background:silver;}
+canvas{background:white;}
+</style>
+</head>
+<body>
+<canvas id="canvas"/>
+<script>//<![CDATA[[
+var size = 512;
+var dotSize = 16;
+var canvas = document.getElementById("canvas");
+canvas.setAttribute("width", size);
+canvas.setAttribute("height", size);
+var ctx = canvas.getContext("2d");
+function genColor() {
+  function c() { return 255 * (Math.random() * 2 | 0); }
+  return ["#000000",
+          "#808080",
+          "#c0c0c0",
+          "#ffffff",
+          "#800000",
+          "#ff0000",
+          "#808000",
+          "#ffff00",
+          "#008000",
+          "#00ff00",
+          "#008080",
+          "#00ffff",
+          "#000080",
+          "#0000ff",
+          "#800080",
+          "#ff00ff"][Math.random() * 16 | 0];
+  return ["#000000", "#808080", "#c0c0c0", "#ffffff"][Math.random() * 4 | 0];
+  return "rgb(" + [c(), c(), c()] + ")";
+  return "#" + ("00000" + (Math.random() * (0xFFFFFF + 1) | 0).toString(16)).slice(-6);
+}
+for (var i = 0; i < (size / dotSize); ++i) {
+  for (var j = 0; j < (size / dotSize); ++j) {
+    var color = genColor();
+    ctx.fillStyle = color;
+    ctx.fillRect(j * dotSize, i * dotSize, dotSize, dotSize);
+  }
+}
+canvas.addEventListener("click", function() {
+  ctx.rotate(30);
+}, false);
+//]]></script>
+</body>
+</html>

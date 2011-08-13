@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Gravity</title>
+<style type="text/css">
+* {
+    margin: 0;
+    padding: 0;
+}
+body {
+    background-color: black;
+    overflow: hidden;
+}
+p {
+    position: absolute;
+    background-color: aqua;
+    border: 1px solid black;
+    width: 32px;
+    height: 32px;
+}
+</style>
+</head>
+<body>
+<script type="text/javascript">
+(function() {
+    function makeBoxes() {
+        var cap = 180;
+        for (var i = 0; i < 3; ++i) {
+            var p = document.createElement("p");
+            p.style.backgroundColor =
+            "#" +
+            ("00000" + Math.floor(Math.random() * 0x1000000).toString(16)).
+            slice(-6);
+            p.top = Math.floor(Math.random() * cap) + cap;
+            p.left = Math.floor(Math.random() * cap) + cap;
+            p.style.top = p.top + "px";
+            p.style.left = p.left + "px";
+            p.dire = Math.floor(Math.random() * 3 + 1) *
+            [-1, 1][Math.floor(Math.random() * 2)];
+            p.rad = Math.floor(Math.random() * 360);
+            p.roundX = Math.floor(Math.random() * cap);
+            p.roundY = Math.floor(Math.random() * cap);
+            p.style.visibility = "hidden";
+            document.body.appendChild(p);
+        }
+    };
+    function gravBoxes() {
+        for (var p = document.getElementsByTagName("p"), i = 0;
+        i < p.length; ++i) {
+            var b = p[i];
+            b.style.visibility = "visible";
+            b.rad += b.dire;
+            b.rad %= 360;
+            b.style.left =
+            b.left +
+            Math.floor(Math.sin(b.rad * (Math.PI / 180)) * b.roundX) +
+            "px";
+            b.style.top =
+            b.top +
+            Math.floor(Math.cos(b.rad * (Math.PI / 180)) * b.roundY) +
+            "px";
+        }
+    };
+    makeBoxes();
+    var timer = setInterval(gravBoxes, 10);
+    document.onclick = makeBoxes;
+})();
+</script>
+</body>
+</html>

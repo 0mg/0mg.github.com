@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" type="text/css" href="/src/mobile.css">
+<title>Opera マイボタン by 0mg</title>
+</head>
+<body>
+<h1>Opera マイボタン</h1>
+<p>あなたの <a href="http://www.opera.com/">Opera</a> をカスタマイズしましょう
+<h2>コレクション</h2>
+<p>Opera 9 に最適化されています。リンクを選択するかツールバーにドラッグアンドドロップして下さい</p>
+<h3>ON/OFF 系ボタン</h3>
+<ul>
+<li><a href="opera:/button/Enable%20referrer%20logging,,,-744114934,%22Panel%20links%22%7CDisable%20referrer%20logging">リファラー ON/OFF</a>
+<li><a href="opera:/button/Enable%20Cookies,,,-1942617190,%22Panel%20Notes%22%7CDisable%20Cookies">Cookie ON/OFF</a>
+<li><a href="opera:/button/Enable%20javascript,,,-215880732,%22Panel%20Widgets%22%7CDisable%20javascript">JavaScript ON/OFF</a>
+<li><a href="opera:/button/Enable%20GIF%20animation,,,-758196851,%22Panel%20History%22%7CDisable%20GIF%20animation">アニメーション ON/OFF</a>
+<li><a href="opera:/button/Enable%20plugins,,,1851130415,%22Panel%20Bookmarks%22%7CDisable%20plugins">プラグイン ON/OFF</a>
+<li><a href="opera:/button/Work%20offline,,,-455450218,%22Panel%20Contacts%22%7CWork%20online">オフライン作業 ON/OFF</a>
+<li><a href="opera:/button/Lock%20page,,,765050320,%22Pagebar%20Locked%20Button%20Skin%22%7CUnlock%20page">タブの保護 ON/OFF</a>
+</ul>
+<h2>その他</h2>
+<ul>
+<li><a href="http://b.hatena.ne.jp/ray0mg/operabutton/">参考資料</a>
+</ul>
+<script>
+function oSkin() {
+  var buttons =
+  document.evaluate('.//a[starts-with(@href,"opera:/button/")]',
+  document.body, null, 7, null);
+  for (var i = 0; i < buttons.snapshotLength; ++i) {
+    var a = buttons.snapshotItem(i);
+    var args = decodeURI(a.href).split(",");
+    if (args.length > 4) {
+      var skin = args.pop().match(/[^"]+/);
+      var icon = document.createElement("span");
+      icon.style.display = "inline-block";
+      icon.style.width = icon.style.height = "-o-skin";
+      icon.style.backgroundImage = '-o-skin("' + skin + '")';
+      a.insertBefore(icon, a.firstChild);
+    }
+  }
+}
+"opera" in this && oSkin();
+</script>
+</body>
+</html>

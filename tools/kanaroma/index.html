@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Kana Roma Transformer</title>
+<style>
+body {
+  line-height: 1.6;
+}
+dl, dt, dd {
+  margin: 0;
+  padding: 0;
+}
+textarea {
+  width: 95%;
+  height: 10em;
+}
+</style>
+</head>
+<body>
+<dl>
+<dt>ローマ字入力
+<dd><textarea id="src"></textarea>
+<dt>かな入力
+<dd><textarea id="out"></textarea>
+</dl>
+<script>
+var IE = isNaN([,]);
+if (IE) {
+  Array.prototype.forEach = Array.prototype.forEach || function(f) {
+    for (var i = 0; i < this.length; ++i) f(this[i], i, this);
+  };
+  Array.prototype.map = Array.prototype.map || function(f) {
+    for (var i = 0; i < this.length; ++i) this[i] = f(this[i], i, this);
+    return this;
+  };
+}
+var kana = new function() {
+  this.kana2roma = {
+    "ぬ" : "1",
+    "ふ" : "2",
+    "あ" : "3",
+    "う" : "4",
+    "え" : "5",
+    "お" : "6",
+    "や" : "7",
+    "ゆ" : "8",
+    "よ" : "9",
+    "ぁ" : "#",
+    "ぅ" : "$",
+    "ぇ" : "%",
+    "ぉ" : "&",
+    "ゃ" : "'",
+    "ゅ" : "(",
+    "ょ" : ")",
+    "わ" : "0",
+    "ほ" : "-",
+    "へ" : "^",
+    "ー" : "|",
+    "た" : "q",
+    "て" : "w",
+    "い" : "e",
+    "ぃ" : "E",
+    "す" : "r",
+    "か" : "t",
+    "ん" : "y",
+    "な" : "u",
+    "に" : "i",
+    "ら" : "o",
+    "せ" : "p",
+    "゛" : "@",
+    "゜" : "[",
+    "ち" : "a",
+    "と" : "s",
+    "し" : "d",
+    "は" : "f",
+    "き" : "g",
+    "く" : "h",
+    "ま" : "j",
+    "の" : "k",
+    "り" : "l",
+    "れ" : ";",
+    "け" : ":",
+    "む" : "]",
+    "つ" : "z",
+    "っ" : "Z",
+    "さ" : "x",
+    "そ" : "c",
+    "ひ" : "v",
+    "こ" : "b",
+    "み" : "n",
+    "も" : "m",
+    "ね" : ",",
+    "る" : ".",
+    "め" : "/",
+    "ろ" : "_",
+    "「" : "{",
+    "」" : "}",
+    "、" : "<",
+    "。" : ">",
+    "・" : "?",
+    "　" : " "
+  };
+
+  this.roma2kana = (function(kana2roma) {
+    var map = {};
+    for (var c in kana2roma) map[kana2roma[c]] = c;
+    (function() {
+      this["\\"] = this["_"];
+      this["!"] = this["1"];
+      this['"'] = this["2"];
+      this["="] = this["-"];
+      this["~"] = this["^"];
+      this["`"] = this["@"];
+      this["+"] = this[";"];
+      this["*"] = this[":"];
+    }).call(map);
+    return map;
+  })(this.kana2roma);
+
+  this.encodeKana = function(s) {
+    var it = this;
+    return s.replace(/[^\r\n]/g, function(c) {
+      return it.roma2kana[c] || it.roma2kana[c.toLowerCase()] || "■";
+    });
+  };
+
+  this.decodeKana = function(s) {
+    var it = this;
+    return s.replace(/[^\r\n]/g, function(c) {
+      if ("がぎぐげござじずぜぞだぢづでどばびぶべぼ".indexOf(c) > -1) {
+        c = String.fromCharCode(c.charCodeAt(0) - 1) + "゛";
+      } else if ("ぱぴぷぺぽ".indexOf(c) > -1) {
+        c = String.fromCharCode(c.charCodeAt(0) - 2) + "゜";
+      }
+      return c;
+    }).replace(/[^\r\n]/g, function(c) {
+      return it.kana2roma[c] || "█";
+    });
+  };
+};
+
+var src = document.getElementById("src");
+var out = document.getElementById("out");
+
+src.onkeyup = function(v) {
+  out.value = kana.encodeKana(this.value);
+};
+out.onkeyup = function(v) {
+  src.value = kana.decodeKana(this.value);
+};
+
+</script>
+</body>
+</html>

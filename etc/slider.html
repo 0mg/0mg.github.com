@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Slider</title>
+</head>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+}
+html {
+  position: relative;
+  background: black;
+}
+body {
+  background: silver;
+  margin: 5em;
+  padding: 2em;
+}
+.sliderbar {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background-color: white;
+  width: 32px;
+  height: 32px;
+  display: inline-block;
+}
+</style>
+<body>
+<div style="background-color:aqua;position:relative;margin:50px;height:32px">Draggable Icon:<input type="button" class="sliderbar" id="color_R_sliderbar">
+</div>
+<div id="debug" style="font-size: 12px"> </div>
+<script>
+var slider = document.getElementById("color_R_sliderbar");
+var sliders = [
+  slider
+];
+sliders.forEach(function(slider) {
+  slider.addEventListener("mousedown", function(e) {
+    var slider = e.target;
+    var x = e.offsetX;
+    var y = e.offsetY;
+    function drag(e) {
+      if (slider.parentNode !== document.body) document.body.appendChild(slider);
+      slider.style.position = "absolute";
+      slider.style.left = e.pageX - x + "px";
+    }
+    slider.style.top = e.pageY - y + "px";
+    addEventListener("mousemove", drag, true);
+    addEventListener("mouseup", function(e) {
+      removeEventListener("mousemove", drag, true);
+    }, false);
+  }, false);
+});
+function debug(e) {
+  var c = [];
+  for (var i in e) c.push("<b>" + i + "</b> : " + e[i]);
+  document.getElementById("debug").innerHTML = c.sort().join("<br>");
+}
+</script>
+</body>
+</html>

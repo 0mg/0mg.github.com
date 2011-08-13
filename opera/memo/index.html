@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" type="text/css" href="/src/mobile.css">
+<title>Opera メモ @0mg</title>
+</head>
+<body>
+<h1>Opera メモ</h1>
+<p>Web ブラウザ Opera に関する技術的なメモ
+<h2>古いバージョンの Flash Player を使う</h2>
+<p><strong>このメモは Windows 版の Opera 9.64 および Flash Player 10.0 と 10.3 向けに書かれています。別の環境でも通用するかどうかは不明です。</strong>
+<p>Firefox と Chrome では Flash Player 10.3 を使い、Opera では Flash Player 10.0 を使う、というふうに、別バージョンの Flash Player を共存させ、使い分けたい時がある。そのためにはどうすればいいか。
+<p>まず、基礎知識。
+<h3>プラグインの読み込まれ方</h3>
+<p>Opera はプラグインの dll を複数箇所から読み込んでいる。
+<ul>
+<li>レジストリ: HKLM\SOFTWARE\MozillaPlugins に記されているパス
+<li>レジストリ: HKCU\SOFTWARE\MozillaPlugins に記されているパス
+<li>フォルダ: Opera(*1)\program\plugins
+</ul>
+<p>(*1) Opera をインストールしたフォルダ
+<p>.dll の拡張子を持つファイルのみがプラグインと見なされ、読み込まれる。
+<h3>DLL の衝突</h3>
+<p>例えば、HKLM\SOFTWARE\MozillaPlugins に C:\NPSWF32.dll と書かれていて、C:\Opera\program\plugins にも NPSWF32.dll があったとする。この場合、二箇所から NPSWF32.dll が読み込まれるわけだが、「ファイルバージョン」が高い方が優先的に読み込まれる。
+<p>「ファイルバージョン」は、DLL のバイナリに含まれている。 NPSWF32.dll のファイルのプロパティを開くと、[バージョン情報] タブに表示される。
+<p>ファイル名は重要でない。Opera\program\plugins\hoge.dll の中身が Flash Player ならば、Opera は、それを Flash Player のプラグインファイルだと認識する。
+<h3>共存実現の手順</h3>
+<ol>
+<li>まず Flash 10.0 の NPSWF32.dll を SWF10.dll などに改名し、どこかに置いておく。
+<li>次に、Flash 10.3 をインストールする。これで、Firefox, Chrome, Opera などおそらく全てのブラウザが Flash Player 10.3 をプラグインとして使うようになる。
+<li>SWF10.dll のファイルバージョンを変更する。これには Resource Hacker などを使う。 10.3 よりも大きな数値たとえば 99.9 とでもしておこう。
+<li>ファイルバージョンを変更した SWF10.dll を Opera\program\plugins\ に置く。これで Opera だけが Flash Player 10.0 を使うようになる。
+</ol>
+</body>
+</html>

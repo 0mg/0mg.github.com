@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<style>
+* {
+  margin: 0;
+  padding: 0;
+}
+body {
+  padding-right: 1ex;
+}
+dt {
+  font-weight: bold;
+}
+textarea {
+  width: 100%;
+  height: 12em;
+  padding: 2px;
+  word-wrap: break-word;
+}
+</style>
+<script>
+window.onload = function() {
+
+  var srcE = document.getElementById("src");
+  var src = 'document.getElementById("src").value';
+  var dst = 'document.getElementById("dst").lastChild.nodeValue';
+
+  function evalSrc() {
+    var E = "E" + (+new Date);
+    location.href = 'javascript:' +
+                    'try{throw(String(eval(' + src + ')))}' +
+                    'catch(' + E + '){void(' + dst + '=' + E + ')}';
+  }
+
+  var EVAL_TRIGGER_KEYCODE = 13;
+
+  try {
+
+    srcE.addEventListener("keypress", function(event) {
+      if (event.keyCode === EVAL_TRIGGER_KEYCODE) {
+        event.preventDefault();
+        evalSrc();
+      }
+    }, false);
+
+  } catch(IE) {
+
+    srcE.attachEvent("onkeypress", function(event) {
+      if (event.keyCode === EVAL_TRIGGER_KEYCODE) {
+        evalSrc();
+        return false;
+      }
+    });
+
+  }
+
+};
+</script>
+<title>JavaScript Evaluater</title>
+<dl>
+  <dt>JavaScript</dt>
+  <dd><textarea id="src"></textarea></dd>
+  <dt>Result</dt>
+  <dd><pre id="dst"> </pre></dd>
+</dl>

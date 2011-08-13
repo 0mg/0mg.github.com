@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>素数の分布</title>
+<meta charset="Shift_JIS" />
+<style type="text/css">
+body {
+	font-size: 8px;
+	font-family: monospace;
+}
+span {
+	display: inline-block;
+	width: 16px;
+}
+</style>
+</head>
+<body>
+<script type="text/javascript">
+(function(d) {
+	for (var p = d.createElement("p"), i = 2; i <= 9999; ++i) {
+    	for (var j = 2; j < i && i % j; ++j);
+	    var s = d.createElement("span");
+	    s.appendChild(d.createTextNode(i === j ? "■" : i));
+	    p.appendChild(s);
+	    p.appendChild(d.createTextNode(" "));
+	}
+	d.body.appendChild(p);
+})(document);
+</script>
+</body>
+</html>

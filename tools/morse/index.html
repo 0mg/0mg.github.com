@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Morse Translator</title>
+<style>
+body {
+	line-height: 1.6;
+}
+dl, dt, dd {
+	margin: 0;
+	padding: 0;
+}
+textarea {
+	width: 95%;
+	height: 10em;
+}
+</style>
+</head>
+<body>
+<dl>
+<dt>Alphabets and Numbers
+<dd><textarea id="src"></textarea>
+<dt>Morse Code
+<dd><textarea id="out"></textarea>
+</dl>
+<script>
+if (!Array.prototype.forEach) {
+	Array.prototype.forEach = function(f) {
+		for (var i = 0, l = this.length; i < l; ++i) f(this[i], i, this);
+	};
+}
+if (!Array.prototype.map) {
+	Array.prototype.map = function(f) {
+		for (var i = 0, l = this.length; i < l; ++i) this[i] = f(this[i], i, this);
+		return this;
+	};
+}
+
+var morse = new function() {
+	var str2morse = {
+		"0" : "-----",
+		"1" : ".----",
+		"2" : "..---",
+		"3" : "...--",
+		"4" : "....-",
+		"5" : ".....",
+		"6" : "-....",
+		"7" : "--...",
+		"8" : "---..",
+		"9" : "----.",
+		"a" : ".-",
+		"b" : "-...",
+		"c" : "-.-.",
+		"d" : "-..",
+		"e" : ".",
+		"f" : "..-.",
+		"g" : "--.",
+		"h" : "....",
+		"i" : "..",
+		"j" : ".---",
+		"k" : "-.-",
+		"l" : ".-..",
+		"m" : "--",
+		"n" : "-.",
+		"o" : "---",
+		"p" : ".--.",
+		"q" : "--.-",
+		"r" : ".-.",
+		"s" : "...",
+		"t" : "-",
+		"u" : "..-",
+		"v" : "...-",
+		"w" : ".--",
+		"x" : "-..-",
+		"y" : "-.--",
+		"z" : "--..",
+		"." : ".-.-.-",
+		"," : "--..--",
+		"?" : "..--..",
+		"/" : "-..-.",
+		"@" : ".--.-."
+	};
+	str2morse[" "] = "";
+
+	var morse2str = {};
+	for (var str_c in str2morse) morse2str[str2morse[str_c]] = str_c;
+
+	morse2str["-...-"] = "<BT>";
+	morse2str["........"] = "<HH>";
+
+	function normalizeCrlf(string) {
+		return string.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+	}
+
+	var encodeMorse = function(str) {
+		return normalizeCrlf(str).split("\n").map(function(line) {
+			return line && line.split("").map(function(str_c) {
+				var mor_c = str2morse[str_c] || str2morse[str_c.toLowerCase()];
+				return typeof mor_c === "string" ? mor_c : "█";
+			}).join(" ");
+		}).join("\n");
+	};
+
+	var decodeMorse = function(mor) {
+		return normalizeCrlf(mor).split("\n").map(function(line) {
+			return line && line.split(" ").map(function(mor_c) {
+				var str_c = morse2str[mor_c];
+				return typeof str_c === "string" ? str_c : "█";
+			}).join("");
+		}).join("\n");
+	};
+
+	this.str2morse = str2morse;
+	this.morse2str = morse2str;
+	this.encodeMorse = encodeMorse;
+	this.decodeMorse = decodeMorse;
+};
+
+var src = document.getElementById("src");
+var out = document.getElementById("out");
+
+src.onkeyup = function() {
+	out.value = morse.encodeMorse(this.value);
+};
+out.onkeyup = function() {
+	src.value = morse.decodeMorse(this.value);
+};
+
+</script>
+</body>
+</html>

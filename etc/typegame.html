@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Typing Game</title>
+<style type="text/css">
+body {
+    background-color: black;
+}
+h1 {
+    text-align: center;
+    font-size: 10em;
+    color: white;
+    text-shadow: 0 0 32px blue;
+}
+</style>
+<script type="text/javascript">
+window.addEventListener("DOMContentLoaded", function() {
+    function buildGame() {
+        var h1 = document.createElement("h1");
+        h1.id = "targetWord";
+        h1.appendChild(document.createTextNode(""));
+        document.body.appendChild(h1);
+    };
+    function startGame(target) {
+        target.firstChild.nodeValue = strGen();
+    };
+    function strGen() {
+        var newchar = "";
+        while (newchar.length < 8) {
+            newchar += String.fromCharCode(97 + Math.random() * 26); 
+        }
+        return newchar;
+    };
+    buildGame();
+    var target = document.getElementById("targetWord");
+    window.addEventListener("keyup", function(v) {
+        if (v.keyCode + 32 === target.firstChild.nodeValue.charCodeAt(0)) {
+            target.firstChild.nodeValue =
+            target.firstChild.nodeValue.replace(/./, "");
+        } else {
+        }
+        if (target.firstChild.nodeValue === "") {
+            target.firstChild.nodeValue = strGen();
+        }
+    }, false);
+    startGame(target);
+}, false);
+</script>
+</head>
+<body></body>
+</html>

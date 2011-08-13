@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<html><head><title>Twitter API メモ</title></head><body>
+<dl>
+<dt>HTTPS BASIC 認証? + JSONP でタイムラインを取得する
+<dd>var s=document.createElement("script");s.type="text/javascript"; s.src="https://api.twitter.com/1/statuses/home_timeline.json?callback=F&count=20&dummy="+-new Date; document.body.replaceChild(s,document.body.lastChild); F=function(x){for(var i=0,c="";x[i];++i)c+=x[i].user.screen_name+" > "+x[i].text+"\n";alert(c)};
+<dt>Firefox 限定 chirp_preview
+<dd>t=twttr.anywhere; t.config({assetHost:"twitter-anywhere.s3.amazonaws.com"}); t(function(T){if(T.isConnected())T.User.current().homeTimeline(function(x){for(var i=0,c="",t=x.array;t[i];++i)c+=t[i].user.screenName+" > "+t[i].text+"\n";alert(c)}); else T("#output").connectButton()});
+</dl></body></html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Unicode Table</title>
+<style type="text/css">
+body{
+    background-color: purple;
+    color: white;
+}
+table {
+    border-collapse: collapse;
+}
+td, th {
+    background-color: black;
+    color: white;
+    font-size: 3ex;
+    line-height: 1;
+    width: 1em;
+    text-align: center;
+    border: 1px solid silver;
+}
+th {
+    background-color: gray;
+    color: white;
+}
+</style>
+</head><body><script type="text/javascript">
+function drawUnicode(base) {
+    for (var i = 0; i < 256; ++i) {
+        document.getElementsByTagName("td")[i].firstChild.nodeValue =
+        String.fromCharCode((256 * base) + i);
+    }
+};
+function createTable() {
+    function createControl() {
+        var select = document.createElement("select");
+        for (var i = 0; i < 256; ++i) {
+            var option = document.createElement("option");
+            option.value = i;
+            option.appendChild(document.createTextNode(
+                ("0" + i.toString(16)).slice(-2).toUpperCase()
+            ));
+            select.appendChild(option);
+        }
+        select.getElementsByTagName("option")[0].selected = "selected";
+        select.onchange = function() { drawUnicode(this.value); };
+        return select;
+    };
+    var table = document.createElement("table");
+    var tbody = document.createElement("tbody");
+    var caption = document.createElement("caption");
+    for (var col = 0; col < 17; ++col) {
+        var tr = document.createElement("tr");
+        for (var row = 0; row < 17; ++row) {
+            var cell = document.createElement(col && row ? "td" : "th");
+            if (col || row) {
+                cell.appendChild(document.createTextNode(
+                    ((col || row) - 1).toString(16).toUpperCase()
+                ));
+            }
+            tr.appendChild(cell);
+        }
+        tbody.appendChild(tr);
+    }
+    caption.appendChild(document.createTextNode("Unicode Table: 0x"));
+    caption.appendChild(createControl());
+    table.appendChild(caption);
+    table.appendChild(tbody);
+    return table;
+};
+document.body.appendChild(createTable());
+drawUnicode(0);
+document.getElementsByTagName("select")[0].focus();
+</script></body></html>

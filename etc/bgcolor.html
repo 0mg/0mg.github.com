@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Rainbow Tile</title>
+<style type="text/css">
+* {
+    margin: 0;
+    padding: 0;
+}
+p {
+    position: relative;
+    float: left;
+    background-color: aqua;
+}
+</style>
+</head>
+<body>
+<script type="text/javascript">
+var ie = "\v" === "v";
+function makeBoxes() {
+    for (var i = 0; i < 100; ++i) {
+        var p = document.createElement("p");
+        document.body.appendChild(p);
+    }
+};
+function fireBoxes() {
+    for (var p = document.getElementsByTagName("p"), i = 0; i < p.length; ++i) {
+        var boxWidth = 48;
+        var boxHeight = boxWidth;
+        var m = Math.random() * 256 ^ 0;
+        var rgb = [
+            [m, 255, 0],
+            [m, 0, 255],
+            [255, m, 0],
+            [255, 0, m],
+            [0, 255, m],
+            [0, m, 255]
+        ][Math.random() * 6 ^ 0].join(",");
+        p[i].style.width = boxWidth + "px";
+        p[i].style.height = boxHeight + "px";
+        p[i].style.backgroundColor = "rgb(" + rgb + ")";
+    }
+    function shiftColor() {
+        for (var p = document.getElementsByTagName("p"), i = 0; i < p.length;
+        ++i) {
+            var c =
+            getComputedStyle(p[i],"").backgroundColor;
+            c =
+            c.indexOf("rgb") > -1 ?
+            c.match(/\d+/g).map(function(x) { return parseInt(x) }) :
+            c.match(/[^#]{2}/g).map(function(x) {
+                return parseInt(x, 16);
+            });
+            var u = 15;
+            if (c[0] >= 255 && c[1] < 255 && !c[2]) {
+                c[1] += u;
+            } else if (c[0] > 0 && c[1] >= 255 && !c[2]) {
+                c[0] += -u;
+            } else if (!c[0] && c[1] >= 255 && c[2] < 255) {
+                c[2] += u;
+            } else if (!c[0] && c[1] > 0 && c[2] >= 255) {
+                c[1] += -u;
+            } else if (c[0] < 255 && !c[1] && c[2] >= 255) {
+                c[0] += u;
+            } else if (c[0] >= 255 && !c[1] && c[2] > 0) {
+                c[2] += -u;
+            }
+            c = c.map(function(x) {
+                return x < 0 ? 0 : x > 255 ? 255 : x;
+            });
+            p[i].style.backgroundColor = "rgb(" + c.join(",") + ")";
+        }
+    };
+    setInterval(shiftColor, 10);
+};
+makeBoxes();
+fireBoxes();
+</script>
+</body>
+</html>
