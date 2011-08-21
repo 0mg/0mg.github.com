@@ -2,12 +2,8 @@
 html {
   display: block;
   margin: 0 auto;
-  width: 100%;
   max-width: 40em;
-  background-color: #fff;
-  background-image: url("../img/skygrad.png");
-  background-repeat: repeat-x;
-  background-attachment: fixed;
+  background: #fff  url("../img/skygrad.png") repeat-x fixed;
 }
 body {
   margin: 3ex;
@@ -19,15 +15,16 @@ h1, h2, h3, h4, h5, h6 {
   font-family: serif;
   background-color: #f0f0f0;
   padding: 0 1ex;
+  border-left: 1ex solid;
 }
 h1, h4 {
-  border-left: 1ex solid #e88;
+  border-color: #e88;
 }
 h2, h5 {
-  border-left: 1ex solid #8c8;
+  border-color: #8c8;
 }
 h3, h6 {
-  border-left: 1ex solid #a8c;
+  border-color: #a8c;
 }
 dt {
   font-weight: bold;
