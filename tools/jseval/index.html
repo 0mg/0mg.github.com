@@ -1,6 +1,8 @@
 <!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
 <meta charset="utf-8" />
-<style>
+<style>/*<![CDATA[*/
 * {
   margin: 0;
   padding: 0;
@@ -17,8 +19,8 @@ textarea {
   padding: 2px;
   word-wrap: break-word;
 }
-</style>
-<script>
+/*]]>*/</style>
+<script>//<![CDATA[
 window.onload = function() {
 
   var srcE = document.getElementById("src");
@@ -55,11 +57,15 @@ window.onload = function() {
   }
 
 };
-</script>
+//]]></script>
 <title>JavaScript Evaluater</title>
+</head>
+<body>
 <dl>
   <dt>JavaScript</dt>
   <dd><textarea id="src"></textarea></dd>
   <dt>Result</dt>
   <dd><pre id="dst"> </pre></dd>
 </dl>
+</body>
+</html>

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <title>Morse Translator</title>
-<style>
+<style>/*<![CDATA[*/
 body {
 	line-height: 1.6;
 }
@@ -15,16 +15,16 @@ textarea {
 	width: 95%;
 	height: 10em;
 }
-</style>
+/*]]>*/</style>
 </head>
 <body>
 <dl>
-<dt>Alphabets and Numbers
-<dd><textarea id="src"></textarea>
-<dt>Morse Code
-<dd><textarea id="out"></textarea>
+<dt>Alphabets and Numbers</dt>
+<dd><textarea id="src"></textarea></dd>
+<dt>Morse Code</dt>
+<dd><textarea id="out"></textarea></dd>
 </dl>
-<script>
+<script>//<![CDATA[
 if (!Array.prototype.forEach) {
 	Array.prototype.forEach = function(f) {
 		for (var i = 0, l = this.length; i < l; ++i) f(this[i], i, this);
@@ -127,6 +127,6 @@ out.onkeyup = function() {
 	src.value = morse.decodeMorse(this.value);
 };
 
-</script>
+//]]></script>
 </body>
 </html>

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="UTF-8" />
     <title>JavaScript Object Tree</title>
-    <style type="text/css">
+    <style type="text/css">/*<![CDATA[*/
     * {
       margin: 0;
       padding: 0;
@@ -48,11 +48,11 @@
     .type.boolean + .value {
       color: #99ff66;
     }
-    </style>
+    //]]></style>
   </head>
   <body>
     <div class="properties" id="root"></div>
-    <script type="text/javascript">
+    <script type="text/javascript">//<![CDATA[
 (function() {
   var IE = "\v" === "v";
   if (IE) {
@@ -179,6 +179,6 @@
   }));
   document.links[0] && onNameClick({"target" : document.links[0]});
 })();
-    </script>
+    //]]></script>
   </body>
 </html>

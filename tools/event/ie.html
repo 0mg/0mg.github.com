@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <title>DOM Event Monitor</title>
-<style>
+<style>/*<![CDATA[*/
 * {
   margin: 0;
   padding: 0;
@@ -22,17 +22,17 @@ dt {
 .side {
   border-left: solid;
 }
-</style>
+/*]]>*/</style>
 </head>
 <body>
 <div class="main" id="event-properties"></div>
 <div class="side" id="event-type-log"></div>
-<script>
+<script>//<![CDATA[
 window.addEventListener = window.addEventListener || function() {
   document.attachEvent("on" + arguments[0], arguments[1]);
 };
-</script>
-<script>
+//]]></script>
+<script>//<![CDATA[
 var eventlog = [];
 function onEvent(event) {
   var props = "<dl>";
@@ -64,6 +64,6 @@ var eventList =
 for (var i = 0; i < eventList.length; ++i) {
   window.addEventListener(eventList[i], onEvent, false);
 }
-</script>
+//]]></script>
 </body>
 </html>

@@ -1,199 +1,199 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8" />
-        <title>JavaScript Object Tree</title>
-        <style type="text/css">
-        * {
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            background-color: black;
-            color: white;
-            line-height: 1.6;
-            margin: 1ex;
-            font-family: monospace;
-        }
-        a {
-            color: #99ff00;
-        }
-        li {
-            list-style: none;
-        }
-        .property {
-            background-color: #000080;
-            border: 1px solid #0000ff;
-            margin: 1ex 0;
-            padding: 1ex;
-        }
-        .type {
-            float: left;
-            margin-right: 1ex;
-            color: violet;
-        }
-        .value {
-            float: left;
-            color: #ddd;
-        }
-        .value + * {
-            clear: both;
-        }
-        .information > *:after {
-            content: ".";
-            display: block;
-            visibility: hidden;
-            height: 0;
-            clear: both;
-        }
-        .name {
-            font-size: larger;
-            font-weight: bold;
-        }
-        .value.string:before,
-        .value.string:after {
-            content: '"';
-        }
-        </style>
-    </head>
-    <body>
-        <script type="text/javascript">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="UTF-8" />
+    <title>JavaScript Object Tree</title>
+    <style type="text/css">/*<![CDATA[*/
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: black;
+      color: white;
+      line-height: 1.6;
+      margin: 1ex;
+      font-family: monospace;
+    }
+    a {
+      color: #99ff00;
+    }
+    li {
+      list-style: none;
+    }
+    .property {
+      background-color: #000080;
+      border: 1px solid #0000ff;
+      margin: 1ex 0;
+      padding: 1ex;
+    }
+    .type {
+      float: left;
+      margin-right: 1ex;
+      color: violet;
+    }
+    .value {
+      float: left;
+      color: #ddd;
+    }
+    .value + * {
+      clear: both;
+    }
+    .information > *:after {
+      content: ".";
+      display: block;
+      visibility: hidden;
+      height: 0;
+      clear: both;
+    }
+    .name {
+      font-size: larger;
+      font-weight: bold;
+    }
+    .value.string:before,
+    .value.string:after {
+      content: '"';
+    }
+    /*]]>*/</style>
+  </head>
+  <body>
+    <script type="text/javascript">//<![CDATA[
 (function() {
-    var ie = "\v" === "v";
-    function getProps(obj) {
-        if (obj !== null) {
-            var props = [];
-            for (var p in obj) {
-                // オブジェクトの持つプロパティを配列に格納
-                // try catch は読み取り禁止エラー対策
-                try {
-                    String(obj[p]); // 読み取り禁止ならここでエラー
-                    props.push(p);
-                } catch(e) {}
-            }
-            if (ie) {
-                return (function(props, obj) {
-                    // 配列をオブジェクトに変換
-                    for (var i = 0; i < props.length; i++) {
-                        props[i] = {
-                            "name": props[i],
-                            "type": typeof obj[props[i]],
-                            "value": obj[props[i]]
-                        };
-                    }
-                    return props;
-                })(props, obj);
-            }
-            props = (function(props) {
-                var num = [], al = [];
-                props.forEach(function(a) {
-                    (isNaN(parseInt(a)) ? al : num).push(a);
-                });
-                num.sort(function(a,b) { return a - b; });
-                al.sort();
-                return num.concat(al);
-            })(props);
-            return props.map(function(a) {
-                // 配列をオブジェクトに変換
-                return {
-                    "name": a,
-                    "type": typeof obj[a],
-                    "value": obj[a]
-                };
-            });
-        }
-    };
-    function toHTML(props) {
-        //
-        //  オブジェクトを HTML の要素に変換
-        //
-        var ol = document.createElement("ol");
-        ol.className = "properties";
-        for (var i = 0; i < props.length; i++) {
-            // HTML の要素をつくる
-            var li = document.createElement("li");
-            var dl = document.createElement("dl");
-            var dt = document.createElement("dt");
-            var dd = document.createElement("dd");
-            var ol_b = document.createElement("ul");
-            var li_b = document.createElement("li");
-            var li2_b = document.createElement("li");
-            li.className = "property";
-            dl.className = "property_";
-            dt.className = "name";
-            dd.className = "information";
-            ol_b.className = "information_";
-            li_b.className = "type";
-            li2_b.className = "value";
-            li2_b.className += props[i].type === "string" ? " string" : "";
-            var prop_has_props = (function(prop) {
-                // プロパティを持っているかどうか
-                if (prop !== null) try {
-                    for (var p in prop) return true;
-                } catch(e) {}
-                return false;
-            })(props[i].value);
-            if (prop_has_props) {
-                // プロパティを持っているならリンクにする
-                var a = document.createElement("a");
-                a.href = "javascript:void(0)//";
-                a.prop_value = props[i].value;
-                if (ie) {
-                    a.attachEvent("onclick", function() {
-                        // リンク選択時サブツリーを生成
-                        var a = event.srcElement;
-                        if (!a.is_showing_tree) {
-                            var li = document.createElement("li");
-                            var ol = a.parentNode.nextSibling.firstChild;
-                            ol.appendChild(li);
-                            li.appendChild(treeFrom(a.prop_value));
-                            a.is_showing_tree = true;
-                            a.tree = li;
-                        } else {
-                            a.tree.parentNode.removeChild(a.tree);
-                            a.is_showing_tree = false;
-                        }
-                    }, false);
-                } else {
-                    a.addEventListener("click", function(v) {
-                        // リンク選択時サブツリーを生成
-                        var a = v.target;
-                        if (!a.is_showing_tree) {
-                            var li = document.createElement("li");
-                            var ol = a.parentNode.nextSibling.firstChild;
-                            ol.appendChild(li);
-                            li.appendChild(treeFrom(a.prop_value));
-                            a.is_showing_tree = true;
-                            a.tree = li;
-                        } else {
-                            a.tree.parentNode.removeChild(a.tree);
-                            a.is_showing_tree = false;
-                        }
-                    }, false);
-                }
-                a.appendChild(document.createTextNode(props[i].name));
-                dt.appendChild(a);
+  var ie = "\v" === "v";
+  function getProps(obj) {
+    if (obj !== null) {
+      var props = [];
+      for (var p in obj) {
+        // オブジェクトの持つプロパティを配列に格納
+        // try catch は読み取り禁止エラー対策
+        try {
+          String(obj[p]); // 読み取り禁止ならここでエラー
+          props.push(p);
+        } catch(e) {}
+      }
+      if (ie) {
+        return (function(props, obj) {
+          // 配列をオブジェクトに変換
+          for (var i = 0; i < props.length; i++) {
+            props[i] = {
+              "name": props[i],
+              "type": typeof obj[props[i]],
+              "value": obj[props[i]]
+            };
+          }
+          return props;
+        })(props, obj);
+      }
+      props = (function(props) {
+        var num = [], al = [];
+        props.forEach(function(a) {
+          (isNaN(parseInt(a)) ? al : num).push(a);
+        });
+        num.sort(function(a,b) { return a - b; });
+        al.sort();
+        return num.concat(al);
+      })(props);
+      return props.map(function(a) {
+        // 配列をオブジェクトに変換
+        return {
+          "name": a,
+          "type": typeof obj[a],
+          "value": obj[a]
+        };
+      });
+    }
+  };
+  function toHTML(props) {
+    //
+    //  オブジェクトを HTML の要素に変換
+    //
+    var ol = document.createElement("ol");
+    ol.className = "properties";
+    for (var i = 0; i < props.length; i++) {
+      // HTML の要素をつくる
+      var li = document.createElement("li");
+      var dl = document.createElement("dl");
+      var dt = document.createElement("dt");
+      var dd = document.createElement("dd");
+      var ol_b = document.createElement("ul");
+      var li_b = document.createElement("li");
+      var li2_b = document.createElement("li");
+      li.className = "property";
+      dl.className = "property_";
+      dt.className = "name";
+      dd.className = "information";
+      ol_b.className = "information_";
+      li_b.className = "type";
+      li2_b.className = "value";
+      li2_b.className += props[i].type === "string" ? " string" : "";
+      var prop_has_props = (function(prop) {
+        // プロパティを持っているかどうか
+        if (prop !== null) try {
+          for (var p in prop) return true;
+        } catch(e) {}
+        return false;
+      })(props[i].value);
+      if (prop_has_props) {
+        // プロパティを持っているならリンクにする
+        var a = document.createElement("a");
+        a.href = "javascript:void(0)//";
+        a.prop_value = props[i].value;
+        if (ie) {
+          a.attachEvent("onclick", function() {
+            // リンク選択時サブツリーを生成
+            var a = event.srcElement;
+            if (!a.is_showing_tree) {
+              var li = document.createElement("li");
+              var ol = a.parentNode.nextSibling.firstChild;
+              ol.appendChild(li);
+              li.appendChild(treeFrom(a.prop_value));
+              a.is_showing_tree = true;
+              a.tree = li;
             } else {
-                dt.appendChild(document.createTextNode(props[i].name));
+              a.tree.parentNode.removeChild(a.tree);
+              a.is_showing_tree = false;
             }
-            li_b.appendChild(document.createTextNode(props[i].type));
-            li2_b.appendChild(document.createTextNode(props[i].value));
-            ol_b.appendChild(li_b);
-            ol_b.appendChild(li2_b);
-            dd.appendChild(ol_b);
-            dl.appendChild(dt);
-            dl.appendChild(dd);
-            li.appendChild(dl);
-            ol.appendChild(li);
+          }, false);
+        } else {
+          a.addEventListener("click", function(v) {
+            // リンク選択時サブツリーを生成
+            var a = v.target;
+            if (!a.is_showing_tree) {
+              var li = document.createElement("li");
+              var ol = a.parentNode.nextSibling.firstChild;
+              ol.appendChild(li);
+              li.appendChild(treeFrom(a.prop_value));
+              a.is_showing_tree = true;
+              a.tree = li;
+            } else {
+              a.tree.parentNode.removeChild(a.tree);
+              a.is_showing_tree = false;
+            }
+          }, false);
         }
-        return ol;
-    };
-    function treeFrom(obj) {
-        // ツリーを生成して Document に Append する
-        if (obj !== null) return toHTML(getProps(obj));
-    };
-    document.body.appendChild(treeFrom(window));
+        a.appendChild(document.createTextNode(props[i].name));
+        dt.appendChild(a);
+      } else {
+        dt.appendChild(document.createTextNode(props[i].name));
+      }
+      li_b.appendChild(document.createTextNode(props[i].type));
+      li2_b.appendChild(document.createTextNode(props[i].value));
+      ol_b.appendChild(li_b);
+      ol_b.appendChild(li2_b);
+      dd.appendChild(ol_b);
+      dl.appendChild(dt);
+      dl.appendChild(dd);
+      li.appendChild(dl);
+      ol.appendChild(li);
+    }
+    return ol;
+  };
+  function treeFrom(obj) {
+    // ツリーを生成して Document に Append する
+    if (obj !== null) return toHTML(getProps(obj));
+  };
+  document.body.appendChild(treeFrom(window));
 })();
-        </script>
-    </body>
+    //]]></script>
+  </body>
 </html>

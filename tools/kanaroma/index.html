@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <title>Kana Roma Transformer</title>
-<style>
+<style>/*<![CDATA[*/
 body {
   line-height: 1.6;
 }
@@ -15,16 +15,16 @@ textarea {
   width: 95%;
   height: 10em;
 }
-</style>
+/*]]>*/</style>
 </head>
 <body>
 <dl>
-<dt>ローマ字入力
-<dd><textarea id="src"></textarea>
-<dt>かな入力
-<dd><textarea id="out"></textarea>
+<dt>ローマ字入力</dt>
+<dd><textarea id="src"></textarea></dd>
+<dt>かな入力</dt>
+<dd><textarea id="out"></textarea></dd>
 </dl>
-<script>
+<script>//<![CDATA[
 var IE = isNaN([,]);
 if (IE) {
   Array.prototype.forEach = Array.prototype.forEach || function(f) {
@@ -150,6 +150,6 @@ out.onkeyup = function(v) {
   src.value = kana.decodeKana(this.value);
 };
 
-</script>
+//]]></script>
 </body>
 </html>

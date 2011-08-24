@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta charset="utf-8" />
 <title>Unicode Table</title>
-<style type="text/css">
+<style>/*<![CDATA[*/
 body{
     background-color: purple;
     color: white;
@@ -24,8 +24,8 @@ th {
     background-color: gray;
     color: white;
 }
-</style>
-</head><body><script type="text/javascript">
+/*]]>*/</style>
+</head><body><script>//<![CDATA[
 function drawUnicode(base) {
     for (var i = 0; i < 256; ++i) {
         document.getElementsByTagName("td")[i].firstChild.nodeValue =
@@ -72,4 +72,4 @@ function createTable() {
 document.body.appendChild(createTable());
 drawUnicode(0);
 document.getElementsByTagName("select")[0].focus();
-</script></body></html>
+//]]></script></body></html>

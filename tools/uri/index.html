@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <script src="rfc3986.js"></script>
-<script>
+<script>//<![CDATA[
   function validate(input) {
 
     function SyntaxError(srcStr, index, length) {
@@ -159,8 +159,8 @@
       writeResult(result);
     };
   };
-</script>
-<style>
+//]]></script>
+<style>/*<![CDATA[*/
 code {
   white-space: pre;
 }
@@ -208,13 +208,13 @@ code {
   color: silver;
   font-style: normal;
 }
-</style>
+/*]]>*/</style>
 <title>URI Validator</title>
 </head>
 <body>
-<h1>URI Validator &beta; (<a href="http://www.ietf.org/rfc/rfc3986.txt">RFC3986</a>)</h1>
-<p>Input string to validate
-<form action="javascript:" id="form"><input id="src" value="http://1.2.333.43"><input id="submit" type="submit"></form>
+<h1>URI Validator β</h1>
+<p>Input string to validate as URI (<a href="http://www.ietf.org/rfc/rfc3986.txt">RFC3986</a>)</p>
+<form action="javascript:" id="form"><input id="src" value="http://1.2.333.43" /><input id="submit" type="submit" /></form>
 <div id="result"></div>
 </body>
 </html>

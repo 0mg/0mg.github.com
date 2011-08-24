@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
     <title>JavaScript Evaluater</title>
-    <style type="text/css">
+    <style type="text/css">/*<![CDATA[*/
     * {
       margin: 0;
       padding: 0;
@@ -19,7 +19,7 @@
     dd {
       padding: 2px;
     }
-    </style>
+    /*]]>*/</style>
   </head>
   <body>
     <dl>
@@ -28,7 +28,7 @@
       <dt>Output</dt>
       <dd><pre> </pre></dd>
     </dl>
-    <script type="text/javascript">
+    <script type="text/javascript">//<![CDATA[
     (function() {
       var IE = isNaN([,]);
       var evalee = 'try{throw' +
@@ -57,6 +57,6 @@
         }
       };
     })();
-    </script>
+    //]]></script>
   </body>
 </html>
