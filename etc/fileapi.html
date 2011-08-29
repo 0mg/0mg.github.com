@@ -1,0 +1,16 @@
+<input type="file" id="file">
+<script>
+var file = document.getElementById("file");
+file.addEventListener("change", function(e) {
+  var file0 = file.files[0];
+  var x = new FileReader;
+  x.onload = function(e) {
+    e.preventDefault();
+    var img = document.createElement("img");
+    img.src = x.result;
+    img.alt = file0.name;
+    document.body.appendChild(img);
+  };
+  x.readAsDataURL(file0);
+}, false);
+</script>
