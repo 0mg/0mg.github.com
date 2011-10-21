@@ -24,11 +24,11 @@ textarea {
 window.onload = function() {
 
   var srcE = document.getElementById("src");
-  var src = 'document.getElementById("src").value';
-  var dst = 'document.getElementById("dst").lastChild.nodeValue';
+  var src = "document.getElementById('src').value";
+  var dst = "document.getElementById('dst').lastChild.nodeValue";
 
   function evalSrc() {
-    var E = "E" + (+new Date);
+    var E = "E" + Math.random().toString().slice(2);
     location.href = 'javascript:' +
                     'try{throw(String(eval(' + src + ')))}' +
                     'catch(' + E + '){void(' + dst + '=' + E + ')}';
@@ -40,8 +40,8 @@ window.onload = function() {
 
     srcE.addEventListener("keypress", function(event) {
       if (event.keyCode === EVAL_TRIGGER_KEYCODE) {
-        event.preventDefault();
         evalSrc();
+        event.preventDefault();
       }
     }, false);
 
