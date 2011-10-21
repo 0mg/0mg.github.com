@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<title>JSONP</title>
+</head>
+<body>
+<script>//<![CDATA[
+
+function get(url, onSuccess, onError) {
+  window.jsonp = window.jsonp || {};
+  do { var n = Math.random(); } while (n in jsonp);
+
+  var script = document.createElement("script");
+  script.src = url.replace(/(.+)\??(.*)/,
+               "$1?$2&callback=jsonp[" + n + "]");
+
+  jsonp[n] = function(json) {
+    onSuccess(json);
+    script.parentNode.removeChild(script);
+    delete jsonp[n];
+  };
+
+  document.body.appendChild(script);
+}
+get("http://api.twitter.com/1/help/test.json",
+    function(json) {
+      alert(["ｹﾞｯﾄ(^o^)",json]);
+    });
+
+//]]></script>
+</body>
+</html>
