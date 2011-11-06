@@ -22,15 +22,12 @@ body {
   height: 100%;
 }
 .controller {
-  display: table;
-  width: 100%;
-  position: fixed;
-  bottom: 0;
-}
-.controll {
-  display: table-cell;
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 .scroll {
+  width: 200px;
   overflow-x: scroll;
 }
 .spacer {
@@ -39,7 +36,17 @@ body {
 }
 /*]]>*/</style>
 </head>
-<script>
+<script>//<![CDATA[
+if (!window.addEventListener) {
+  window.addEventListener = function(type, f) {
+    return this.attachEvent("on" + type, f);
+  };
+}
+if (!Element.prototype.addEventListener) {
+  Element.prototype.addEventListener = function() {
+    return window.addEventListener.apply(this, arguments);
+  };
+}
 if (!Array.prototype.forEach) {
   Array.prototype.forEach = function(f) {
     for (var i = 0; i < this.length; ++i) {
@@ -47,42 +54,169 @@ if (!Array.prototype.forEach) {
     }
   };
 }
-function getStyle(el) {
-  if (window.getComputedStyle) {
-    return window.getComputedStyle(el,"");
-  } else {
+if (!window.getComputedStyle) {
+  window.getComputedStyle = function(el) {
     return el.currentStyle;
-  }
+  };
 }
-window.onload = function() {
-  var html = document.documentElement;
-  var body = document.getElementsByTagName("body")[0];
-  var coltar = document.querySelector("#colorbox");
-  var s = document.getElementsByTagName("div");
-  for (var m = [], i = 0; i < s.length; ++i) {
-    if (s[i].className === "scroll") {
-      m.push(s[i]);
-    }
+//]]></script>
+<script>//<![CDATA[
+addEventListener("load", function() {
+  var coltar = document.getElementById("colorbox");
+
+  var r = document.getElementById("r");
+  var g = document.getElementById("g");
+  var b = document.getElementById("b");
+  var h = document.getElementById("h");
+  var s = document.getElementById("s");
+  var l = document.getElementById("l");
+
+  function rgb2hsl(R, G, B) {
+    R /= 255;
+    G /= 255;
+    B /= 255;
+
+    var max = Math.max(R, G, B);
+    var min = Math.min(R, G, B);
+    var c = max - min;
+
+    var h = max === R ? ((G - B) / c) % 6 :
+            max === G ? ((B - R) / c) + 2 :
+                        ((R - G) / c) + 4;
+    var H = 60 * h;
+
+    var L = (max + min) / 2;
+
+    var S = (L <= 1/2) ? c / (2 * L) : c / (2 - (2 * L));
+
+    H = (H + 360) % 360;
+    S *= 100;
+    L *= 100;
+
+    H |= 0;
+    S |= 0;
+    L |= 0;
+
+    return [H, S, L];
   }
-  s = m;
-  s.forEach(function(e,i) {
-    e.onscroll = function() {
-      var max = e.scrollWidth - parseInt(getStyle(e).width);
-      if (!isFinite(max)) {
-        max = e.scrollWidth - parseInt(body.scrollWidth / 3);
+  function hsl2rgb(H, S, L) {
+    S /= 100;
+    L /= 100;
+
+    var c = (1 - Math.abs((2 * L) - 1)) * S;
+    var h = H / 60;
+    var x = c * (1 - Math.abs((h % 2) - 1));
+
+    var rgb = (0 <= h && h < 1) ? [c, x, 0] :
+              (1 <= h && h < 2) ? [x, c, 0] :
+              (2 <= h && h < 3) ? [0, c, x] :
+              (3 <= h && h < 4) ? [0, x, c] :
+              (4 <= h && h < 5) ? [x, 0, c] :
+              (5 <= h && h < 6) ? [c, 0, x] :
+                                  [0, 0, 0];
+    var r = rgb[0];
+    var g = rgb[1];
+    var b = rgb[2];
+
+    var m = L - (c / 2);
+
+    var R = r + m;
+    var G = g + m;
+    var B = b + m;
+
+    R *= 255;
+    G *= 255;
+    B *= 255;
+
+    R |= 0;
+    G |= 0;
+    B |= 0;
+
+    return [R, G, B];
+  }
+
+  function getValue(e, val_max) {
+    var max = e.scrollWidth - parseInt(getComputedStyle(e,"").width);
+    var now = e.scrollLeft;
+    var val_now = (val_max / max) * now;
+    return val_now;
+  }
+  function setValue(e, val_now, val_max) {
+    e.dataCancelEvent = true;
+    var max = e.scrollWidth - parseInt(getComputedStyle(e,"").width);
+    var now = e.scrollLeft;
+    var now_new = Math.round((max / val_max) * val_now);
+    e.scrollLeft = now_new;
+  }
+
+  [r, g, b, h, s, l].forEach(function(e) {
+    function onSlideRGB() {
+      var rgb = [getValue(r, 255), getValue(g, 255), getValue(b, 255)];
+      var hsl = rgb2hsl(rgb[0], rgb[1], rgb[2]);
+      setValue(h, hsl[0], 359);
+      setValue(s, hsl[1], 100);
+      setValue(l, hsl[2], 100);
+      return [hsl, rgb];
+    }
+    function onSlideHSL() {
+      var hsl = [getValue(h, 359), getValue(s, 100), getValue(l, 100)];
+      var rgb = hsl2rgb(hsl[0], hsl[1], hsl[2]);
+      setValue(r, rgb[0], 255);
+      setValue(g, rgb[1], 255);
+      setValue(b, rgb[2], 255);
+      return [hsl, rgb];
+    }
+    var onSlide;
+    switch (e) {
+    case r: case g: case b:
+      onSlide = onSlideRGB;
+      break;
+    case h: case s: case l:
+      onSlide = onSlideHSL;
+      break;
+    }
+    e.addEventListener("scroll", function() {
+      if (e.dataCancelEvent) {
+        e.dataCancelEvent = false;
+        return;
       }
-      var now = Math.round((255 / max) * e.scrollLeft);
-      var bgcol = getStyle(coltar).backgroundColor;
-      bgcol = bgcol.match(/\d+/g);
-      bgcol[i] = now;
-      coltar.style.backgroundColor = "rgb(" + bgcol + ")";
-    };
+      var data = onSlide();
+      var hsl = data[0];
+      var rgb = data[1];
+
+      hsl = [hsl[0]|0, hsl[1]|0, hsl[2]|0];
+      rgb = [rgb[0]|0, rgb[1]|0, rgb[2]|0];
+
+      coltar.style.backgroundColor = "rgb(" + rgb + ")";
+
+      var debugData = rgb + "<br>" + hsl;
+      document.getElementById("dev").innerHTML = debugData;
+    }, false);
   });
-};
-</script>
+
+}, false);
+//]]></script>
 <body>
-<div id="colorbox"></div>
+<div id="colorbox"><b id="dev" style="background:#fff"> </b></div>
 <div class="controller">
-<div class="controll"><div class="scroll"><div class="spacer"></div></div></div><div class="controll"><div class="scroll"><div class="spacer"></div></div></div><div class="controll"><div class="scroll"><div class="spacer"></div></div></div></div>
+  <div class="scroll" id="r">
+    <div class="spacer"></div>
+  </div>
+  <div class="scroll" id="g">
+    <div class="spacer"></div>
+  </div>
+  <div class="scroll" id="b">
+    <div class="spacer"></div>
+  </div>
+  <div class="scroll" id="h">
+    <div class="spacer"></div>
+  </div>
+  <div class="scroll" id="s">
+    <div class="spacer"></div>
+  </div>
+  <div class="scroll" id="l">
+    <div class="spacer"></div>
+  </div>
+</div>
 </body>
 </html>
