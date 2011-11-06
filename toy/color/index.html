@@ -17,9 +17,26 @@ body {
   background-color: #000;
 }
 #colorbox {
+  position: absolute;
   background-color: rgb(0,0,0);
   width: 100%;
   height: 100%;
+}
+#history {
+  overflow: hidden;
+  background: white;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 30px;
+}
+#tip {
+  position: absolute;
+  border: 1px solid;
+  background: white;
+  color: black;
+  display: none;
 }
 .controller {
   position: absolute;
@@ -135,14 +152,35 @@ addEventListener("load", function() {
     return [R, G, B];
   }
 
+  function pushHistory(rgb, hsl) {
+    var history = document.getElementById("history");
+
+    var his = document.createElement("div");
+    his.style.display = "inline-block";
+    his.title = [rgb, hsl];
+    his.style.background = "rgb(" + rgb + ")";
+    his.style.width = "5px";
+    his.style.height = "100%";
+    his.addEventListener("click", function() {
+      setValue(r, rgb[0], 255, true);
+      setValue(g, rgb[1], 255, true);
+      setValue(b, rgb[2], 255, true);
+    }, false);
+
+    history.appendChild(his);
+    while (history.childNodes.length > 100) {
+      history.removeChild(history.firstChild);
+    }
+  }
+
   function getValue(e, val_max) {
     var max = e.scrollWidth - parseInt(getComputedStyle(e,"").width);
     var now = e.scrollLeft;
     var val_now = (val_max / max) * now;
     return val_now;
   }
-  function setValue(e, val_now, val_max) {
-    e.dataCancelEvent = true;
+  function setValue(e, val_now, val_max, noCancel) {
+    e.dataCancelEvent = !noCancel;
     var max = e.scrollWidth - parseInt(getComputedStyle(e,"").width);
     var now = e.scrollLeft;
     var now_new = Math.round((max / val_max) * val_now);
@@ -156,7 +194,7 @@ addEventListener("load", function() {
       setValue(h, hsl[0], 359);
       setValue(s, hsl[1], 100);
       setValue(l, hsl[2], 100);
-      return [hsl, rgb];
+      return [rgb, hsl];
     }
     function onSlideHSL() {
       var hsl = [getValue(h, 359), getValue(s, 100), getValue(l, 100)];
@@ -164,7 +202,7 @@ addEventListener("load", function() {
       setValue(r, rgb[0], 255);
       setValue(g, rgb[1], 255);
       setValue(b, rgb[2], 255);
-      return [hsl, rgb];
+      return [rgb, hsl];
     }
     var onSlide;
     switch (e) {
@@ -181,13 +219,14 @@ addEventListener("load", function() {
         return;
       }
       var data = onSlide();
-      var hsl = data[0];
-      var rgb = data[1];
+      var rgb = data[0];
+      var hsl = data[1];
 
-      hsl = [hsl[0]|0, hsl[1]|0, hsl[2]|0];
       rgb = [rgb[0]|0, rgb[1]|0, rgb[2]|0];
+      hsl = [hsl[0]|0, hsl[1]|0, hsl[2]|0];
 
       coltar.style.backgroundColor = "rgb(" + rgb + ")";
+      pushHistory(rgb, hsl);
 
       var debugData = rgb + "<br>" + hsl;
       document.getElementById("dev").innerHTML = debugData;
@@ -197,7 +236,11 @@ addEventListener("load", function() {
 }, false);
 //]]></script>
 <body>
-<div id="colorbox"><b id="dev" style="background:#fff"> </b></div>
+<div id="colorbox">
+  <b id="dev" style="background:#fff"> </b>
+</div>
+<div id="history"></div>
+<div id="tip"> </div>
 <div class="controller">
   <div class="scroll" id="r">
     <div class="spacer"></div>
