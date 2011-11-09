@@ -28,6 +28,9 @@ body {
   width: 160px;
   overflow-x: scroll;
 }
+.slider_input {
+  width: 4ex;
+}
 .spacer {
   width: 800%;
   height: 1px;
@@ -37,13 +40,12 @@ table {
   background: white;
   border-collapse: collapse;
 }
-td {
-  padding: 1px;
-}
 input {
   font: normal normal normal 100%/1 monospace;
-  width: 4ex;
   padding: 2px;
+}
+td {
+  padding: 1px;
 }
 #dev {
   position: absolute;
@@ -164,12 +166,9 @@ function Slider(type, index, v_max, onSlide) {
   slider.appendChild(spacer);
 
   var input = document.createElement("input");
-  input.maxLength = "3";
+  input.className = "slider_input";
   input.addEventListener("keyup", function() {
     Slider.onInput.apply(that, arguments);
-  }, false);
-  input.addEventListener("focus", function() {
-    Slider.onFocus.apply(that, arguments);
   }, false);
   input.addEventListener("blur", function() {
     Slider.onBlur.apply(that, arguments);
@@ -184,7 +183,6 @@ function Slider(type, index, v_max, onSlide) {
   this.index = index;
   this.v_max = v_max;
   this.doEvent = true;
-  this.doInput = true;
 }
 Slider.pool = {
   rgb: [],
@@ -207,7 +205,7 @@ Slider.prototype.setValue = function(val_now, doEvent) {
   this.setInput(val_now);
 };
 Slider.prototype.setInput = function(value) {
-  if (this.doInput) {
+  if (document.activeElement !== this.input) {
     this.input.value = value;
   }
 };
@@ -236,7 +234,7 @@ function applyColor(rgb, hsl) {
   var target = document.getElementById("colorbox");
   target.style.backgroundColor = "rgb(" + rgb + ")";
   target.lastChild.nodeValue = "#" + rgb.map(function(c) {
-    return (c < 15 ? "0" : "") + c.toString(16);
+    return (c < 16 ? "0" : "") + c.toString(16);
   }).join("");
 }
 Slider.onSlide = function onSlide() {
@@ -273,6 +271,7 @@ Slider.onScroll = function onSliderScroll(evt) {
     rgb: data[0],
     hsl: data[1]
   };
+  Input.pool.rrggbb[0].setInput(col.rgb);
   applyColor(col.rgb, col.hsl);
   pushHistory(col.rgb, col.hsl);
   var debugData = col.rgb + "<br>" + col.hsl;
@@ -285,14 +284,59 @@ Slider.onInput = function onSliderInputModify() {
   if (v < 0) v = 0; else if (v_max < v) v = v_max;
   this.setValue(v, true);
 };
-Slider.onFocus = function() {
-  this.doInput = false;
-};
 Slider.onBlur = function() {
-  this.doInput = true;
   this.setInput(this.getValue());
 };
+function Input(type, index, v_max) {
+  var that = this;
+  Input.pool[type][index] = this;
+
+  var input = document.createElement("input");
+  input.addEventListener("keyup", function() {
+    Input.onInput.apply(that, arguments);
+  }, false);
+  input.addEventListener("blur", function() {
+    Input.onBlur.apply(that, arguments);
+  }, false);
+
+  document.getElementById("rrggbb_input").appendChild(input);
+
+  this.input = input;
+  this.v_max = v_max;
+}
+Input.prototype.setInput = function(rgb) {
+  if (document.activeElement !== this.input) {
+    this.input.value = rgb.map(function(v) {
+      return (v < 16 ? "0" : "") + v.toString(16);
+    }).join("");
+  }
+};
+Input.pool = {
+  rrggbb: []
+};
+Input.onInput = function() {
+  var input = this.input;
+  var v_max = this.v_max;
+  var v = parseInt(input.value, 16) | 0;
+  if (v < 0) v = 0; else if (v_max < v) v = v_max;
+  var v0x = v.toString(16);
+  var rrggbb = ("00000" + v0x).slice(-6);
+  var r = parseInt(rrggbb.slice(0, 2), 16);
+  var g = parseInt(rrggbb.slice(2, 4), 16);
+  var b = parseInt(rrggbb.slice(4, 6), 16);
+  Slider.pool.rgb[0].setValue(r, true);
+  Slider.pool.rgb[1].setValue(g, true);
+  Slider.pool.rgb[2].setValue(b, true);
+};
+Input.onBlur = function() {
+  this.setInput([
+    Slider.pool.rgb[0].getValue(),
+    Slider.pool.rgb[1].getValue(),
+    Slider.pool.rgb[2].getValue()
+  ]);
+};
 addEventListener("load", function() {
+  new Input("rrggbb", 0, 0xffffff);
   new Slider("rgb", 0, 255);
   new Slider("rgb", 1, 255);
   new Slider("rgb", 2, 255);
@@ -306,6 +350,7 @@ addEventListener("load", function() {
 <div id="dev" style="background:#fff"></div>
 <table>
 <tr><td colspan="3"><div id="colorbox">&nbsp;</div></td></tr>
+<tr><th>#</th><td id="rrggbb_input" colspan="2"></td></tr>
 <tr><th>R</th><td id="rgb_0_input"></td><td id="rgb_0_slider"></td></tr>
 <tr><th>G</th><td id="rgb_1_input"></td><td id="rgb_1_slider"></td></tr>
 <tr><th>B</th><td id="rgb_2_input"></td><td id="rgb_2_slider"></td></tr>
