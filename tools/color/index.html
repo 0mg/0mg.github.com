@@ -1,27 +1,24 @@
 <!DOCTYPE html>
-<html lang="ja" xmlns="http://www.w3.org/1999/xhtml">
+<html lang="ja" xml:lang="ja" xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta charset="utf-8" />
-<title>Color</title>
+<title>Color Mixer</title>
 <style>/*<![CDATA[*/
+* {
+  margin: 0;
+  padding: 0;
+}
 body {
-  background-color: #fff;
-  font: normal normal normal medium/1 monospace;
+  font: normal normal normal 14px/14px monospace;
 }
 #colorbox {
   background-color: rgb(255, 0, 0);
-  width: 100%;
-  padding: 90px 0;
-  text-align: center;
-  color: white;
-  text-shadow: 1px 1px 1px black;
+  height: 200px;
 }
 #history {
-  overflow: hidden;
-  background: white;
-  width: 200px;
-  height: 30px;
-  margin: 5px auto;
+  width: 215px;
+  height: 20px;
+  text-align: right;
 }
 .slider {
   display: inline-block;
@@ -29,7 +26,7 @@ body {
   overflow-x: scroll;
 }
 .slider_input {
-  width: 4ex;
+  width: 5ex;
 }
 .spacer {
   width: 800%;
@@ -37,22 +34,25 @@ body {
 }
 table {
   margin: 0 auto;
-  background: white;
   border-collapse: collapse;
 }
 input {
-  font: normal normal normal 100%/1 monospace;
+  font: inherit;
   padding: 2px;
 }
-td {
+th, td {
+  font-weight: normal;
   padding: 1px;
 }
-#dev {
-  position: absolute;
-  right: 0;
+.history_part {
+  display: inline-block;
+  width: 5px;
+  height: 100%;
+}
+.input.rrggbb {
+  width: 8ex;
 }
 /*]]>*/</style>
-</head>
 <script>//<![CDATA[
 if (!window.addEventListener) {
   window.addEventListener = function(type, f) {
@@ -156,6 +156,7 @@ function Slider(type, index, v_max, onSlide) {
 
   var slider = document.createElement("div");
   slider.className = "slider";
+  slider.id = "slider_" + type + "_" + index;
   slider.addEventListener("scroll", function() {
     Slider.onScroll.apply(that, arguments);
   }, false);
@@ -166,7 +167,8 @@ function Slider(type, index, v_max, onSlide) {
   slider.appendChild(spacer);
 
   var input = document.createElement("input");
-  input.className = "slider_input";
+  input.className = "slider_input " + type;
+  input.id = "slider_input_" + type + "_" + index;
   input.addEventListener("keyup", function() {
     Slider.onInput.apply(that, arguments);
   }, false);
@@ -213,11 +215,11 @@ function pushHistory(rgb, hsl) {
   var history = document.getElementById("history");
 
   var his = document.createElement("div");
-  his.title = ["rgb(" + rgb + ")", "hsl(" + hsl + ")"];
-  his.style.display = "inline-block";
+  his.title = ["#" + rgb.map(function(v) {
+      return (v < 16 ? "0" : "") + v.toString(16);
+    }).join(""), "rgb(" + rgb + ")", "hsl(" + hsl + ")"];
+  his.className = "history_part";
   his.style.backgroundColor = "rgb(" + rgb + ")";
-  his.style.width = "5px";
-  his.style.height = "100%";
   his.addEventListener("click", function() {
     var el = Slider.pool;
     el.rgb[0].setValue(rgb[0], true);
@@ -226,16 +228,13 @@ function pushHistory(rgb, hsl) {
   }, false);
 
   history.appendChild(his);
-  while (history.childNodes.length > 40) {
+  while (history.childNodes.length > 43) {
     history.removeChild(history.firstChild);
   }
 }
 function applyColor(rgb, hsl) {
   var target = document.getElementById("colorbox");
   target.style.backgroundColor = "rgb(" + rgb + ")";
-  target.lastChild.nodeValue = "#" + rgb.map(function(c) {
-    return (c < 16 ? "0" : "") + c.toString(16);
-  }).join("");
 }
 Slider.onSlide = function onSlide() {
   var el = Slider.pool;
@@ -274,8 +273,6 @@ Slider.onScroll = function onSliderScroll(evt) {
   Input.pool.rrggbb[0].setInput(col.rgb);
   applyColor(col.rgb, col.hsl);
   pushHistory(col.rgb, col.hsl);
-  var debugData = col.rgb + "<br>" + col.hsl;
-  document.getElementById("dev").innerHTML = debugData;
 };
 Slider.onInput = function onSliderInputModify() {
   var input = this.input;
@@ -292,6 +289,8 @@ function Input(type, index, v_max) {
   Input.pool[type][index] = this;
 
   var input = document.createElement("input");
+  input.className = "input " + type;
+  input.id = "input_" + type + "_" + index;
   input.addEventListener("keyup", function() {
     Input.onInput.apply(that, arguments);
   }, false);
@@ -346,18 +345,18 @@ addEventListener("load", function() {
   Slider.pool.rgb[1].setValue(255, true);
 }, false);
 //]]></script>
+</head>
 <body>
-<div id="dev" style="background:#fff"></div>
 <table>
-<tr><td colspan="3"><div id="colorbox">&nbsp;</div></td></tr>
-<tr><th>#</th><td id="rrggbb_input" colspan="2"></td></tr>
+<tr><td colspan="3"><div id="colorbox"></div></td></tr>
+<tr><td colspan="3"><div id="history"></div></td></tr>
 <tr><th>R</th><td id="rgb_0_input"></td><td id="rgb_0_slider"></td></tr>
 <tr><th>G</th><td id="rgb_1_input"></td><td id="rgb_1_slider"></td></tr>
 <tr><th>B</th><td id="rgb_2_input"></td><td id="rgb_2_slider"></td></tr>
 <tr><th>H</th><td id="hsl_0_input"></td><td id="hsl_0_slider"></td></tr>
 <tr><th>S</th><td id="hsl_1_input"></td><td id="hsl_1_slider"></td></tr>
 <tr><th>L</th><td id="hsl_2_input"></td><td id="hsl_2_slider"></td></tr>
+<tr><th>#</th><td id="rrggbb_input" colspan="2"></td></tr>
 </table>
-<div id="history"></div>
 </body>
 </html>
