@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja" xml:lang="ja" xmlns="http://www.w3.org/1999/xhtml">
+<html lang="ja" xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta charset="utf-8" />
 <title>Color Mixer</title>
@@ -9,7 +9,7 @@
   padding: 0;
 }
 body {
-  font: normal normal normal 14px/14px monospace;
+  font: normal normal normal 14px/1 monospace;
 }
 #colorbox {
   background-color: rgb(255, 0, 0);
@@ -24,9 +24,6 @@ body {
   display: inline-block;
   width: 160px;
   overflow-x: scroll;
-}
-.slider_input {
-  width: 5ex;
 }
 .spacer {
   width: 800%;
@@ -48,6 +45,9 @@ th, td {
   display: inline-block;
   width: 5px;
   height: 100%;
+}
+.slider_input {
+  width: 5ex;
 }
 .input.rrggbb {
   width: 8ex;
@@ -156,9 +156,8 @@ function Slider(type, index, v_max, onSlide) {
 
   var slider = document.createElement("div");
   slider.className = "slider";
-  slider.id = "slider_" + type + "_" + index;
   slider.addEventListener("scroll", function() {
-    Slider.onScroll.apply(that, arguments);
+    that.onScroll.apply(that, arguments);
   }, false);
 
   var spacer = document.createElement("div");
@@ -167,13 +166,12 @@ function Slider(type, index, v_max, onSlide) {
   slider.appendChild(spacer);
 
   var input = document.createElement("input");
-  input.className = "slider_input " + type;
-  input.id = "slider_input_" + type + "_" + index;
+  input.className = "slider_input";
   input.addEventListener("keyup", function() {
-    Slider.onInput.apply(that, arguments);
+    that.onInput.apply(that, arguments);
   }, false);
   input.addEventListener("blur", function() {
-    Slider.onBlur.apply(that, arguments);
+    that.onBlur.apply(that, arguments);
   }, false);
 
   document.getElementById(type + "_" + index + "_slider").appendChild(slider);
@@ -236,7 +234,7 @@ function applyColor(rgb, hsl) {
   var target = document.getElementById("colorbox");
   target.style.backgroundColor = "rgb(" + rgb + ")";
 }
-Slider.onSlide = function onSlide() {
+Slider.prototype.onSlide = function onSlide() {
   var el = Slider.pool;
 
   var t1 = this.type;
@@ -260,12 +258,12 @@ Slider.onSlide = function onSlide() {
 
   return isRGB ? [c1, c2] : [c2, c1];
 };
-Slider.onScroll = function onSliderScroll(evt) {
+Slider.prototype.onScroll = function onSliderScroll(evt) {
   if (!this.doEvent) {
     this.doEvent = true;
     return;
   }
-  var data = Slider.onSlide.call(this);
+  var data = this.onSlide();
   var col = {
     rgb: data[0],
     hsl: data[1]
@@ -274,14 +272,14 @@ Slider.onScroll = function onSliderScroll(evt) {
   applyColor(col.rgb, col.hsl);
   pushHistory(col.rgb, col.hsl);
 };
-Slider.onInput = function onSliderInputModify() {
+Slider.prototype.onInput = function onSliderInputModify() {
   var input = this.input;
   var v_max = this.v_max;
   var v = parseInt(input.value, 10) | 0;
   if (v < 0) v = 0; else if (v_max < v) v = v_max;
   this.setValue(v, true);
 };
-Slider.onBlur = function() {
+Slider.prototype.onBlur = function() {
   this.setInput(this.getValue());
 };
 function Input(type, index, v_max) {
@@ -290,12 +288,11 @@ function Input(type, index, v_max) {
 
   var input = document.createElement("input");
   input.className = "input " + type;
-  input.id = "input_" + type + "_" + index;
   input.addEventListener("keyup", function() {
-    Input.onInput.apply(that, arguments);
+    that.onInput.apply(that, arguments);
   }, false);
   input.addEventListener("blur", function() {
-    Input.onBlur.apply(that, arguments);
+    that.onBlur.apply(that, arguments);
   }, false);
 
   document.getElementById("rrggbb_input").appendChild(input);
@@ -313,7 +310,7 @@ Input.prototype.setInput = function(rgb) {
 Input.pool = {
   rrggbb: []
 };
-Input.onInput = function() {
+Input.prototype.onInput = function() {
   var input = this.input;
   var v_max = this.v_max;
   var v = parseInt(input.value, 16) | 0;
@@ -327,7 +324,7 @@ Input.onInput = function() {
   Slider.pool.rgb[1].setValue(g, true);
   Slider.pool.rgb[2].setValue(b, true);
 };
-Input.onBlur = function() {
+Input.prototype.onBlur = function() {
   this.setInput([
     Slider.pool.rgb[0].getValue(),
     Slider.pool.rgb[1].getValue(),
