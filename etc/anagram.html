@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>Anagram Editor β</title>
+<style type="text/css">
+body{
+	background-color: ButtonFace;
+	color: ButtonText;
+}
+input{
+	width: 95%;
+	padding: 0.3em;
+	font-size: 1.3em;
+}
+button{
+	font-size: 1.3em;
+}
+h2{
+	display: inline;
+}
+#base{
+	display: inline;
+}
+#baseblock p{
+	display: inline;
+}
+#editbase{
+	font-size: 1.3em;
+	margin-left: 0.5em;
+}
+#setbaseblock{
+	text-align: center;
+}
+#baseblock, #ansblock{
+	display: none;
+}
+</style>
+<script type="text/javascript">
+//
+//	クロスブラウザ用初期設定
+//
+if( window.addEventListener ){
+	function addEvent(e,v,f,b){
+		return e.addEventListener(v,f,b);
+	};
+} else {
+	function addEvent(e,v,f){
+		return e["on"+v] = f;
+	};
+}
+//
+//	メイン
+//
+addEvent(window, "load", function(){
+	//
+	//	簡便用関数
+	//
+	function $Id( id ){
+		return document.getElementById( id );
+	};
+	//
+	//	初期変数
+	//
+	var src = $Id("src");
+	var ans = $Id("ans");
+	var setsrc = $Id("setsrc");
+	var ansTxt = ans.value;
+	var srcTxt = src.value;
+	var srcBase = src.value;
+	var not = /[\?\^\(\)\[\]\.\+\*\$\\]/;
+	//
+	//	文字入力中の動作
+	//
+	var timer = setInterval( function(){
+		if( not.test(baseEditor.value) ){
+			// 元文に禁じられた文字が入っていたら
+			baseEditor.value = baseEditor.value.replace(not, "");
+		} else if( ans.value != ansTxt ){
+			// 回答文に変更があったら
+			if( not.test(ans.value) ){
+				// 回答文に禁じられた文字が入っていたら
+				ans.value = ans.value.replace(not, "");
+			} else {
+				if(
+					( 0 <= ans.value.length - ansTxt.length )
+					&& ( ans.value.length - ansTxt.length <= 1 )
+				){
+					// 回答文に文字が追加されたら
+					var diff = ans.value;
+					for( var i = 0; i < ansTxt.length; i++ ){
+						diff = diff.replace( RegExp(ansTxt.charAt(i)), "" );
+					}
+					if( RegExp(diff,"i").test(src.value) ){
+						src.value = src.value.replace( RegExp(diff,"i"), "");
+					} else {
+						//ans.value = ans.value.replace( RegExp(diff,"i"), "");
+					}
+				} else {
+					// 回答文から文字が削除されたら
+					var diff = ansTxt;
+					for( var i = 0; i < ans.value.length; i++ ){
+						diff = diff.replace( RegExp(ans.value.charAt(i)), "" );
+					}
+					var $diff = RegExp(diff,"ig");
+					if(
+						// ストックに戻す
+						(
+							$diff.test(src.value)
+							&& src.value.match($diff).length
+						)
+						< (
+							$diff.test(srcBase)
+							&& srcBase.match($diff).length
+						) 
+					){
+						src.value += diff;
+					}
+				}
+				ansTxt = ans.value;
+				srcTxt = src.value;
+				//document.title = diff || "?";
+			}
+		}
+	}, 1);
+	//
+	//	UI 用 変数・関数
+	//
+	var editbaseblock = $Id("editbaseblock");
+	var baseEditor = $Id("baseEditor");
+	var setbase = $Id("setbase");
+	var setcancelbase = $Id("setcancelbase");
+	var baseblock = $Id("baseblock");
+	var base = $Id("base");
+	var editbase = $Id("editbase");
+	var ansblock = $Id("ansblock");
+	function baseEditMode(){
+		baseblock.style.display = "none";
+		ansblock.style.display = "none";
+		editbaseblock.style.display = "block";
+	};
+	function ansEditMode(){
+		editbaseblock.style.display = "none";
+		baseblock.style.display = "block";
+		ansblock.style.display = "block";
+	};
+	//
+	//	元文モード
+	//
+	addEvent(baseEditor, "keypress", function(e){
+		e = e || window.event;
+		if( e.keyCode == 13 ) setbase.click();
+	}, false);
+	addEvent(setbase, "click", function(){
+		if( baseEditor.value != "" ){
+			src.value = srcBase = baseEditor.value;
+			ans.value = "";
+			ansEditMode();
+			ans.focus();
+			base.firstChild.nodeValue = baseEditor.value;
+		}
+	}, false);
+	addEvent(setcancelbase, "click", function(){
+		if( srcBase != "" ){
+			ansEditMode();
+			ans.focus();
+		}
+	}, false);
+	//
+	//	回答モード
+	//
+	addEvent(ans, "keyup", function(e){
+		e = e || window.event;
+		if( e.keyCode == 13 ) delBadChar();
+	}, false);
+	addEvent(ans, "blur", delBadChar, false);
+	function delBadChar(){
+		var diff = src.value + "" + ans.value;
+		for( var i = 0; i < srcBase.length; i++ ){
+			diff = diff.replace( RegExp(srcBase.charAt(i),"i"), "" );
+		}
+		for( var i = 0; i < diff.length; i++ ){
+			ansTxt = ans.value = ans.value.replace( RegExp(diff.charAt(i),"i"), "" );
+		}
+	};
+	addEvent(editbase, "click", function(){
+		baseEditMode();
+		baseEditor.focus();
+	}, false);
+	//
+	//	初期化
+	//
+	baseEditor.focus();
+}, false);
+</script>
+</head>
+<body>
+<div id="editbaseblock">
+<h2>元になる文字列</h2>
+<p><input id="baseEditor" /></p>
+<p id="setbaseblock"><button id="setbase">OK</button><button id="setcancelbase">キャンセル</button></p>
+</div>
+<div id="baseblock">
+<h2 id="base">?</h2><p><a href="javascript:void(0)" id="editbase">&#x270e;</a></p>
+</div>
+<div id="ansblock">
+<p><input id="src" disabled="disabled" /></p>
+<p><input id="ans" /></p>
+</div>
+</body>
+</html>
