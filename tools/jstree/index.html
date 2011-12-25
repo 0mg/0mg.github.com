@@ -150,21 +150,21 @@
   function onNameClick(v) {
     // リンク選択時の挙動
     var a = v.target;
-    if (!a.properties) {
-      a.properties = document.createElement("div");
-      a.properties.className = "properties";
-    } else while (a.properties.hasChildNodes()) {
-      a.properties.removeChild(a.properties.lastChild);
+    if (!a.props) {
+      a.props = document.createElement("div");
+      a.props.className = "properties";
+    } else while (a.props.hasChildNodes()) {
+      a.props.removeChild(a.props.lastChild);
     }
     getProps(a.prop).forEach(function(prop) {
-      a.properties.appendChild(toHTML(prop));
+      a.props.appendChild(toHTML(prop));
     });
-    var properties = a.property.parentNode;
-    while (properties.hasChildNodes()) {
-      properties.removeChild(properties.lastChild);
+    var props = a.property.parentNode;
+    while (props.hasChildNodes()) {
+      props.removeChild(props.lastChild);
     }
-    a.property.appendChild(a.properties);
-    properties.appendChild(a.property);
+    a.property.appendChild(a.props);
+    props.appendChild(a.property);
     scrollTo(0, 0);
   };
   document.getElementById("root").appendChild(toHTML(new function() {
