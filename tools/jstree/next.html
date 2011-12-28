@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<title>JavaScript Object Tree</title>
+<style>/*<![CDATA[*/
+* {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background-color: black;
+  color: white;
+  line-height: 1.6;
+  margin: 1ex;
+  font-family: monospace;
+}
+a {
+  color: #00ccff;
+}
+.property {
+  background-color: #111111;
+  border: 1px solid #808080;
+  margin: 1ex 0;
+  padding: 1ex;
+}
+.name {
+  font-size: larger;
+  font-weight: bold;
+}
+.type {
+  display: table-cell;
+  padding-right: 1ex;
+  color: #ff9999;
+}
+.value {
+  display: table-cell;
+  color: #c0c0c0;
+}
+.type.string + .value:before,
+.type.string + .value:after {
+  color: #c0c0c0;
+  content: '"';
+}
+.value.null,
+.type.string + .value,
+.type.number + .value,
+.type.boolean + .value {
+  color: #99ff66;
+}
+//]]></style>
+<script>//<![CDATA[
+if (!window.addEventListener) {
+  window.addEventListener = function(type, f) {
+    return this.attachEvent("on" + type, f);
+  };
+}
+if (!Element.prototype.addEventListener) {
+  Element.prototype.addEventListener = function() {
+    return window.addEventListener.apply(this, arguments);
+  };
+}
+if (!Array.prototype.forEach) {
+  Array.prototype.forEach = function(f) {
+    for (var i = 0; i < this.length; ++i) {
+      f(this[i], i, this);
+    }
+  };
+}
+if (!Array.prototype.map) {
+  Array.prototype.map = function(f) {
+    var a = [];
+    for (var i = 0; i < this.length; ++i) {
+      a[i] = f(this[i], i, this);
+    }
+    return a;
+  };
+}
+//]]></script>
+<script>//<![CDATA[
+window.addEventListener("load", function() {
+  function memberOp(key) {
+    // 3 種類のメンバ演算子記法のうちどれが最適かの判断
+    // .$0 [-0.5] ["for"]
+    if (!/[^\w$]/.test(key) && !/^\d/.test(key)) {
+      try {
+        eval("''." + key); // ''.for などの予約語系文法違反検知
+        return 0;
+      } catch(e) {}
+    } else if (String(Number(key)) === key) return 1; // a[0x1]
+    return 2;
+  }
+  function getProps(prop) {
+    // prop.value の持つプロパティ群を特別なオブジェクトに格納して返す
+    var obj = prop.value;
+    var path = prop.path;
+    if (obj === null) return;
+    var keys = [];
+    for (var key in obj) {
+      try { String(obj[key]); } catch(e) { continue; }
+      keys.push(key);
+    }
+    var num = [], al = [];
+    keys.forEach(function(key) {
+      (memberOp(key) === 1 ? num : al).push(key);
+    });
+    num.sort(function(a, b) { return a - b; });
+    al.sort();
+    keys = num.concat(al);
+    return keys.map(function(key) {
+      return {
+        "name" : key,
+        "type" : typeof prop.value[key],
+        "value" : prop.value[key],
+        "path" : prop.path +
+        ["." + key, "[" + key + "]", '["' + key + '"]'][memberOp(key)]
+      };
+    });
+  }
+  var onNameClick;
+  function toHTML(prop) {
+    onNameClick = (function() {
+      var ele_props;
+      return function onNameClick() {
+        // 子どもたちの入れ物を空にする
+        if (ele_props) {
+          while (ele_props.hasChildNodes()) {
+            ele_props.removeChild(ele_props.lastChild);
+          }
+        } else { // なければつくる
+          ele_props = document.createElement("div");
+          ele_props.className = "properties";
+          property.appendChild(ele_props);
+        }
+        // 子どもたちの入れ物に子どもたちを入れる
+        getProps(prop).forEach(function(prop) {
+          ele_props.appendChild(toHTML(prop));
+        });
+        // 自分以外の兄弟ノードを除去する
+        var parent = property.parentNode;
+        while (parent.hasChildNodes()) {
+          parent.removeChild(parent.lastChild);
+        }
+        parent.appendChild(property);
+        // 一番上までスクロールする
+        scrollTo(0, 0);
+      };
+    })();
+    // prop を HTML の要素に変換
+    var property = document.createElement("div");
+    var name = document.createElement("div");
+    var type = document.createElement("div");
+    var value = document.createElement("div");
+    property.className = "property";
+    name.className = "name";
+    type.className = "type " + prop.type;
+    value.className = "value" + (prop.value === null ? " null" : "");
+
+    var prop_value_has_props = false;
+    try { for (var i in prop.value) prop_value_has_props = true; } catch(e) {}
+
+    if (prop_value_has_props) {
+      // prop.value がプロパティを持っているならリンクにする
+      var a = document.createElement("a");
+      a.href = "javascript:;";
+      a.addEventListener("click", onNameClick, false);
+      a.appendChild(document.createTextNode(prop.path));
+      name.appendChild(a);
+    } else {
+      name.appendChild(document.createTextNode(prop.path));
+    }
+    type.appendChild(document.createTextNode(prop.type));
+    value.appendChild(document.createTextNode(prop.value));
+    property.appendChild(name);
+    property.appendChild(type);
+    property.appendChild(value);
+    return property;
+  }
+  document.getElementById("root").appendChild(toHTML(new function() {
+    this.name = "window";
+    this.value = window;
+    this.type = typeof this.value;
+    this.path = this.name;
+  }));
+  onNameClick();
+}, false);
+//]]></script>
+</head>
+<body>
+<div class="properties" id="root"></div>
+</body>
+</html>
