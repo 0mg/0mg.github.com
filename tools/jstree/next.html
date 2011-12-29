@@ -13,7 +13,6 @@
 body {
   background: #f0f0f0;
   font-size: 12px;
-  margin: 1ex;
 }
 .item {
   background: #fff;
@@ -53,14 +52,24 @@ body {
 .iicon.boolean {
   background: #aaf;
 }
-#path {
+#cpath {
   width: 90%;
 }
 #side, #list {
   display: table-cell;
   vertical-align: top;
 }
+#list {
+  background: #ddd;
+  overflow: auto;
+  position: absolute;
+  top: 50px;
+  bottom: 0;
+  left: 120px;
+}
 #side {
+  width: 120px;
+  max-width: 120px;
   border-right: 1px solid;
 }
 dt {
@@ -75,7 +84,7 @@ dd {
 /*]]>*/</style>
 </head>
 <body>
-<div><input id="path" value="window" /><button id="go">open</button></div>
+<div><input id="cpath" value="window" /><button id="cgo">open</button></div>
 <h1 id="cname">window</h1>
 <div id="side">
 <dl id="profile">
@@ -103,12 +112,18 @@ var dom = {
   ce: function(s) { return document.createElement(s); },
   ct: function(s) { return document.createTextNode(s); }
 };
+function openDir(prop) {
+  setPath(prop.path);
+  setCName(prop.name);
+  hideProfile();
+  setList(getProps(prop));
+}
 function setList(props) {
   var list = dom.id("list");
   var f = document.createDocumentFragment();
-  for (var i = 0; i < props.length; ++i) {
-    f.appendChild(props[i].toNode());
-  }
+  props.forEach(function(p) {
+    f.appendChild(p.toNode());
+  });
   clearList();
   list.appendChild(f);
 }
@@ -118,25 +133,29 @@ function clearList() {
     list.removeChild(list.lastChild);
   }
 }
-function setProfile(name, type, value) {
+function setProfile(prop) {
   var fname = dom.id("fname");
   var ftype = dom.id("ftype");
   var fvalue = dom.id("fvalue");
-  fname.textContent = name;
-  ftype.textContent = type;
-  fvalue.textContent = value;
+  fname.textContent = prop.name;
+  ftype.textContent = prop.type;
+  fvalue.textContent = prop.value;
 }
 function hideProfile() {
-  var profile = dom.id("fname");
+  var profile = dom.id("profile");
   profile.style.visibility = "hidden";
 }
 function showProfile() {
-  var profile = dom.id("fname");
+  var profile = dom.id("profile");
   profile.style.visibility = "visible";
 }
 function setCName(name) {
   var cname = dom.id("cname");
   cname.textContent = name;
+}
+function setPath(path) {
+  var cpath = dom.id("cpath");
+  cpath.value = path;
 }
 /*
 {
@@ -161,6 +180,7 @@ Prop.prototype.toNode = function() {
   <div class="iname">document</div>
 </li>
 */
+  var prop = this;
   var item = dom.ce("li");
   var iicon = dom.ce("div");
   var iname = dom.ce("div");
@@ -168,6 +188,13 @@ Prop.prototype.toNode = function() {
   item.className = "item";
   item.appendChild(iicon);
   item.appendChild(iname);
+  item.addEventListener("mouseover", function() {
+    setProfile(prop);
+    showProfile();
+  }, false);
+  item.addEventListener("click", function() {
+    openDir(prop);
+  }, false);
 
   iicon.className = "iicon " + this.type;
 
@@ -184,8 +211,10 @@ function Prop(i, prop) {
   this.path = prop.path +
               ["." + i, "[" + i + "]", '["' + i + '"]'][memberOp(i)];
 }
+Prop.prototype.toString = function() {
+  return this.name;
+};
 function getProps(prop) {
-  if (prop.value === null) return;
   var props = [];
   for (var i in prop.value) {
     try { String(prop.value[i]); } catch(e) { continue; }
@@ -196,7 +225,7 @@ function getProps(prop) {
     (memberOp(p.name) === 1 ? num : al).push(p);
   });
   num.sort(function(p, q) { return p.name - q.name; });
-  al.sort(function(p, q) { return p.name > q.name; });
+  al.sort(function(p, q) { return p.name.localeCompare(q.name); });
   props = num.concat(al);
   return props;
 }
