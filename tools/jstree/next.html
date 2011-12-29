@@ -84,7 +84,7 @@ dd {
 /*]]>*/</style>
 </head>
 <body>
-<div><input id="cpath" value="window" /><button id="cgo">open</button></div>
+<div><button id="cup">up</button><input id="cpath" value="window" /><button id="cgo">open</button></div>
 <h1 id="cname">window</h1>
 <div id="side">
 <dl id="profile">
@@ -112,7 +112,21 @@ var dom = {
   ce: function(s) { return document.createElement(s); },
   ct: function(s) { return document.createTextNode(s); }
 };
+var mem = (function() {
+  var ram = {};
+  return {
+    setCurrent: function(prop) {
+      ram.path = prop.path;
+    },
+    getCurrent: function() {
+      return {
+        path: ram.path
+      };
+    }
+  };
+})();
 function openDir(prop) {
+  mem.setCurrent(prop);
   setPath(prop.path);
   setCName(prop.name);
   hideProfile();
@@ -139,7 +153,8 @@ function setProfile(prop) {
   var fvalue = dom.id("fvalue");
   fname.textContent = prop.name;
   ftype.textContent = prop.type;
-  fvalue.textContent = prop.value;
+  fvalue.textContent = prop.type === "string" ?
+                       '"' + String(prop.value) + '"': String(prop.value);
 }
 function hideProfile() {
   var profile = dom.id("profile");
@@ -167,10 +182,8 @@ function setPath(path) {
 */
 function memberOp(key) {
   // 0: . 1: [0] 2: ["0x1"]
-  if (/^[a-zA-Z_$][\w$]*$/.test(key)) {
-    try { eval("''." + key); } catch(e) { return 2; }
-    return 0;
-  } else if (String(Number(key)) === key) return 1;
+  try { eval("''." + key); return 0; } catch(e) {}
+  if (String(Number(key)) === key) return 1;
   return 2;
 }
 Prop.prototype.toNode = function() {
@@ -203,6 +216,17 @@ Prop.prototype.toNode = function() {
 
   return item;
 };
+function getProp(path) {
+  var value;
+  try { value = eval(path); } catch (e) { return false; }
+  var prop = {
+    name: path,
+    type: typeof value,
+    value: value,
+    path: path
+  };
+  return prop;
+}
 function Prop(i, prop) {
   if (!(this instanceof arguments.callee)) return;
   this.name = i;
@@ -229,14 +253,27 @@ function getProps(prop) {
   props = num.concat(al);
   return props;
 }
+function init() {
+  var cpath = dom.id("cpath");
+  var cgo = dom.id("cgo");
+  cpath.addEventListener("keypress", function(ev) {
+    if (ev.keyCode === 27) {
+      cpath.value = mem.getCurrent().path;
+    }
+  }, false);
+  cgo.addEventListener("click", function() {
+    var prop = getProp(cpath.value);
+    if (prop) openDir(prop);
+  }, false);
+}
 addEventListener("load", function() {
-  var props = getProps({
+  init();
+  openDir({
     name: "window",
     type: typeof window,
     value: window,
     path: "window"
   });
-  setList(props);
 }, false);
 //]]></script>
 </body>
