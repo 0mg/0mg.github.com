@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<title>JSObjTree</title>
+<style>/*<![CDATA[*/
+* {
+  margin: 0;
+  padding: 0;
+  font-family: "MS UI Gothic", monospace;
+  line-height: 1.3;
+}
+body {
+  background: #f0f0f0;
+  font-size: 12px;
+  margin: 1ex;
+}
+.item {
+  background: #fff;
+  display: block;
+  float: left;
+  width: 70px;
+  margin: 10px;
+  padding: 0px;
+  text-align: center;
+}
+.item:hover {
+  background: navy;
+  color: white;
+}
+.iicon {
+  margin: 2px auto;
+  border: 1px solid;
+  width: 32px;
+  height: 32px;
+}
+.iname {
+  margin: 2px auto;
+  font-size: 12px;
+}
+.iicon.object {
+  background: #ffc;
+}
+.iicon.number {
+  background: #fcc;
+}
+.iicon.function {
+  background: #cef;
+}
+.iicon.string {
+  background: #cfc;
+}
+.iicon.boolean {
+  background: #aaf;
+}
+#path {
+  width: 90%;
+}
+#side, #list {
+  display: table-cell;
+  vertical-align: top;
+}
+#side {
+  border-right: 1px solid;
+}
+dt {
+  font-weight: bold;
+}
+dd {
+  margin-bottom: 1ex;
+}
+#cname {
+  border-bottom: 1px solid;
+}
+/*]]>*/</style>
+</head>
+<body>
+<div><input id="path" value="window" /><button id="go">open</button></div>
+<h1 id="cname">window</h1>
+<div id="side">
+<dl id="profile">
+<dt>name</dt>
+<dd id="fname">document</dd>
+<dt>type</dt>
+<dd id="ftype">object</dd>
+<dt>value</dt>
+<dd id="fvalue">[object HTMLDocument]</dd>
+</dl>
+</div>
+<ul id="list">
+<li class="item">
+  <div class="iicon object"></div>
+  <div class="iname">document</div>
+</li>
+<li class="item">
+  <div class="iicon number"></div>
+  <div class="iname">length</div>
+</li>
+</ul>
+<script>//<![CDATA[
+var dom = {
+  id: function(id) { return document.getElementById(id); },
+  ce: function(s) { return document.createElement(s); },
+  ct: function(s) { return document.createTextNode(s); }
+};
+function setList(props) {
+  var list = dom.id("list");
+  var f = document.createDocumentFragment();
+  for (var i = 0; i < props.length; ++i) {
+    f.appendChild(props[i].toNode());
+  }
+  clearList();
+  list.appendChild(f);
+}
+function clearList() {
+  var list = dom.id("list");
+  while (list.hasChildNodes()) {
+    list.removeChild(list.lastChild);
+  }
+}
+function setProfile(name, type, value) {
+  var fname = dom.id("fname");
+  var ftype = dom.id("ftype");
+  var fvalue = dom.id("fvalue");
+  fname.textContent = name;
+  ftype.textContent = type;
+  fvalue.textContent = value;
+}
+function hideProfile() {
+  var profile = dom.id("fname");
+  profile.style.visibility = "hidden";
+}
+function showProfile() {
+  var profile = dom.id("fname");
+  profile.style.visibility = "visible";
+}
+function setCName(name) {
+  var cname = dom.id("cname");
+  cname.textContent = name;
+}
+/*
+{
+  name: "document",
+  type: "object",
+  value: "[object HTMLDocument]",
+  path: "window.document"
+}
+*/
+function memberOp(key) {
+  // 0: . 1: [0] 2: ["0x1"]
+  if (/^[a-zA-Z_$][\w$]*$/.test(key)) {
+    try { eval("''." + key); } catch(e) { return 2; }
+    return 0;
+  } else if (String(Number(key)) === key) return 1;
+  return 2;
+}
+Prop.prototype.toNode = function() {
+/*
+<li class="item">
+  <div class="iicon object"></div>
+  <div class="iname">document</div>
+</li>
+*/
+  var item = dom.ce("li");
+  var iicon = dom.ce("div");
+  var iname = dom.ce("div");
+
+  item.className = "item";
+  item.appendChild(iicon);
+  item.appendChild(iname);
+
+  iicon.className = "iicon " + this.type;
+
+  iname.className = "iname";
+  iname.appendChild(dom.ct(this.name));
+
+  return item;
+};
+function Prop(i, prop) {
+  if (!(this instanceof arguments.callee)) return;
+  this.name = i;
+  this.type = typeof prop.value[i];
+  this.value = prop.value[i];
+  this.path = prop.path +
+              ["." + i, "[" + i + "]", '["' + i + '"]'][memberOp(i)];
+}
+function getProps(prop) {
+  if (prop.value === null) return;
+  var props = [];
+  for (var i in prop.value) {
+    try { String(prop.value[i]); } catch(e) { continue; }
+    props.push(new Prop(i, prop));
+  }
+  var num = [], al = [];
+  props.forEach(function(p) {
+    (memberOp(p.name) === 1 ? num : al).push(p);
+  });
+  num.sort(function(p, q) { return p.name - q.name; });
+  al.sort(function(p, q) { return p.name > q.name; });
+  props = num.concat(al);
+  return props;
+}
+addEventListener("load", function() {
+  var props = getProps({
+    name: "window",
+    type: typeof window,
+    value: window,
+    path: "window"
+  });
+  setList(props);
+}, false);
+//]]></script>
+</body>
+</html>
