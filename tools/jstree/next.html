@@ -15,10 +15,13 @@ body {
   font-size: 12px;
 }
 .item {
+  word-wrap: break-word;
+  cursor: pointer;
   background: #fff;
   display: block;
   float: left;
   width: 70px;
+  height: 70px;
   margin: 10px;
   padding: 0px;
   text-align: center;
@@ -125,8 +128,9 @@ var mem = (function() {
     }
   };
 })();
-function openDir(prop) {
+function openDir(prop, h) {
   mem.setCurrent(prop);
+  if (h) location.hash = "#" + prop.path;
   setPath(prop.path);
   setCName(prop.name);
   hideProfile();
@@ -186,6 +190,27 @@ function memberOp(key) {
   if (String(Number(key)) === key) return 1;
   return 2;
 }
+function getDirs(path) {
+}
+function getProp(path) {
+  var value;
+  try { value = eval(path); } catch (e) { return false; }
+  var prop = {
+    name: path,
+    type: typeof value,
+    value: value,
+    path: path
+  };
+  return prop;
+}
+function Prop(i, prop) {
+  if (!(this instanceof arguments.callee)) return;
+  this.name = i;
+  this.type = typeof prop.value[i];
+  this.value = prop.value[i];
+  this.path = prop.path +
+              ["." + i, "[" + i + "]", '["' + i + '"]'][memberOp(i)];
+}
 Prop.prototype.toNode = function() {
 /*
 <li class="item">
@@ -206,7 +231,7 @@ Prop.prototype.toNode = function() {
     showProfile();
   }, false);
   item.addEventListener("click", function() {
-    openDir(prop);
+    openDir(prop, true);
   }, false);
 
   iicon.className = "iicon " + this.type;
@@ -216,25 +241,6 @@ Prop.prototype.toNode = function() {
 
   return item;
 };
-function getProp(path) {
-  var value;
-  try { value = eval(path); } catch (e) { return false; }
-  var prop = {
-    name: path,
-    type: typeof value,
-    value: value,
-    path: path
-  };
-  return prop;
-}
-function Prop(i, prop) {
-  if (!(this instanceof arguments.callee)) return;
-  this.name = i;
-  this.type = typeof prop.value[i];
-  this.value = prop.value[i];
-  this.path = prop.path +
-              ["." + i, "[" + i + "]", '["' + i + '"]'][memberOp(i)];
-}
 Prop.prototype.toString = function() {
   return this.name;
 };
@@ -253,27 +259,36 @@ function getProps(prop) {
   props = num.concat(al);
   return props;
 }
+function goPath(path, h) {
+  path = path || cpath.value;
+  var prop = getProp(path);
+  if (prop) openDir(prop, h);
+}
 function init() {
   var cpath = dom.id("cpath");
   var cgo = dom.id("cgo");
   cpath.addEventListener("keypress", function(ev) {
-    if (ev.keyCode === 27) {
+    switch (ev.keyCode) {
+    case 27:
       cpath.value = mem.getCurrent().path;
+      break;
+    case 13:
+      goPath(null, true);
+      break;
     }
   }, false);
   cgo.addEventListener("click", function() {
-    var prop = getProp(cpath.value);
-    if (prop) openDir(prop);
+    goPath(null, true);
   }, false);
 }
+addEventListener("hashchange", function(ev) {
+  if (mem.getCurrent().path !== location.hash.slice(1)) {
+    goPath(location.hash.slice(1) || "window");
+  }
+}, false);
 addEventListener("load", function() {
   init();
-  openDir({
-    name: "window",
-    type: typeof window,
-    value: window,
-    path: "window"
-  });
+  goPath("window");
 }, false);
 //]]></script>
 </body>
