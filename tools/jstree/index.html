@@ -1,71 +1,86 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta charset="UTF-8" />
-    <title>JavaScript Object Tree</title>
-    <style type="text/css">/*<![CDATA[*/
-    * {
-      margin: 0;
-      padding: 0;
+<head>
+<meta charset="utf-8" />
+<title>JavaScript Object Tree</title>
+<style>/*<![CDATA[*/
+* {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background-color: black;
+  color: white;
+  line-height: 1.6;
+  margin: 1ex;
+  font-family: monospace;
+}
+a {
+  color: #00ccff;
+}
+.property {
+  background-color: #111111;
+  border: 1px solid #808080;
+  margin: 1ex 0;
+  padding: 1ex;
+}
+.name {
+  font-size: larger;
+  font-weight: bold;
+}
+.type {
+  display: table-cell;
+  padding-right: 1ex;
+  color: #ff9999;
+}
+.value {
+  display: table-cell;
+  color: #c0c0c0;
+}
+.type.string + .value:before,
+.type.string + .value:after {
+  color: #c0c0c0;
+  content: '"';
+}
+.value.null,
+.type.string + .value,
+.type.number + .value,
+.type.boolean + .value {
+  color: #99ff66;
+}
+//]]></style>
+<script>//<![CDATA[
+if (!window.addEventListener) {
+  window.addEventListener = function(type, f) {
+    return this.attachEvent("on" + type, f);
+  };
+}
+if (!Element.prototype.addEventListener) {
+  Element.prototype.addEventListener = function() {
+    return window.addEventListener.apply(this, arguments);
+  };
+}
+if (!Array.prototype.forEach) {
+  Array.prototype.forEach = function(f) {
+    for (var i = 0; i < this.length; ++i) {
+      f(this[i], i, this);
     }
-    body {
-      background-color: black;
-      color: white;
-      line-height: 1.6;
-      margin: 1ex;
-      font-family: monospace;
+  };
+}
+if (!Array.prototype.map) {
+  Array.prototype.map = function(f) {
+    var a = [];
+    for (var i = 0; i < this.length; ++i) {
+      a[i] = f(this[i], i, this);
     }
-    a {
-      color: #00ccff;
-    }
-    .property {
-      background-color: #111111;
-      border: 1px solid #808080;
-      margin: 1ex 0;
-      padding: 1ex;
-    }
-    .name {
-      font-size: larger;
-      font-weight: bold;
-    }
-    .type {
-      display: table-cell;
-      padding-right: 1ex;
-      color: #ff9999;
-    }
-    .value {
-      display: table-cell;
-      color: #c0c0c0;
-    }
-    .type.string + .value:before,
-    .type.string + .value:after {
-      color: #c0c0c0;
-      content: '"';
-    }
-    .value.null,
-    .type.string + .value,
-    .type.number + .value,
-    .type.boolean + .value {
-      color: #99ff66;
-    }
-    //]]></style>
-  </head>
-  <body>
-    <div class="properties" id="root"></div>
-    <script type="text/javascript">//<![CDATA[
-(function() {
-  var IE = "\v" === "v";
-  if (IE) {
-    Array.prototype.forEach = Array.prototype.forEach || function(f) {
-      for (var i = 0; i < this.length; ++i) f(this[i]);
-    };
-    Array.prototype.map = Array.prototype.map || function(f) {
-      for (var i = 0; i < this.length; ++i) this[i] = f(this[i]);
-      return this;
-    };
-  }
+    return a;
+  };
+}
+//]]></script>
+<script>//<![CDATA[
+window.addEventListener("load", function() {
   function memberOp(key) {
-    // 3 種類のメンバ演算子記法のうちどれが適切かの判断
+    // 3 種類のメンバ演算子記法のうちどれが最適かの判断
     // .$0 [-0.5] ["for"]
     if (!/[^\w$]/.test(key) && !/^\d/.test(key)) {
       try {
@@ -74,29 +89,24 @@
       } catch(e) {}
     } else if (String(Number(key)) === key) return 1; // a[0x1]
     return 2;
-  };
+  }
   function getProps(prop) {
-    // prop.value の持つプロパティ群を配列にする
+    // prop.value の持つプロパティ群を特別なオブジェクトに格納して返す
     var obj = prop.value;
     var path = prop.path;
     if (obj === null) return;
     var keys = [];
     for (var key in obj) {
-      // try catch は読み取り禁止エラー対策
-      try {
-        String(obj[key]); // 読み取り禁止ならここでエラー
-        keys.push(key);
-      } catch(e) {}
+      try { String(obj[key]); } catch(e) { continue; }
+      keys.push(key);
     }
-    keys = (function(keys) {
-      var num = [], al = [];
-      keys.forEach(function(key) {
-        (memberOp(key) === 1 ? num : al).push(key);
-      });
-      num.sort(function(a, b) { return a - b; });
-      al.sort();
-      return num.concat(al);
-    })(keys);
+    var num = [], al = [];
+    keys.forEach(function(key) {
+      (memberOp(key) === 1 ? num : al).push(key);
+    });
+    num.sort(function(a, b) { return a - b; });
+    al.sort();
+    keys = num.concat(al);
     return keys.map(function(key) {
       return {
         "name" : key,
@@ -106,7 +116,34 @@
         ["." + key, "[" + key + "]", '["' + key + '"]'][memberOp(key)]
       };
     });
-  };
+  }
+  function getOnNameClick(prop, property) {
+    var ele_props;
+    return function onNameClick() {
+      // 子どもたちの入れ物を空にする
+      if (ele_props) {
+        while (ele_props.hasChildNodes()) {
+          ele_props.removeChild(ele_props.lastChild);
+        }
+      } else { // なければつくる
+        ele_props = document.createElement("div");
+        ele_props.className = "properties";
+        property.appendChild(ele_props);
+      }
+      // 子どもたちの入れ物に子どもたちを入れる
+      getProps(prop).forEach(function(prop) {
+        ele_props.appendChild(toHTML(prop));
+      });
+      // 自分以外の兄弟ノードを除去する
+      var parent = property.parentNode;
+      while (parent.hasChildNodes()) {
+        parent.removeChild(parent.lastChild);
+      }
+      parent.appendChild(property);
+      // 一番上までスクロールする
+      scrollTo(0, 0);
+    };
+  }
   function toHTML(prop) {
     // prop を HTML の要素に変換
     var property = document.createElement("div");
@@ -116,25 +153,16 @@
     property.className = "property";
     name.className = "name";
     type.className = "type " + prop.type;
-    value.className = "value" +
-    (prop.value === null ? " null" : "");
-    if ((function(obj) {
-      // prop.value がプロパティを持っているなら
-      if (obj !== null) try {
-        for (var index in obj) return true;
-      } catch(e) {}
-      return false;
-    })(prop.value)) {
-      // リンクにする
+    value.className = "value" + (prop.value === null ? " null" : "");
+
+    var prop_value_has_props = false;
+    try { for (var i in prop.value) prop_value_has_props = true; } catch(e) {}
+
+    if (prop_value_has_props) {
+      // prop.value がプロパティを持っているならリンクにする
       var a = document.createElement("a");
       a.href = "javascript:;";
-      a.prop = prop;
-      a.property = property;
-      IE ? a.attachEvent("onclick", function(v) {
-        v.target = v.srcElement;
-        onNameClick(v);
-      }, false):
-      a.addEventListener("click", onNameClick, false);
+      a.addEventListener("click", getOnNameClick(prop, property), false);
       a.appendChild(document.createTextNode(prop.path));
       name.appendChild(a);
     } else {
@@ -146,39 +174,25 @@
     property.appendChild(type);
     property.appendChild(value);
     return property;
-  };
-  function onNameClick(v) {
-    // リンク選択時の挙動
-    var a = v.target;
-    if (!a.props) {
-      a.props = document.createElement("div");
-      a.props.className = "properties";
-    } else while (a.props.hasChildNodes()) {
-      a.props.removeChild(a.props.lastChild);
-    }
-    getProps(a.prop).forEach(function(prop) {
-      a.props.appendChild(toHTML(prop));
-    });
-    var props = a.property.parentNode;
-    while (props.hasChildNodes()) {
-      props.removeChild(props.lastChild);
-    }
-    a.property.appendChild(a.props);
-    props.appendChild(a.property);
-    scrollTo(0, 0);
-  };
-  document.getElementById("root").appendChild(toHTML(new function() {
-    var hash = decodeURI(location.search.slice(1));
-    var hashev = (function(hash) {
-      try { return eval(hash); } catch (E) { return false; }
-    })(hash);
-    this.name = hashev ? hash : "window";
-    this.value = hashev || window;
-    this.type = typeof this.value;
-    this.path = this.name;
+  }
+  document.getElementById("root").appendChild(toHTML({
+    name: "window",
+    value: window,
+    type: typeof window,
+    path: "window"
   }));
-  document.links[0] && onNameClick({"target" : document.links[0]});
-})();
-    //]]></script>
-  </body>
+  if (document.createEvent) {
+    var click = document.createEvent("MouseEvents");
+    click.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0,
+                         false, false, false, false, 0, null);
+    document.links[0].dispatchEvent(click);
+  } else {
+    document.links[0].click();
+  }
+}, false);
+//]]></script>
+</head>
+<body>
+<div class="properties" id="root"></div>
+</body>
 </html>
