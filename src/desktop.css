@@ -9,7 +9,11 @@ body {
   padding: 2ex;
   border: solid #f0f0f0;
 }
+dt {
+  font-weight: bold;
+}
 h1, h2, h3, h4, h5, h6 {
   background: #f0f0f0;
   padding: 0.5ex;
+  border-left: 1ex solid #ddd;
 }
