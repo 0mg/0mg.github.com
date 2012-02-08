@@ -1,36 +1,15 @@
 @charset "utf-8";
 html {
   margin: 0 auto;
-  max-width: 40em;
+  max-width: 80ex;
   background: #fff url("../img/skygrad.png") repeat-x fixed;
 }
 body {
-  margin: 3ex;
-  padding: 3ex;
+  margin: 2ex;
+  padding: 2ex;
   border: solid #f0f0f0;
-  font: normal normal normal medium/1.6 sans-serif;
 }
 h1, h2, h3, h4, h5, h6 {
-  font-family: serif;
-  background-color: #f0f0f0;
-  padding: 0 1ex;
-  border-left: 1ex solid;
-}
-h1, h4 {
-  border-color: #e88;
-}
-h2, h5 {
-  border-color: #8c8;
-}
-h3, h6 {
-  border-color: #a8c;
-}
-dt {
-  font-weight: bold;
-}
-strong {
-  font-weight: bold;
-}
-strong strong {
-  color: #d00;
+  background: #f0f0f0;
+  padding: 0.5ex;
 }
