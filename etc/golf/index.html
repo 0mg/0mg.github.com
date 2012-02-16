@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<style>/*<![CDATA[*/
+* {
+  margin: 0;
+  padding: 0;
+}
+body {
+  padding-right: 1ex;
+}
+dt {
+  font-weight: bold;
+}
+textarea {
+  width: 100%;
+  height: 12em;
+  word-wrap: break-word;
+}
+table {
+  width: 100%;
+}
+tr {
+  vertical-align: top;
+}
+td {
+  width: 50%;
+  padding: 1ex;
+}
+/*]]>*/</style>
+<script>//<![CDATA[
+window.onload = function() {
+  var el = {
+    src: document.getElementById("src"),
+    dst: document.getElementById("dst"),
+    sinput: document.getElementById("sinput"),
+    err: document.getElementById("err")
+  };
+
+  var shell = new function() {
+    var lines = [];
+    function setlines() {
+      var s = el.sinput.value.replace(/\r\n|\r/g, "\n");
+      lines = s ? s.split("\n") : [];
+    }
+    function putstr(s) {
+      el.dst.textContent += s;
+    }
+    function print() {
+      var s = Array.prototype.map.call(arguments, function(s) {
+        return String(s);
+      }).join(" ");
+      el.dst.textContent += s + "\n";
+    }
+    function readline() {
+      return lines.length ? String(lines.shift()) : null;
+    }
+    this.putstr = putstr;
+    this.print = print;
+    this.readline = readline;
+    this.setlines = setlines;
+  };
+
+  function reset() {
+    shell.setlines();
+    el.dst.textContent = "";
+    el.err.textContent = "";
+  }
+
+  function evalSrc() {
+    el.err.textContent = "";
+    var src_txt = "document.getElementById('src').value";
+    var err_txt = "document.getElementById('err').textContent";
+    var evar = "E" + Math.random().toFixed(20).slice(2);
+    location.href = "javascript:try{void(eval(" + src_txt + "))}" +
+                    "catch(" + evar + "){void(" + err_txt + "=" + evar + ")}";
+  }
+
+  window.putstr = shell.putstr;
+  window.print = shell.print;
+  window.readline = shell.readline;
+
+  reset();
+
+  el.sinput.addEventListener("change", reset, false);
+  el.src.addEventListener("keypress", function(event) {
+    if (event.keyCode === 13) {
+      evalSrc();
+      event.preventDefault();
+    }
+  }, false);
+};
+//]]></script>
+<title>JavaScript Anarchy Golf Simulator</title>
+</head>
+<body>
+<table>
+<tr>
+<td>
+  <dl>
+  <dt>Sample Input</dt>
+  <dd><textarea id="sinput"></textarea></dd>
+  <dt>JavaScript</dt>
+  <dd><textarea id="src"></textarea></dd>
+  </dl>
+</td>
+<td>
+  <dl>
+  <dt>Result</dt>
+  <dd><pre id="dst"></pre></dd>
+  <dt>Error</dt>
+  <dd><pre id="err"></pre></dd>
+  </dl>
+</td>
+</tr>
+</table>
+</body>
+</html>
