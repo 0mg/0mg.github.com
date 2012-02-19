@@ -44,6 +44,9 @@ window.onload = function() {
       var s = el.sinput.value.replace(/\r\n|\r/g, "\n");
       lines = s ? s.split("\n") : [];
     }
+    function readline() {
+      return lines.length ? String(lines.shift()) : null;
+    }
     function putstr(s) {
       el.dst.textContent += s;
     }
@@ -53,13 +56,10 @@ window.onload = function() {
       }).join(" ");
       el.dst.textContent += s + "\n";
     }
-    function readline() {
-      return lines.length ? String(lines.shift()) : null;
-    }
+    this.setlines = setlines;
+    this.readline = readline;
     this.putstr = putstr;
     this.print = print;
-    this.readline = readline;
-    this.setlines = setlines;
   };
 
   function reset() {
@@ -69,7 +69,6 @@ window.onload = function() {
   }
 
   function evalSrc() {
-    el.err.textContent = "";
     var src_txt = "document.getElementById('src').value";
     var err_txt = "document.getElementById('err').textContent";
     var evar = "E" + Math.random().toFixed(20).slice(2);
@@ -83,9 +82,9 @@ window.onload = function() {
 
   reset();
 
-  el.sinput.addEventListener("change", reset, false);
   el.src.addEventListener("keypress", function(event) {
     if (event.keyCode === 13) {
+      reset();
       evalSrc();
       event.preventDefault();
     }
