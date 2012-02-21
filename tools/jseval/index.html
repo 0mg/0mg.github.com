@@ -20,41 +20,37 @@ textarea {
 }
 /*]]>*/</style>
 <script>//<![CDATA[
+if (!Event.prototype.preventDefault) {
+  Event.prototype.preventDefault = function() {
+    this.returnValue = false;
+  };
+}
+if (!window.addEventListener) {
+  window.addEventListener = function(type, f) {
+    return this.attachEvent("on" + type, f);
+  };
+}
+if (!Element.prototype.addEventListener) {
+  Element.prototype.addEventListener = window.addEventListener;
+}
+//]]></script>
+<script>//<![CDATA[
 window.onload = function() {
-
-  var srcE = document.getElementById("src");
-  var src = "document.getElementById('src').value";
-  var dst = "document.getElementById('dst').lastChild.nodeValue";
-
+  var src = document.getElementById("src");
   function evalSrc() {
-    var E = "E" + Math.random().toFixed(20).toString().slice(2);
+    var src_s = "document.getElementById('src').value";
+    var dst_s = "document.getElementById('dst').lastChild.nodeValue";
+    var E_s = "E" + Math.random().toFixed(20).toString().slice(2);
     location.href = "javascript:" +
-                    "try{throw(String(eval(" + src + ")))}" +
-                    "catch(" + E + "){void(" + dst + "=" + E + ")}";
+                    "try{throw(String(eval(" + src_s + ")))}" +
+                    "catch(" + E_s + "){void(" + dst_s + "=" + E_s + ")}";
   }
-
-  var EVAL_TRIGGER_KEYCODE = 13;
-
-  try {
-
-    srcE.addEventListener("keypress", function(event) {
-      if (event.keyCode === EVAL_TRIGGER_KEYCODE) {
-        evalSrc();
-        event.preventDefault();
-      }
-    }, false);
-
-  } catch(IE) {
-
-    srcE.attachEvent("onkeypress", function(event) {
-      if (event.keyCode === EVAL_TRIGGER_KEYCODE) {
-        evalSrc();
-        return false;
-      }
-    });
-
-  }
-
+  src.addEventListener("keypress", function(event) {
+    if (event.keyCode === 13) {
+      evalSrc();
+      event.preventDefault();
+    }
+  }, false);
 };
 //]]></script>
 <title>JavaScript Evaluater</title>
