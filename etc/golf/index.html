@@ -29,8 +29,8 @@ td {
   padding: 1ex;
 }
 /*]]>*/</style>
-<script>//<![CDATA[
-window.onload = function() {
+<script>//<![CDATA["use strict";
+addEventListener("DOMContentLoaded", function() {
   var el = {
     src: document.getElementById("src"),
     dst: document.getElementById("dst"),
@@ -56,10 +56,24 @@ window.onload = function() {
       }).join(" ");
       el.dst.textContent += s + "\n";
     }
+
+    var it = {
+      customRdOnly: void 0,
+      custom: void 0,
+      array: void 0,
+      funny: void 0,
+      width: void 0,
+      height: void 0,
+      color: void 0
+    };
+    Object.defineProperty(it, "toString",
+      { value: function() { return "undefined"; } });
+
     this.setlines = setlines;
     this.readline = readline;
     this.putstr = putstr;
     this.print = print;
+    this.it = it;
   };
 
   function reset() {
@@ -79,6 +93,7 @@ window.onload = function() {
   window.putstr = shell.putstr;
   window.print = shell.print;
   window.readline = shell.readline;
+  window.it = shell.it;
 
   reset();
 
@@ -89,7 +104,7 @@ window.onload = function() {
       event.preventDefault();
     }
   }, false);
-};
+}, false);
 //]]></script>
 <title>JavaScript Anarchy Golf Simulator</title>
 </head>
