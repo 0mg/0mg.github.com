@@ -56,9 +56,7 @@ if (!window.addEventListener) {
   };
 }
 if (!Element.prototype.addEventListener) {
-  Element.prototype.addEventListener = function() {
-    return window.addEventListener.apply(this, arguments);
-  };
+  Element.prototype.addEventListener = window.addEventListener;
 }
 if (!Array.prototype.forEach) {
   Array.prototype.forEach = function(f) {
