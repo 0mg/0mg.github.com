@@ -191,12 +191,20 @@ function memberOp(key) {
   return 2;
 }
 function getDirs(path) {
+  var re = /[$_a-zA-Z][$\w]*|\[\s*-?\d+\.?\d*\s*\]|\[\s*("|')(?:\\u[0-9a-fA-F]{4}|\\x[0-9a-fA-F]{2}|\\[^]|[^])*?\1\s*\]/g;
+  return path.match(re);
 }
 function getProp(path) {
   var value;
   try { value = eval(path); } catch (e) { return false; }
+  var dirs = getDirs(path);
+  var ctx = "";
+  if (dirs) {
+    ctx = dirs.pop().replace(/^\[|\]$/g, "");
+  }
+  var name = ctx;
   var prop = {
-    name: path,
+    name: name,
     type: typeof value,
     value: value,
     path: path
@@ -266,6 +274,7 @@ function goPath(path, h) {
 }
 function init() {
   var cpath = dom.id("cpath");
+  var cup = dom.id("cup");
   var cgo = dom.id("cgo");
   cpath.addEventListener("keypress", function(ev) {
     switch (ev.keyCode) {
@@ -276,6 +285,12 @@ function init() {
       goPath(null, true);
       break;
     }
+  }, false);
+  cup.addEventListener("click", function() {
+    var parent_path = getDirs(cpath.value).slice(0, -1).map(function(d, i) {
+      return (i === 0 || d[0] === "[") ? d : "." + d;
+    }).join("");
+    goPath(parent_path, true);
   }, false);
   cgo.addEventListener("click", function() {
     goPath(null, true);
@@ -288,7 +303,10 @@ addEventListener("hashchange", function(ev) {
 }, false);
 addEventListener("load", function() {
   init();
+  var h = location.hash.slice(1);
+  location.hash = "window";
   goPath("window");
+  setPath(h || "window");
 }, false);
 //]]></script>
 </body>
