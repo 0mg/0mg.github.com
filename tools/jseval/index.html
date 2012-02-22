@@ -35,7 +35,7 @@ if (!Element.prototype.addEventListener) {
 }
 //]]></script>
 <script>//<![CDATA[
-window.onload = function() {
+addEventListener("load", function() {
   var src = document.getElementById("src");
   function evalSrc() {
     var src_s = "document.getElementById('src').value";
@@ -51,7 +51,7 @@ window.onload = function() {
       event.preventDefault();
     }
   }, false);
-};
+}, false);
 //]]></script>
 <title>JavaScript Evaluater</title>
 </head>
