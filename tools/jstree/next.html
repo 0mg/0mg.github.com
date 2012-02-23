@@ -110,6 +110,42 @@ dd {
 </li>
 </ul>
 <script>//<![CDATA[
+if (!window.addEventListener) {
+  window.addEventListener = function(type, f) {
+    return this.attachEvent("on" + type, f);
+  };
+}
+if (!Element.prototype.addEventListener) {
+  Element.prototype.addEventListener = window.addEventListener;
+}
+if (!Array.prototype.forEach) {
+  Array.prototype.forEach = function(f) {
+    for (var i = 0; i < this.length; ++i) {
+      f(this[i], i, this);
+    }
+  };
+}
+if (!Array.prototype.map) {
+  Array.prototype.map = function(f) {
+    var a = [];
+    for (var i = 0; i < this.length; ++i) {
+      a[i] = f(this[i], i, this);
+    }
+    return a;
+  };
+}
+//]]></script>
+<script>//<![CDATA[
+var $testObj = {
+  "num": 123,
+  "str": "hoge",
+  "func": function() {},
+  "bool": true,
+  "[\"obj\"][\\\"o\"]": {
+    "none": "fuga"
+  },
+  "und": void 0
+};
 var dom = {
   id: function(id) { return document.getElementById(id); },
   ce: function(s) { return document.createElement(s); },
@@ -200,7 +236,9 @@ function getProp(path) {
   var dirs = getDirs(path);
   var ctx = "";
   if (dirs) {
-    ctx = dirs.pop().replace(/^\[|\]$/g, "");
+    ctx = dirs.pop().
+      replace(/^\[\s*["']?|["']?\s*\]$/g, "").
+      replace(/\\(["'\\])/g, "$1");
   }
   var name = ctx;
   var prop = {
@@ -212,12 +250,20 @@ function getProp(path) {
   return prop;
 }
 function Prop(i, prop) {
-  if (!(this instanceof arguments.callee)) return;
+  if (!(this instanceof Prop)) return;
   this.name = i;
   this.type = typeof prop.value[i];
   this.value = prop.value[i];
-  this.path = prop.path +
-              ["." + i, "[" + i + "]", '["' + i + '"]'][memberOp(i)];
+  switch (memberOp(i)) {
+  case 0:
+    this.path = prop.path + "." + i;
+    break;
+  case 1:
+    this.path = prop.path + "[" + i + "]";
+    break;
+  default:
+    this.path = prop.path + '["' + i.replace(/(?=["'\\])/g, "\\") + '"]';
+  }
 }
 Prop.prototype.toNode = function() {
 /*
