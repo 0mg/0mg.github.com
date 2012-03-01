@@ -16,7 +16,6 @@ body {
 }
 .item {
   word-wrap: break-word;
-  cursor: pointer;
   background: #fff;
   display: block;
   float: left;
@@ -25,10 +24,13 @@ body {
   margin: 10px;
   padding: 0px;
   text-align: center;
+  border: 1px dotted transparent;
 }
-.item:hover {
-  background: navy;
-  color: white;
+.item.select {
+  background: yellow;
+}
+.item.focus {
+  border-color: #000;
 }
 .iicon {
   margin: 2px auto;
@@ -37,8 +39,15 @@ body {
   height: 32px;
 }
 .iname {
+  display: inline;
   margin: 2px auto;
   font-size: 12px;
+  color: blue;
+  cursor: pointer;
+}
+.iname:hover {
+  color: red;
+  text-decoration: underline;
 }
 .iicon.object {
   background: #ffc;
@@ -55,25 +64,29 @@ body {
 .iicon.boolean {
   background: #aaf;
 }
+#cbar {
+  position: fixed;
+  width: 100%;
+  height: 50px;
+  border-bottom: 1px solid;
+  background: lime;
+}
 #cpath {
   width: 90%;
 }
-#side, #list {
-  display: table-cell;
-  vertical-align: top;
-}
 #list {
-  background: #ddd;
-  overflow: auto;
-  position: absolute;
-  top: 50px;
-  bottom: 0;
-  left: 120px;
+  background: pink;
+  padding-top: 51px;
+  padding-left: 121px;
 }
 #side {
   width: 120px;
   max-width: 120px;
   border-right: 1px solid;
+  position: fixed;
+  top: 51px;
+  bottom: 0;
+  background: aqua;
 }
 dt {
   font-weight: bold;
@@ -81,14 +94,10 @@ dt {
 dd {
   margin-bottom: 1ex;
 }
-#cname {
-  border-bottom: 1px solid;
-}
 /*]]>*/</style>
 </head>
 <body>
-<div><button id="cup">up</button><input id="cpath" value="window" /><button id="cgo">open</button></div>
-<h1 id="cname">window</h1>
+<div id="cbar"><button id="cup">up</button><input id="cpath" value="window" /><button id="cgo">open</button><h1 id="cname">window</h1></div>
 <div id="side">
 <dl id="profile">
 <dt>name</dt>
@@ -99,7 +108,7 @@ dd {
 <dd id="fvalue">[object HTMLDocument]</dd>
 </dl>
 </div>
-<ul id="list">
+<div id="list">
 <li class="item">
   <div class="iicon object"></div>
   <div class="iname">document</div>
@@ -108,7 +117,7 @@ dd {
   <div class="iicon number"></div>
   <div class="iname">length</div>
 </li>
-</ul>
+</div>
 <script>//<![CDATA[
 if (!window.addEventListener) {
   window.addEventListener = function(type, f) {
@@ -142,12 +151,17 @@ var $testObj = {
   "func": function() {},
   "bool": true,
   "[\"obj\"][\\\"o\"]": {
-    "none": "fuga"
+    "#": "fuga"
   },
   "und": void 0
 };
+function encode(s) {
+  return encodeURIComponent(s);
+}
 var dom = {
   id: function(id) { return document.getElementById(id); },
+  q: function(s) { return document.querySelector(s); },
+  qs: function(s) { return document.querySelectorAll(s); },
   ce: function(s) { return document.createElement(s); },
   ct: function(s) { return document.createTextNode(s); }
 };
@@ -164,9 +178,19 @@ var mem = (function() {
     }
   };
 })();
+function getHash() {
+  try {
+    return decodeURIComponent(location.hash.slice(1));
+  } catch(e) {
+    return location.hash.slice(1);
+  }
+}
+function setHash(s) {
+  location.hash = encodeURIComponent(s);
+}
 function openDir(prop, h) {
   mem.setCurrent(prop);
-  if (h) location.hash = "#" + prop.path;
+  if (h) setHash(prop.path);
   setPath(prop.path);
   setCName(prop.name);
   hideProfile();
@@ -280,11 +304,15 @@ Prop.prototype.toNode = function() {
   item.className = "item";
   item.appendChild(iicon);
   item.appendChild(iname);
-  item.addEventListener("mouseover", function() {
+  item.addEventListener("click", function(e) {
+    var cf = dom.q(".focus");
+    if (cf) cf.classList.remove("focus");
+    item.classList.add("select");
+    item.classList.add("focus");
     setProfile(prop);
     showProfile();
   }, false);
-  item.addEventListener("click", function() {
+  iname.addEventListener("click", function() {
     openDir(prop, true);
   }, false);
 
@@ -314,7 +342,6 @@ function getProps(prop) {
   return props;
 }
 function goPath(path, h) {
-  path = path || cpath.value;
   var prop = getProp(path);
   if (prop) openDir(prop, h);
 }
@@ -328,29 +355,33 @@ function init() {
       cpath.value = mem.getCurrent().path;
       break;
     case 13:
-      goPath(null, true);
+      if (cpath.value !== mem.getCurrent().path) goPath(cpath.value, true);
       break;
     }
   }, false);
   cup.addEventListener("click", function() {
-    var parent_path = getDirs(cpath.value).slice(0, -1).map(function(d, i) {
+    var cur_path = mem.getCurrent().path;
+    var parent_path = getDirs(cur_path).slice(0, -1).map(function(d, i) {
       return (i === 0 || d[0] === "[") ? d : "." + d;
-    }).join("");
-    goPath(parent_path, true);
+    }).join("") || "window";
+    if (cur_path !== parent_path) goPath(parent_path, true);
   }, false);
   cgo.addEventListener("click", function() {
-    goPath(null, true);
+    if (cpath.value !== mem.getCurrent().path) goPath(cpath.value, true);
   }, false);
+  window.addEventListener("click", function() {
+    var s = dom.q(".select");
+    if (s) s.classList.remove("select");
+  }, true);
 }
 addEventListener("hashchange", function(ev) {
-  if (mem.getCurrent().path !== location.hash.slice(1)) {
-    goPath(location.hash.slice(1) || "window");
-  }
+  var h = getHash();
+  if (h !== mem.getCurrent().path) goPath(h);
 }, false);
 addEventListener("load", function() {
   init();
-  var h = location.hash.slice(1);
-  location.hash = "window";
+  var h = getHash();
+  setHash("window");
   goPath("window");
   setPath(h || "window");
 }, false);
