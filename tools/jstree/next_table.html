@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <title>JSObjTree</title>
 <style>/*<![CDATA[*/
-* {
+*:not(button) {
   margin: 0;
   padding: 0;
   font-family: monospace;
@@ -18,16 +18,15 @@ table {
   border-collapse: collapse;
 }
 th, td {
+  vertical-align: top;
   padding: 0.5ex;
   border: 1px solid silver;
 }
-.item {
+#address {
+  width: 100%;
 }
-.item.select {
-}
-.item.focus {
-}
-.iicon {
+#civalue {
+  white-space: pre-wrap;
 }
 .iname {
   color: blue;
@@ -37,58 +36,64 @@ th, td {
   color: red;
   text-decoration: underline;
 }
-.itype.object {
+.item.object .itype {
   background: #ffa;
 }
-.itype.number {
+.item.number .itype {
   background: #fcc;
 }
-.itype.function {
+.item.function .itype {
   background: #bff;
 }
-.itype.string {
+.item.string .itype {
   background: #9f9;
 }
-.itype.boolean {
+.item.boolean .itype {
   background: #bbf;
 }
-.itype.undefined {
+.item.undefined .itype {
   color: #fff;
   background: #777;
 }
-.itype.null {
+.item.null .itype {
   color: #fff;
   background: #000;
 }
-#cbar {
+.item.object .ivalue,
+.item.function .ivalue,
+.item.undefined .ivalue {
+  color: #333;
 }
-#cpath {
+.item.number .ivalue,
+.item.string .ivalue,
+.item.boolean .ivalue,
+.item.null .ivalue {
+  font-weight: bold;
 }
-#list {
-}
-#side {
-  display: none;
+.item.string .ivalue::before,
+.item.string .ivalue::after {
+  color: gray;
+  font-weight: normal;
+  content: '"';
 }
 /*]]>*/</style>
 </head>
 <body>
-<div id="cbar"><button id="cup">up</button><input id="address" value="window" /><button id="cgo">open</button><h1 id="cname">window</h1></div>
-<div id="side">
-<dl id="profile">
-<dt>name</dt>
-<dd id="fname">document</dd>
-<dt>type</dt>
-<dd id="ftype">object</dd>
-<dt>value</dt>
-<dd id="fvalue">[object HTMLDocument]</dd>
-</dl>
-</div>
+<input id="address" value="window" /><button id="cup">up</button><button id="cgo">go</button>
+<h1 id="cname">window</h1>
+<table>
+<tbody>
+<tr id="citem" class="item object">
+  <td id="citype" class="itype">object</td><td><pre id="civalue" class="ivalue">[object Window]</pre></td>
+</tr>
+</tbody>
+</table>
 <table>
 <caption id="cpath">window</caption>
 <thead><tr><th>type</th><th>key</th><th>value</th></tr></thead>
 <tbody id="list">
 <tr class="item">
-  <td class="type">number</td><td class="iname">length</td><td class="ivalue">30</td>
+  <td class="itype">number</td><td class="iname">length</td><td class="ivalue">30</td>
 </tr>
 </tbody>
 </table>
@@ -165,8 +170,7 @@ function openDir(prop, h) {
   mem.setCurrent(prop);
   if (h) setHash(prop.path);
   setPath(prop.path);
-  setCName(prop.name);
-  hideProfile();
+  setCList(prop);
   setList(getProps(prop));
 }
 function setList(props) {
@@ -185,26 +189,18 @@ function clearList() {
     list.removeChild(list.lastChild);
   }
 }
-function setProfile(prop) {
-  var fname = dom.id("fname");
-  var ftype = dom.id("ftype");
-  var fvalue = dom.id("fvalue");
-  fname.textContent = prop.name;
-  ftype.textContent = prop.type;
-  fvalue.textContent = prop.type === "string" ?
-                       '"' + String(prop.value) + '"': String(prop.value);
-}
-function hideProfile() {
-  var profile = dom.id("profile");
-  profile.style.visibility = "hidden";
-}
-function showProfile() {
-  var profile = dom.id("profile");
-  profile.style.visibility = "visible";
-}
-function setCName(name) {
+function setCList(prop) {
   var cname = dom.id("cname");
-  cname.textContent = name;
+  cname.lastChild.nodeValue = prop.name;
+
+  var citem = dom.id("citem");
+  citem.className = "item " + prop.type;
+
+  var citype = dom.id("citype");
+  citype.lastChild.nodeValue = prop.type;
+
+  var civalue = dom.id("civalue");
+  civalue.lastChild.nodeValue = String(prop.value);
 }
 function setPath(path) {
   var address = dom.id("address");
@@ -276,20 +272,12 @@ Prop.prototype.toNode = function() {
   var iname = dom.ce("td");
   var ivalue = dom.ce("td");
 
-  item.className = "item";
+  item.className = "item " + this.type;;
   item.appendChild(itype);
   item.appendChild(iname);
   item.appendChild(ivalue);
-  item.addEventListener("click", function(e) {
-    var cf = dom.q(".focus");
-    if (cf) cf.classList.remove("focus");
-    item.classList.add("select");
-    item.classList.add("focus");
-    setProfile(prop);
-    showProfile();
-  }, false);
 
-  itype.className = "itype " + this.type;
+  itype.className = "itype"
   itype.appendChild(dom.ct(this.type));
 
   iname.className = "iname";
@@ -299,8 +287,8 @@ Prop.prototype.toNode = function() {
   }, false);
 
   ivalue.className = "ivalue";
-  var value = this.type === "string" ? '"' + this.value.replace(/["\\]/g, "\\$&") + '"' : String(this.value);
-  ivalue.appendChild(dom.ct(value.slice(0, 140)));
+  var value = String(this.value).replace(/([^]{140})[^]*/, "$1...");
+  ivalue.appendChild(dom.ct(value));
 
   return item;
 };
@@ -309,16 +297,18 @@ Prop.prototype.toString = function() {
 };
 function getKeys(prop) {
   var props = [];
-  if ((typeof prop.value === "object" && prop.value !== null) || typeof prop.value === "function") {
+  if ((typeof prop.value === "object" && prop.value !== null) ||
+    typeof prop.value === "function") {
     var keys = Object.getOwnPropertyNames(prop.value);
     props = keys.map(function(i) {
       return new Prop(i, prop);
     });
     return props;
-  }
-  for (var i in prop.value) {
-    try { String(prop.value[i]); } catch(e) { continue; }
-    props.push(new Prop(i, prop));
+  } else if (typeof prop.value !== "string") {
+    for (var i in prop.value) {
+      try { String(prop.value[i]); } catch(e) { continue; }
+      props.push(new Prop(i, prop));
+    }
   }
   return props;
 }
