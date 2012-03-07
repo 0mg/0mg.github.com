@@ -1,0 +1,8 @@
+<!DOCTYPE html><html><head><script>
+addEventListener("message", function(event) {
+  var message = event.data;
+  if (message === "200") {
+    event.source.postMessage("hoge", "*");
+  }
+}, false);
+</script><title>Post Message</title></head><body><iframe src="msg_res.html"></iframe></body></html>

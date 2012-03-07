@@ -1,0 +1,11 @@
+<!DOCTYPE html><html><head><script>
+addEventListener("DOMContentLoaded", function() {
+  window.parent.postMessage("200", "*");
+}, false);
+addEventListener("message", function(event) {
+  var message = event.data;
+  var parentOrigin = event.origin;
+  var parentWindow = event.source;
+  parentWindow.document.title = message;
+}, false);
+</script><title>Post Message (Response)</title></head><body></body></html>
