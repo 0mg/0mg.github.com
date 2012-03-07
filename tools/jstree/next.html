@@ -199,9 +199,10 @@ function openDir(prop, h) {
 function setList(props) {
   var list = dom.id("list");
   var f = document.createDocumentFragment();
-  props.forEach(function(p) {
-    f.appendChild(p.toNode());
-  });
+  var i = 0, lim = props.length < 1000 ? props.length : 1000;
+  for (; i < lim; ++i) {
+    f.appendChild(props[i].toNode())
+  }
   clearList();
   list.appendChild(f);
 }
