@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<title>JSObjTree</title>
+<style>/*<![CDATA[*/
+* {
+  margin: 0;
+  padding: 0;
+  font-family: monospace;
+  line-height: 1.3;
+}
+body {
+  background: #f9f9f9;
+  font-size: 15px;
+}
+table {
+  border-collapse: collapse;
+}
+th, td {
+  padding: 0.5ex;
+  border: 1px solid silver;
+}
+.item {
+}
+.item.select {
+}
+.item.focus {
+}
+.iicon {
+}
+.iname {
+  color: blue;
+  cursor: pointer;
+}
+.iname:hover {
+  color: red;
+  text-decoration: underline;
+}
+.itype.object {
+  background: #ffa;
+}
+.itype.number {
+  background: #fcc;
+}
+.itype.function {
+  background: #bff;
+}
+.itype.string {
+  background: #9f9;
+}
+.itype.boolean {
+  background: #bbf;
+}
+.itype.undefined {
+  color: #fff;
+  background: #777;
+}
+.itype.null {
+  color: #fff;
+  background: #000;
+}
+#cbar {
+}
+#cpath {
+}
+#list {
+}
+#side {
+  display: none;
+}
+/*]]>*/</style>
+</head>
+<body>
+<div id="cbar"><button id="cup">up</button><input id="address" value="window" /><button id="cgo">open</button><h1 id="cname">window</h1></div>
+<div id="side">
+<dl id="profile">
+<dt>name</dt>
+<dd id="fname">document</dd>
+<dt>type</dt>
+<dd id="ftype">object</dd>
+<dt>value</dt>
+<dd id="fvalue">[object HTMLDocument]</dd>
+</dl>
+</div>
+<table>
+<caption id="cpath">window</caption>
+<thead><tr><th>type</th><th>key</th><th>value</th></tr></thead>
+<tbody id="list">
+<tr class="item">
+  <td class="type">number</td><td class="iname">length</td><td class="ivalue">30</td>
+</tr>
+</tbody>
+</table>
+<script>//<![CDATA[
+if (!window.addEventListener) {
+  window.addEventListener = function(type, f) {
+    return this.attachEvent("on" + type, f);
+  };
+}
+if (!Element.prototype.addEventListener) {
+  Element.prototype.addEventListener = window.addEventListener;
+}
+if (!Array.prototype.forEach) {
+  Array.prototype.forEach = function(f) {
+    for (var i = 0; i < this.length; ++i) {
+      f(this[i], i, this);
+    }
+  };
+}
+if (!Array.prototype.map) {
+  Array.prototype.map = function(f) {
+    var a = [];
+    for (var i = 0; i < this.length; ++i) {
+      a[i] = f(this[i], i, this);
+    }
+    return a;
+  };
+}
+//]]></script>
+<script>//<![CDATA[
+var $testObj = {
+  "num": 123,
+  "str": '"\\hoge',
+  "func": function() {},
+  "bool": true,
+  "[\"obj\"][\\\"o\"]": {
+    "#": "fuga"
+  },
+  "und": void 0,
+  "nil": null
+};
+function encode(s) {
+  return encodeURIComponent(s);
+}
+var dom = {
+  id: function(id) { return document.getElementById(id); },
+  q: function(s) { return document.querySelector(s); },
+  qs: function(s) { return document.querySelectorAll(s); },
+  ce: function(s) { return document.createElement(s); },
+  ct: function(s) { return document.createTextNode(s); }
+};
+var mem = (function() {
+  var ram = {};
+  return {
+    setCurrent: function(prop) {
+      ram.prop = prop;
+    },
+    getCurrent: function() {
+      return ram.prop;
+    }
+  };
+})();
+function getHash() {
+  try {
+    return decodeURIComponent(location.hash.slice(1));
+  } catch(e) {
+    return location.hash.slice(1);
+  }
+}
+function setHash(s) {
+  location.hash = encodeURIComponent(s);
+}
+function openDir(prop, h) {
+  mem.setCurrent(prop);
+  if (h) setHash(prop.path);
+  setPath(prop.path);
+  setCName(prop.name);
+  hideProfile();
+  setList(getProps(prop));
+}
+function setList(props) {
+  var list = dom.id("list");
+  var f = document.createDocumentFragment();
+  var i = 0, lim = props.length < 1000 ? props.length : 1000;
+  for (; i < lim; ++i) {
+    f.appendChild(props[i].toNode())
+  }
+  clearList();
+  list.appendChild(f);
+}
+function clearList() {
+  var list = dom.id("list");
+  while (list.hasChildNodes()) {
+    list.removeChild(list.lastChild);
+  }
+}
+function setProfile(prop) {
+  var fname = dom.id("fname");
+  var ftype = dom.id("ftype");
+  var fvalue = dom.id("fvalue");
+  fname.textContent = prop.name;
+  ftype.textContent = prop.type;
+  fvalue.textContent = prop.type === "string" ?
+                       '"' + String(prop.value) + '"': String(prop.value);
+}
+function hideProfile() {
+  var profile = dom.id("profile");
+  profile.style.visibility = "hidden";
+}
+function showProfile() {
+  var profile = dom.id("profile");
+  profile.style.visibility = "visible";
+}
+function setCName(name) {
+  var cname = dom.id("cname");
+  cname.textContent = name;
+}
+function setPath(path) {
+  var address = dom.id("address");
+  var cpath = dom.id("cpath");
+  address.value = path;
+  cpath.lastChild.nodeValue = path;
+}
+/*
+{
+  name: "document",
+  type: "object",
+  value: "[object HTMLDocument]",
+  path: "window.document"
+}
+*/
+function memberOp(key) {
+  // 0: . 1: [0] 2: ["0x1"]
+  try { eval("''." + key); return 0; } catch(e) {}
+  if (String(Number(key)) === key) return 1;
+  return 2;
+}
+function getDirs(path) {
+  var re = /[$_a-zA-Z][$\w]*|\[\s*-?\d+\.?\d*\s*\]|\[\s*("|')(?:\\u[0-9a-fA-F]{4}|\\x[0-9a-fA-F]{2}|\\[^]|[^])*?\1\s*\]/g;
+  return path.match(re);
+}
+function getProp(path) {
+  var value;
+  try { value = eval(path); } catch (e) { return false; }
+  var dirs = getDirs(path);
+  var ctx = "";
+  if (dirs) {
+    ctx = dirs.pop().
+      replace(/^\[\s*["']?|["']?\s*\]$/g, "").
+      replace(/\\(["'\\])/g, "$1");
+  }
+  var name = ctx;
+  var prop = {
+    name: name,
+    type: value === null ? "null" : typeof value,
+    value: value,
+    path: path
+  };
+  return prop;
+}
+function Prop(i, prop) {
+  if (!(this instanceof Prop)) return;
+  this.name = i;
+  this.type = prop.value[i] === null ? "null" : typeof prop.value[i];
+  this.value = prop.value[i];
+  switch (memberOp(i)) {
+  case 0:
+    this.path = prop.path + "." + i;
+    break;
+  case 1:
+    this.path = prop.path + "[" + i + "]";
+    break;
+  default:
+    this.path = prop.path + '["' + i.replace(/(?=["'\\])/g, "\\") + '"]';
+  }
+}
+Prop.prototype.toNode = function() {
+/*
+<tr class="item">
+  <td class="type">number</td><td class="iname">length</td><td class="ivalue">30</td>
+*/
+  var prop = this;
+  var item = dom.ce("tr");
+  var itype = dom.ce("td");
+  var iname = dom.ce("td");
+  var ivalue = dom.ce("td");
+
+  item.className = "item";
+  item.appendChild(itype);
+  item.appendChild(iname);
+  item.appendChild(ivalue);
+  item.addEventListener("click", function(e) {
+    var cf = dom.q(".focus");
+    if (cf) cf.classList.remove("focus");
+    item.classList.add("select");
+    item.classList.add("focus");
+    setProfile(prop);
+    showProfile();
+  }, false);
+
+  itype.className = "itype " + this.type;
+  itype.appendChild(dom.ct(this.type));
+
+  iname.className = "iname";
+  iname.appendChild(dom.ct(this.name));
+  iname.addEventListener("click", function() {
+    openDir(prop, true);
+  }, false);
+
+  ivalue.className = "ivalue";
+  var value = this.type === "string" ? '"' + this.value.replace(/["\\]/g, "\\$&") + '"' : String(this.value);
+  ivalue.appendChild(dom.ct(value.slice(0, 140)));
+
+  return item;
+};
+Prop.prototype.toString = function() {
+  return this.name;
+};
+function getKeys(prop) {
+  var props = [];
+  if ((typeof prop.value === "object" && prop.value !== null) || typeof prop.value === "function") {
+    var keys = Object.getOwnPropertyNames(prop.value);
+    props = keys.map(function(i) {
+      return new Prop(i, prop);
+    });
+    return props;
+  }
+  for (var i in prop.value) {
+    try { String(prop.value[i]); } catch(e) { continue; }
+    props.push(new Prop(i, prop));
+  }
+  return props;
+}
+function getProps(prop) {
+  var props = [];
+  props = getKeys(prop);
+  var num = [], al = [];
+  props.forEach(function(p) {
+    (memberOp(p.name) === 1 ? num : al).push(p);
+  });
+  num.sort(function(p, q) { return p.name - q.name; });
+  al.sort(function(p, q) { return p.name.localeCompare(q.name); });
+  props = num.concat(al);
+  return props;
+}
+function goPath(path, h) {
+  var prop = getProp(path);
+  if (prop) openDir(prop, h);
+}
+function init() {
+  var address = dom.id("address");
+  var cup = dom.id("cup");
+  var cgo = dom.id("cgo");
+  address.addEventListener("keypress", function(ev) {
+    switch (ev.keyCode) {
+    case 27:
+      address.value = mem.getCurrent().path;
+      break;
+    case 13:
+      if (address.value !== mem.getCurrent().path) goPath(address.value, true);
+      break;
+    }
+  }, false);
+  cup.addEventListener("click", function() {
+    var cur_path = mem.getCurrent().path;
+    var parent_path = getDirs(cur_path).slice(0, -1).map(function(d, i) {
+      return (i === 0 || d[0] === "[") ? d : "." + d;
+    }).join("") || "window";
+    if (cur_path !== parent_path) goPath(parent_path, true);
+  }, false);
+  cgo.addEventListener("click", function() {
+    if (address.value !== mem.getCurrent().path) goPath(address.value, true);
+  }, false);
+  window.addEventListener("click", function() {
+    var s = dom.q(".select");
+    if (s) s.classList.remove("select");
+  }, true);
+}
+addEventListener("hashchange", function(ev) {
+  var h = getHash();
+  if (h !== mem.getCurrent().path) goPath(h);
+}, false);
+addEventListener("load", function() {
+  init();
+  var h = getHash();
+  setHash("window");
+  goPath("window");
+  setPath(h || "window");
+}, false);
+//]]></script>
+</body>
+</html>
