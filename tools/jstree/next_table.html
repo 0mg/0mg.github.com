@@ -89,7 +89,7 @@ th, td {
 <table>
 <tbody>
 <tr id="citem" class="item object">
-  <td id="citype" class="itype">object</td><td><pre id="civalue" class="ivalue">[object Window]</pre></td>
+  <td id="citype" class="itype">obj</td><td><pre id="civalue" class="ivalue">[obJect W_indow]</pre></td>
 </tr>
 </tbody>
 </table>
@@ -242,9 +242,7 @@ function getProp(path) {
   var dirs = getDirs(path);
   var ctx = "";
   if (dirs) {
-    ctx = dirs.pop().
-      replace(/^\[\s*["']?|["']?\s*\]$/g, "").
-      replace(/\\([^])/g, "$1");
+    ctx = unescapeKey(dirs.pop().replace(/^\[\s*["']?|["']?\s*\]$/g, ""));
   }
   var name = ctx;
   var prop = {
@@ -254,6 +252,23 @@ function getProp(path) {
     path: path
   };
   return prop;
+}
+function unescapeKey(key) {
+  return key.replace(/\\[^]/g, function(c) {
+    var chr = {
+      "\\0": "\0",
+      "\\b": "\b",
+      "\\f": "\f",
+      "\\n": "\n",
+      "\\r": "\r",
+      "\\t": "\t",
+      "\\v": "\v",
+      "\\\"": "\"",
+      "\\\'": "\'",
+      "\\\\": "\\"
+    };
+    return chr[c] || c;
+  });
 }
 function escapeKey(key) {
   return key.replace(/[^]/g, function(c) {
@@ -291,7 +306,7 @@ function Prop(i, prop) {
 Prop.prototype.toNode = function() {
 /*
 <tr class="item">
-  <td class="type">number</td><td class="iname">length</td><td class="ivalue">30</td>
+  <td class="itype">number</td><td class="iname">length</td><td class="ivalue">30</td>
 */
   var prop = this;
   var item = dom.ce("tr");
