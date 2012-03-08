@@ -36,6 +36,11 @@ th, td {
   color: red;
   text-decoration: underline;
 }
+.iname:active,
+.iname.focus {
+  color: white;
+  background: navy;
+}
 .item.object .itype {
   background: #ffa;
 }
@@ -125,9 +130,9 @@ if (!Array.prototype.map) {
 //]]></script>
 <script>//<![CDATA[
 var $testObj = {
-  "num": 123,
-  "str": '"\\hoge',
-  "func": function() {},
+  "\0\b\f\n\r\t\v\'\"\\": 123,
+  "str\ning": '"\\hoge',
+  "func\0tion": function() {},
   "bool": true,
   "[\"obj\"][\\\"o\"]": {
     "#": "fuga"
@@ -156,11 +161,12 @@ var mem = (function() {
     }
   };
 })();
-function getHash() {
+function getHash(h) {
+  if (!h) h = location.hash;
   try {
-    return decodeURIComponent(location.hash.slice(1));
+    return decodeURIComponent(h.slice(1));
   } catch(e) {
-    return location.hash.slice(1);
+    return h.slice(1);
   }
 }
 function setHash(s) {
@@ -169,9 +175,11 @@ function setHash(s) {
 function openDir(prop, h) {
   mem.setCurrent(prop);
   if (h) setHash(prop.path);
+  setAddress(prop.path);
   setPath(prop.path);
   setCList(prop);
   setList(getProps(prop));
+  focusItem();
 }
 function setList(props) {
   var list = dom.id("list");
@@ -191,7 +199,7 @@ function clearList() {
 }
 function setCList(prop) {
   var cname = dom.id("cname");
-  cname.lastChild.nodeValue = prop.name;
+  cname.lastChild.nodeValue = escapeKey(prop.name);
 
   var citem = dom.id("citem");
   citem.className = "item " + prop.type;
@@ -202,10 +210,12 @@ function setCList(prop) {
   var civalue = dom.id("civalue");
   civalue.lastChild.nodeValue = String(prop.value);
 }
-function setPath(path) {
+function setAddress(path) {
   var address = dom.id("address");
-  var cpath = dom.id("cpath");
   address.value = path;
+}
+function setPath(path) {
+  var cpath = dom.id("cpath");
   cpath.lastChild.nodeValue = path;
 }
 /*
@@ -234,7 +244,7 @@ function getProp(path) {
   if (dirs) {
     ctx = dirs.pop().
       replace(/^\[\s*["']?|["']?\s*\]$/g, "").
-      replace(/\\(["'\\])/g, "$1");
+      replace(/\\([^])/g, "$1");
   }
   var name = ctx;
   var prop = {
@@ -244,6 +254,23 @@ function getProp(path) {
     path: path
   };
   return prop;
+}
+function escapeKey(key) {
+  return key.replace(/[^]/g, function(c) {
+    var chr = {
+      "\0": "\\0",
+      "\b": "\\b",
+      "\f": "\\f",
+      "\n": "\\n",
+      "\r": "\\r",
+      "\t": "\\t",
+      "\v": "\\v",
+      "\"": "\\\"",
+      "\'": "\\\'",
+      "\\": "\\\\"
+    };
+    return chr[c] || c;
+  });
 }
 function Prop(i, prop) {
   if (!(this instanceof Prop)) return;
@@ -258,7 +285,7 @@ function Prop(i, prop) {
     this.path = prop.path + "[" + i + "]";
     break;
   default:
-    this.path = prop.path + '["' + i.replace(/(?=["'\\])/g, "\\") + '"]';
+    this.path = prop.path + '["' + escapeKey(i) + '"]';
   }
 }
 Prop.prototype.toNode = function() {
@@ -272,7 +299,7 @@ Prop.prototype.toNode = function() {
   var iname = dom.ce("td");
   var ivalue = dom.ce("td");
 
-  item.className = "item " + this.type;;
+  item.className = "item " + this.type;
   item.appendChild(itype);
   item.appendChild(iname);
   item.appendChild(ivalue);
@@ -281,7 +308,7 @@ Prop.prototype.toNode = function() {
   itype.appendChild(dom.ct(this.type));
 
   iname.className = "iname";
-  iname.appendChild(dom.ct(this.name));
+  iname.appendChild(dom.ct(escapeKey(this.name)));
   iname.addEventListener("click", function() {
     openDir(prop, true);
   }, false);
@@ -300,9 +327,9 @@ function getKeys(prop) {
   if ((typeof prop.value === "object" && prop.value !== null) ||
     typeof prop.value === "function") {
     var keys = Object.getOwnPropertyNames(prop.value);
-    props = keys.map(function(i) {
-      return new Prop(i, prop);
-    });
+    for (var i = 0; i < keys.length; ++i) {
+      props.push(new Prop(keys[i], prop));
+    }
     return props;
   } else if (typeof prop.value !== "string") {
     for (var i in prop.value) {
@@ -328,6 +355,21 @@ function goPath(path, h) {
   var prop = getProp(path);
   if (prop) openDir(prop, h);
 }
+function focusItem(key) {
+  if (key) {
+    var keys_e = dom.qs(".iname");
+    for (var i = 0; i < keys_e.length; ++i) {
+      var e = keys_e[i];
+      if (e.textContent === key) {
+        e.classList.add("focus");
+        e.scrollIntoView();
+        break;
+      }
+    }
+  } else {
+    document.documentElement.scrollIntoView();
+  }
+}
 function init() {
   var address = dom.id("address");
   var cup = dom.id("cup");
@@ -352,21 +394,27 @@ function init() {
   cgo.addEventListener("click", function() {
     if (address.value !== mem.getCurrent().path) goPath(address.value, true);
   }, false);
-  window.addEventListener("click", function() {
-    var s = dom.q(".select");
-    if (s) s.classList.remove("select");
+  window.addEventListener("mousedown", function() {
+    var s = dom.q(".focus");
+    if (s) s.classList.remove("focus");
   }, true);
 }
 addEventListener("hashchange", function(ev) {
   var h = getHash();
-  if (h !== mem.getCurrent().path) goPath(h);
+  if (h !== mem.getCurrent().path) {
+    goPath(h);
+    var oldKey = getDirs(getHash(ev.oldURL)).pop().
+      replace(/^\[\s*["']?|["']?\s*\]$/g, "");
+    focusItem(oldKey);
+  }
 }, false);
 addEventListener("load", function() {
   init();
   var h = getHash();
   setHash("window");
   goPath("window");
-  setPath(h || "window");
+  setAddress(h || "window");
+  setPath("window");
 }, false);
 //]]></script>
 </body>
