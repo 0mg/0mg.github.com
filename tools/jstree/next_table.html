@@ -157,7 +157,12 @@ var mem = (function() {
       ram.prop = prop;
     },
     getCurrent: function() {
-      return ram.prop;
+      return {
+        name: ram.prop.name,
+        type: ram.prop.type,
+        value: ram.prop.value,
+        path: ram.prop.path
+      };
     }
   };
 })();
@@ -339,18 +344,40 @@ Prop.prototype.toString = function() {
 };
 function getKeys(prop) {
   var props = [];
-  if ((typeof prop.value === "object" && prop.value !== null) ||
-    typeof prop.value === "function") {
+  var kees = {};
+  if (prop.type === "object" || prop.type === "function") {
     var keys = Object.getOwnPropertyNames(prop.value);
     for (var i = 0; i < keys.length; ++i) {
-      props.push(new Prop(keys[i], prop));
+      var key = keys[i];
+      try { String(prop.value[key]); } catch(e) { continue; }
+      if (kees[key] !== true) props.push(new Prop(key, prop));
+      kees[key] = true;
     }
-    return props;
-  } else if (typeof prop.value !== "string") {
-    for (var i in prop.value) {
-      try { String(prop.value[i]); } catch(e) { continue; }
-      props.push(new Prop(i, prop));
+  }
+  if (prop.type !== "string") {
+    for (var key in prop.value) {
+      try { String(prop.value[key]); } catch(e) { continue; }
+      if (kees[key] !== true) props.push(new Prop(key, prop));
+      kees[key] = true;
     }
+  }
+  switch (prop.type) {
+  case "function":
+    try {
+      String(prop.value["prototype"]);
+      if (kees["prototype"] !== true) props.push(new Prop("prototype", prop));
+      kees["prototype"] = true;
+    } catch(e) {}
+  case "object":
+  case "number":
+  case "boolean":
+  case "string":
+    try {
+      String(prop.value["__proto__"]);
+      if (kees["__proto__"] !== true) props.push(new Prop("__proto__", prop));
+      kees["__proto__"] = true;
+    } catch(e) {}
+    break;
   }
   return props;
 }
@@ -362,7 +389,7 @@ function getProps(prop) {
     (memberOp(p.name) === 1 ? num : al).push(p);
   });
   num.sort(function(p, q) { return p.name - q.name; });
-  al.sort(function(p, q) { return p.name.localeCompare(q.name); });
+  al.sort(/*function(p, q) { return p.name.toLowerCase().localeCompare(q.name.toLowerCase()); }*/);
   props = num.concat(al);
   return props;
 }
