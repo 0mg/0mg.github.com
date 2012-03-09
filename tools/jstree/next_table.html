@@ -144,13 +144,13 @@ var $testObj = {
   "10": 123,
   "2": 123,
   "\0\b\f\n\r\t\v\'\"\\": 1201,
-  "str\ning": '"\\hoge',
-  "func\0tion": function() {},
+  "str\ni\0ng": '"\\hoge',
+  "func\u3333tion": function() {},
   "Infinity": true,
   "[\"obj\"][\\\"o\"]": {
     "#": "fuga"
   },
-  "und": void 0,
+  "u n d": void 0,
   "無": null
 };
 function encode(s) {
@@ -186,11 +186,11 @@ var mem = (function() {
   };
 })();
 function getHash(h) {
-  if (!h) h = location.hash;
+  if (!h) h = location.hash.slice(1);
   try {
-    return decodeURIComponent(h.slice(1));
+    return decodeURIComponent(h);
   } catch(e) {
-    return h.slice(1);
+    return h;
   }
 }
 function setHash(s) {
@@ -226,7 +226,7 @@ function clearList() {
 }
 function setCList(prop) {
   var cname = dom.id("cname");
-  cname.lastChild.nodeValue = escapeKey(prop.name);
+  cname.lastChild.nodeValue = prop.name;
 
   var citem = dom.id("citem");
   citem.className = "item " + prop.type;
@@ -260,42 +260,35 @@ function memberOp(key) {
   return 2;
 }
 function getDirs(path) {
-  var re = /[$_a-zA-Z][$\w]*|\[\s*-?\d+\.?\d*\s*\]|\[\s*("|')(?:\\u[0-9a-fA-F]{4}|\\x[0-9a-fA-F]{2}|\\[^]|[^])*?\1\s*\]/g;
-  return path.match(re);
+  function joinPath(path_arr) {
+    return path_arr.slice().map(function(d, i) {
+      return (i === 0 || d[0] === "[") ? d : "." + d;
+    }).join("");
+  }
+  var re = /[^\s.\[]+|\[\s*-?\d+\.?\d*\s*\]|\[\s*("|')(?:\\[^]|[^])*?\1\s*\]/g;
+  var path_arr = path.match(re) || [""];
+  var current = joinPath(path_arr);
+  var parent = joinPath(path_arr.slice(0, -1));
+  var last = path_arr.slice().pop().replace(/^\[\s*["']?|["']?\s*\]$/g, "");
+  var dirs = {
+    current: current,
+    parent: parent,
+    last: last
+  };
+  console.log(["all: "+path_arr, "curr: "+current, "parent: "+parent, "last: "+last].join("<\n"));
+  return dirs;
 }
 function getProp(path) {
   var value;
   try { value = eval(path); } catch (e) { return false; }
   var dirs = getDirs(path);
-  var ctx = "";
-  if (dirs) {
-    ctx = unescapeKey(dirs.pop().replace(/^\[\s*["']?|["']?\s*\]$/g, ""));
-  }
-  var name = ctx;
   var prop = {
-    name: name,
+    name: dirs.last,
     type: value === null ? "null" : typeof value,
     value: value,
     path: path
   };
   return prop;
-}
-function unescapeKey(key) {
-  return key.replace(/\\[^]/g, function(c) {
-    var chr = {
-      "\\0": "\0",
-      "\\b": "\b",
-      "\\f": "\f",
-      "\\n": "\n",
-      "\\r": "\r",
-      "\\t": "\t",
-      "\\v": "\v",
-      "\\\"": "\"",
-      "\\\'": "\'",
-      "\\\\": "\\"
-    };
-    return chr[c] || c;
-  });
 }
 function escapeKey(key) {
   return key.replace(/[^]/g, function(c) {
@@ -316,7 +309,8 @@ function escapeKey(key) {
 }
 function Prop(i, prop) {
   if (!(this instanceof Prop)) return;
-  this.name = i;
+  var fixname = escapeKey(i);
+  this.name = fixname;
   this.type = prop.value[i] === null ? "null" : typeof prop.value[i];
   this.value = prop.value[i];
   switch (memberOp(i)) {
@@ -327,7 +321,7 @@ function Prop(i, prop) {
     this.path = prop.path + "[" + i + "]";
     break;
   default:
-    this.path = prop.path + '["' + escapeKey(i) + '"]';
+    this.path = prop.path + '["' + fixname + '"]';
   }
 }
 Prop.prototype.toNode = function() {
@@ -350,7 +344,7 @@ Prop.prototype.toNode = function() {
   itype.appendChild(dom.ct(this.type));
 
   iname.className = "iname";
-  iname.appendChild(dom.ct(escapeKey(this.name)));
+  iname.appendChild(dom.ct(this.name));
   iname.addEventListener("click", function() {
     openDir(prop, true);
   }, false);
@@ -490,9 +484,7 @@ function init() {
   }, false);
   cup.addEventListener("click", function() {
     var cur_path = mem.getCurrent().path;
-    var parent_path = getDirs(cur_path).slice(0, -1).map(function(d, i) {
-      return (i === 0 || d[0] === "[") ? d : "." + d;
-    }).join("") || "window";
+    var parent_path = getDirs(cur_path).parent || "window";
     if (cur_path !== parent_path) goPath(parent_path, true);
   }, false);
   cgo.addEventListener("click", function() {
@@ -519,8 +511,7 @@ addEventListener("hashchange", function(ev) {
   var h = getHash();
   if (h !== mem.getCurrent().path) {
     goPath(h);
-    var oldKey = getDirs(getHash(ev.oldURL)).pop().
-      replace(/^\[\s*["']?|["']?\s*\]$/g, "");
+    var oldKey = getDirs(getHash(ev.oldURL.replace(/[^#]*/, ""))).last;
     focusItem(oldKey);
   }
 }, false);
