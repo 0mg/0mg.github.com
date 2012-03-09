@@ -40,8 +40,7 @@ th, td {
 }
 .iname:active,
 .iname.focus {
-  color: white;
-  background: navy;
+  background: #ffe;
 }
 .item.object .itype {
   background: #ffa;
@@ -511,7 +510,7 @@ addEventListener("hashchange", function(ev) {
   var h = getHash();
   if (h !== mem.getCurrent().path) {
     goPath(h);
-    var oldKey = getDirs(getHash(ev.oldURL.replace(/[^#]*/, ""))).last;
+    var oldKey = getDirs(getHash(ev.oldURL.replace(/[^]+#/, ""))).last;
     focusItem(oldKey);
   }
 }, false);
