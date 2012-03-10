@@ -42,6 +42,12 @@ th, td {
 .iname.focus {
   background: #fec;
 }
+.item.unknown .iname {
+  color: gray;
+  background: transparent;
+  text-decoration: none;
+  cursor: auto;
+}
 .item.object .itype {
   background: #ffa;
 }
@@ -64,6 +70,10 @@ th, td {
 .item.null .itype {
   color: #fff;
   background: #000;
+}
+.item.unknown .itype {
+  color: gray;
+  background: #fff;
 }
 .item.object .ivalue,
 .item.function .ivalue,
@@ -118,7 +128,30 @@ if (!window.addEventListener) {
   };
 }
 if (!Element.prototype.addEventListener) {
-  Element.prototype.addEventListener = window.addEventListener;
+  HTMLDocument.prototype.addEventListener =
+    Element.prototype.addEventListener = window.addEventListener;
+}
+if (!Element.prototype.classList) {
+  Object.defineProperty(Element.prototype, "classList", {
+    get: function() {
+      var it = this;
+      var classes = it.className.replace(/\s/g, " ");
+      return {
+        contains: function(s) {
+          return (" " + classes + " ").indexOf(" " + s + " ") >= 0;
+        },
+        add: function(s) {
+          if (!this.contains(s)) it.className += " " + s;
+        },
+        remove: function(s) {
+          if (this.contains(s)) {
+            it.className = (" " + classes + " ").replace(" " + s + " ", "").
+              replace(/^\s+|\s+$/g, "");
+          }
+        }
+      };
+    }
+  });
 }
 if (!Array.prototype.forEach) {
   Array.prototype.forEach = function(f) {
@@ -332,8 +365,8 @@ function Prop(i, prop) {
     value = prop.value[i];
     type = value === null ? "null" : typeof value;
   } catch(e) {
-    value = "???";
-    type = "???";
+    value = "";
+    type = "unknown";
   }
   this.name = fixname;
   this.type = type;
@@ -370,7 +403,7 @@ Prop.prototype.toNode = function() {
 
   iname.className = "iname";
   iname.appendChild(dom.ct(this.name));
-  iname.addEventListener("click", function() {
+  this.type !== "unknown" && iname.addEventListener("click", function() {
     openDir(prop, true);
   }, false);
 
@@ -529,10 +562,10 @@ function init() {
   cgo.addEventListener("click", function() {
     if (address.value !== mem.getCurrent().path) goPath(address.value, true);
   }, false);
-  window.addEventListener("mousedown", function() {
+  document.addEventListener("mousedown", function() {
     var s = dom.q(".focus");
     if (s) s.classList.remove("focus");
-  }, true);
+  }, false);
   sort_type.addEventListener("click", function() {
     var props = mem.getCurrentProps().sortProps("type");
     setList(props);
