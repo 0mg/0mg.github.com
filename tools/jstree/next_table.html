@@ -99,39 +99,46 @@ th, td {
 /*]]>*/</style>
 </head>
 <body>
-<input id="address" value="window" /><button id="cup">up</button><button id="cgo">go</button>
-<h1 id="cname">window</h1>
+<label for="cgo"><input id="address" value="hoge" /></label><button id="cup">up</button><button id="cgo">go</button>
+<h1 id="cname">fuga</h1>
 <table>
 <tbody>
 <tr id="citem" class="item object">
-  <td id="citype" class="itype">obj</td><td><pre id="civalue" class="ivalue">[obJect W_indow]</pre></td>
+  <td id="citype" class="itype">boolean</td><td><pre id="civalue" class="ivalue">[piyo]</pre></td>
 </tr>
 </tbody>
 </table>
 <table>
-<caption id="cpath">window</caption>
+<caption id="cpath">foobar</caption>
 <thead><tr>
 <th><button id="sort_type" class="sort_button">type</button></th>
 <th><button id="sort_name" class="sort_button">key</button></th>
 <th><button id="sort_value" class="sort_button">value</button></th>
 </tr></thead>
 <tbody id="list">
-<tr class="item">
-  <td class="itype">number</td><td class="iname">length</td><td class="ivalue">30</td>
+<tr class="item number">
+  <td class="itype">数</td><td class="iname">nazo</td><td class="ivalue">壱</td>
 </tr>
 </tbody>
 </table>
 <script>//<![CDATA[
+if (!Event.prototype.preventDefault) {
+  Event.prototype.preventDefault = function() {
+    this.returnValue = false;
+  };
+}
 if (!window.addEventListener) {
   window.addEventListener = function(type, f) {
     return this.attachEvent("on" + type, f);
   };
 }
-if (!Element.prototype.addEventListener) {
-  HTMLDocument.prototype.addEventListener =
-    Element.prototype.addEventListener = window.addEventListener;
+if (!document.addEventListener) {
+  document.addEventListener = window.addEventListener;
 }
-if (!Element.prototype.classList) {
+if (!Element.prototype.addEventListener) {
+  Element.prototype.addEventListener = window.addEventListener;
+}
+if (!document.createElement("p").classList) {
   Object.defineProperty(Element.prototype, "classList", {
     get: function() {
       var it = this;
@@ -550,6 +557,7 @@ function init() {
       address.value = mem.getCurrent().path;
       break;
     case 13:
+      ev.preventDefault();
       if (address.value !== mem.getCurrent().path) goPath(address.value, true);
       break;
     }
