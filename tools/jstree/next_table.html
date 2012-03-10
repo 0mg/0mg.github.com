@@ -278,7 +278,8 @@ function getDirs(path) {
       return (i === 0 || d[0] === "[") ? d : "." + d;
     }).join("");
   }
-  var re = /[^\s.\[]+|\[\s*-?\d+\.?\d*\s*\]|\[\s*("|')(?:\\[^]|[^])*?\1\s*\]/g;
+  var re =
+    /[^\s.\[]+|\[\s*-?\d+\.?\d*\s*\]|\[\s*("|')(?:\\[\S\s]|[\S\s])*?\1\s*\]/g;
   var path_arr = path.match(re) || [""];
   var current = joinPath(path_arr);
   var parent = joinPath(path_arr.slice(0, -1));
@@ -493,7 +494,7 @@ function focusItem(key) {
     var keys_e = dom.qs(".iname");
     for (var i = 0; i < keys_e.length; ++i) {
       var e = keys_e[i];
-      if (e.textContent === key) {
+      if (e.lastChild.nodeValue === key) {
         e.classList.add("focus");
         e.scrollIntoView();
         break;
@@ -545,21 +546,19 @@ function init() {
     setList(props);
   }, false);
 }
-addEventListener("hashchange", function(ev) {
+addEventListener("hashchange", function() {
   var h = getHash();
-  if (h !== mem.getCurrent().path) {
+  var c = mem.getCurrent();
+  if (h !== c.path) {
     goPath(h);
-    var oldKey = getDirs(getHash(ev.oldURL.replace(/[\S\s]+#/, ""))).last;
-    focusItem(oldKey);
+    if (h === getDirs(c.path).parent) focusItem(c.name);
   }
 }, false);
 addEventListener("load", function() {
   init();
   var h = getHash();
-  setHash("window");
-  goPath("window");
-  setAddress(h || "window");
-  setPath("window");
+  goPath("window", true);
+  setAddress(h);
 }, false);
 //]]></script>
 </body>
