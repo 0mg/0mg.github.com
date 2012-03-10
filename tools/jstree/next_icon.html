@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<title>JSObjTree</title>
+<style>/*<![CDATA[*/
+* {
+  margin: 0;
+  padding: 0;
+  font-family: "MS UI Gothic", monospace;
+  line-height: 1.3;
+}
+body {
+  background: #f0f0f0;
+  font-size: 12px;
+}
+.item {
+  word-wrap: break-word;
+  background: #fff;
+  display: block;
+  float: left;
+  width: 70px;
+  height: 70px;
+  margin: 10px;
+  padding: 0px;
+  text-align: center;
+  border: 1px dotted transparent;
+}
+.item.select {
+  background: yellow;
+}
+.item.focus {
+  border-color: #000;
+}
+.iicon {
+  margin: 2px auto;
+  border: 1px solid;
+  width: 32px;
+  height: 32px;
+}
+.iname {
+  display: inline;
+  margin: 2px auto;
+  font-size: 12px;
+  color: blue;
+  cursor: pointer;
+}
+.iname:hover {
+  color: red;
+  text-decoration: underline;
+}
+.iicon.object {
+  background: #ffc;
+}
+.iicon.number {
+  background: #fcc;
+}
+.iicon.function {
+  background: #cef;
+}
+.iicon.string {
+  background: #cfc;
+}
+.iicon.boolean {
+  background: #aaf;
+}
+#cbar {
+  position: fixed;
+  width: 100%;
+  height: 50px;
+  border-bottom: 1px solid;
+  background: lime;
+}
+#cpath {
+  width: 90%;
+}
+#list {
+  background: pink;
+  padding-top: 51px;
+  padding-left: 121px;
+}
+#side {
+  width: 120px;
+  max-width: 120px;
+  border-right: 1px solid;
+  position: fixed;
+  top: 51px;
+  bottom: 0;
+  background: aqua;
+}
+dt {
+  font-weight: bold;
+}
+dd {
+  margin-bottom: 1ex;
+}
+/*]]>*/</style>
+</head>
+<body>
+<div id="cbar"><button id="cup">up</button><input id="cpath" value="window" /><button id="cgo">open</button><h1 id="cname">window</h1></div>
+<div id="side">
+<dl id="profile">
+<dt>name</dt>
+<dd id="fname">document</dd>
+<dt>type</dt>
+<dd id="ftype">object</dd>
+<dt>value</dt>
+<dd id="fvalue">[object HTMLDocument]</dd>
+</dl>
+</div>
+<div id="list">
+<li class="item">
+  <div class="iicon object"></div>
+  <div class="iname">document</div>
+</li>
+<li class="item">
+  <div class="iicon number"></div>
+  <div class="iname">length</div>
+</li>
+</div>
+<script>//<![CDATA[
+if (!window.addEventListener) {
+  window.addEventListener = function(type, f) {
+    return this.attachEvent("on" + type, f);
+  };
+}
+if (!Element.prototype.addEventListener) {
+  Element.prototype.addEventListener = window.addEventListener;
+}
+if (!Array.prototype.forEach) {
+  Array.prototype.forEach = function(f) {
+    for (var i = 0; i < this.length; ++i) {
+      f(this[i], i, this);
+    }
+  };
+}
+if (!Array.prototype.map) {
+  Array.prototype.map = function(f) {
+    var a = [];
+    for (var i = 0; i < this.length; ++i) {
+      a[i] = f(this[i], i, this);
+    }
+    return a;
+  };
+}
+//]]></script>
+<script>//<![CDATA[
+var $testObj = {
+  "num": 123,
+  "str": "hoge",
+  "func": function() {},
+  "bool": true,
+  "[\"obj\"][\\\"o\"]": {
+    "#": "fuga"
+  },
+  "und": void 0
+};
+function encode(s) {
+  return encodeURIComponent(s);
+}
+var dom = {
+  id: function(id) { return document.getElementById(id); },
+  q: function(s) { return document.querySelector(s); },
+  qs: function(s) { return document.querySelectorAll(s); },
+  ce: function(s) { return document.createElement(s); },
+  ct: function(s) { return document.createTextNode(s); }
+};
+var mem = (function() {
+  var ram = {};
+  return {
+    setCurrent: function(prop) {
+      ram.path = prop.path;
+    },
+    getCurrent: function() {
+      return {
+        path: ram.path
+      };
+    }
+  };
+})();
+function getHash() {
+  try {
+    return decodeURIComponent(location.hash.slice(1));
+  } catch(e) {
+    return location.hash.slice(1);
+  }
+}
+function setHash(s) {
+  location.hash = encodeURIComponent(s);
+}
+function openDir(prop, h) {
+  mem.setCurrent(prop);
+  if (h) setHash(prop.path);
+  setPath(prop.path);
+  setCName(prop.name);
+  hideProfile();
+  setList(getProps(prop));
+}
+function setList(props) {
+  var list = dom.id("list");
+  var f = document.createDocumentFragment();
+  var i = 0, lim = props.length < 1000 ? props.length : 1000;
+  for (; i < lim; ++i) {
+    f.appendChild(props[i].toNode())
+  }
+  clearList();
+  list.appendChild(f);
+}
+function clearList() {
+  var list = dom.id("list");
+  while (list.hasChildNodes()) {
+    list.removeChild(list.lastChild);
+  }
+}
+function setProfile(prop) {
+  var fname = dom.id("fname");
+  var ftype = dom.id("ftype");
+  var fvalue = dom.id("fvalue");
+  fname.textContent = prop.name;
+  ftype.textContent = prop.type;
+  fvalue.textContent = prop.type === "string" ?
+                       '"' + String(prop.value) + '"': String(prop.value);
+}
+function hideProfile() {
+  var profile = dom.id("profile");
+  profile.style.visibility = "hidden";
+}
+function showProfile() {
+  var profile = dom.id("profile");
+  profile.style.visibility = "visible";
+}
+function setCName(name) {
+  var cname = dom.id("cname");
+  cname.textContent = name;
+}
+function setPath(path) {
+  var cpath = dom.id("cpath");
+  cpath.value = path;
+}
+/*
+{
+  name: "document",
+  type: "object",
+  value: "[object HTMLDocument]",
+  path: "window.document"
+}
+*/
+function memberOp(key) {
+  // 0: . 1: [0] 2: ["0x1"]
+  try { eval("''." + key); return 0; } catch(e) {}
+  if (String(Number(key)) === key) return 1;
+  return 2;
+}
+function getDirs(path) {
+  var re = /[$_a-zA-Z][$\w]*|\[\s*-?\d+\.?\d*\s*\]|\[\s*("|')(?:\\u[0-9a-fA-F]{4}|\\x[0-9a-fA-F]{2}|\\[^]|[^])*?\1\s*\]/g;
+  return path.match(re);
+}
+function getProp(path) {
+  var value;
+  try { value = eval(path); } catch (e) { return false; }
+  var dirs = getDirs(path);
+  var ctx = "";
+  if (dirs) {
+    ctx = dirs.pop().
+      replace(/^\[\s*["']?|["']?\s*\]$/g, "").
+      replace(/\\(["'\\])/g, "$1");
+  }
+  var name = ctx;
+  var prop = {
+    name: name,
+    type: typeof value,
+    value: value,
+    path: path
+  };
+  return prop;
+}
+function Prop(i, prop) {
+  if (!(this instanceof Prop)) return;
+  this.name = i;
+  this.type = typeof prop.value[i];
+  this.value = prop.value[i];
+  switch (memberOp(i)) {
+  case 0:
+    this.path = prop.path + "." + i;
+    break;
+  case 1:
+    this.path = prop.path + "[" + i + "]";
+    break;
+  default:
+    this.path = prop.path + '["' + i.replace(/(?=["'\\])/g, "\\") + '"]';
+  }
+}
+Prop.prototype.toNode = function() {
+/*
+<li class="item">
+  <div class="iicon object"></div>
+  <div class="iname">document</div>
+</li>
+*/
+  var prop = this;
+  var item = dom.ce("li");
+  var iicon = dom.ce("div");
+  var iname = dom.ce("div");
+
+  item.className = "item";
+  item.appendChild(iicon);
+  item.appendChild(iname);
+  item.addEventListener("click", function(e) {
+    var cf = dom.q(".focus");
+    if (cf) cf.classList.remove("focus");
+    item.classList.add("select");
+    item.classList.add("focus");
+    setProfile(prop);
+    showProfile();
+  }, false);
+  iname.addEventListener("click", function() {
+    openDir(prop, true);
+  }, false);
+
+  iicon.className = "iicon " + this.type;
+
+  iname.className = "iname";
+  iname.appendChild(dom.ct(this.name));
+
+  return item;
+};
+Prop.prototype.toString = function() {
+  return this.name;
+};
+function getProps(prop) {
+  var props = [];
+  for (var i in prop.value) {
+    try { String(prop.value[i]); } catch(e) { continue; }
+    props.push(new Prop(i, prop));
+  }
+  var num = [], al = [];
+  props.forEach(function(p) {
+    (memberOp(p.name) === 1 ? num : al).push(p);
+  });
+  num.sort(function(p, q) { return p.name - q.name; });
+  al.sort(function(p, q) { return p.name.localeCompare(q.name); });
+  props = num.concat(al);
+  return props;
+}
+function goPath(path, h) {
+  var prop = getProp(path);
+  if (prop) openDir(prop, h);
+}
+function init() {
+  var cpath = dom.id("cpath");
+  var cup = dom.id("cup");
+  var cgo = dom.id("cgo");
+  cpath.addEventListener("keypress", function(ev) {
+    switch (ev.keyCode) {
+    case 27:
+      cpath.value = mem.getCurrent().path;
+      break;
+    case 13:
+      if (cpath.value !== mem.getCurrent().path) goPath(cpath.value, true);
+      break;
+    }
+  }, false);
+  cup.addEventListener("click", function() {
+    var cur_path = mem.getCurrent().path;
+    var parent_path = getDirs(cur_path).slice(0, -1).map(function(d, i) {
+      return (i === 0 || d[0] === "[") ? d : "." + d;
+    }).join("") || "window";
+    if (cur_path !== parent_path) goPath(parent_path, true);
+  }, false);
+  cgo.addEventListener("click", function() {
+    if (cpath.value !== mem.getCurrent().path) goPath(cpath.value, true);
+  }, false);
+  window.addEventListener("click", function() {
+    var s = dom.q(".select");
+    if (s) s.classList.remove("select");
+  }, true);
+}
+addEventListener("hashchange", function(ev) {
+  var h = getHash();
+  if (h !== mem.getCurrent().path) goPath(h);
+}, false);
+addEventListener("load", function() {
+  init();
+  var h = getHash();
+  setHash("window");
+  goPath("window");
+  setPath(h || "window");
+}, false);
+//]]></script>
+</body>
+</html>
