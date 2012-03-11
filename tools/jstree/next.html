@@ -330,7 +330,7 @@ function setQuery(path, sort) {
   location.hash = (sort ? sort + "-" : "") + encodeURIComponent(path);
 }
 function openDir(prop) {
-  var props = getProps(prop, mem.getSort(prop.path) || "name");
+  var props = getProps(prop, mem.getSort(prop.path));
   mem.setCurrent(prop);
   mem.setCurrentProps(props);
   if (getQuery().path !== prop.path) setQuery(prop.path);
@@ -556,7 +556,10 @@ function sortProps(type) {
     });
     break;
   default:
-    return this;
+    this.sort(function(p, q) {
+      return sort(p, q, "name");
+    });
+    break;
   }
   return this;
 }
