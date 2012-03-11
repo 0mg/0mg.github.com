@@ -552,7 +552,7 @@ function goPath(path, sort) {
   if (prop) openDir(prop, sort);
 }
 function focusItem(key) {
-  if (key) {
+  if (typeof key === "string") {
     var keys_e = dom.qs(".iname");
     for (var i = 0; i < keys_e.length; ++i) {
       var e = keys_e[i];
