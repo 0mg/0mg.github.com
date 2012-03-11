@@ -156,7 +156,7 @@ if (!document.createElement("p").classList) {
         },
         remove: function(s) {
           if (this.contains(s)) {
-            it.className = (" " + classes + " ").replace(" " + s + " ", "").
+            it.className = (" " + classes + " ").replace(" " + s + " ", " ").
               replace(/^\s+|\s+$/g, "");
           }
         }
