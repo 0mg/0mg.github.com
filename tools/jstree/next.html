@@ -108,7 +108,7 @@ th, td {
 <table>
 <tbody>
 <tr id="citem" class="item object">
-  <td id="citype" class="itype">boolean</td><td><pre id="civalue" class="ivalue">[piyo]</pre></td>
+  <td id="citype" class="itype">オ</td><td><pre id="civalue" class="ivalue">[piyo]</pre></td>
 </tr>
 </tbody>
 </table>
@@ -218,7 +218,7 @@ window.$testObj = {
   "\0\b\f\n\r\t\v\'\"\\": 1201,
   "文字列": '"\\hoge',
   "func\u3333tion": function() {},
-  "Infinity": true,
+  "-Infinity": true,
   "[\"obj\"][\\\"o\"]": {
     "#": "fuga"
   },
@@ -232,57 +232,6 @@ var dom = {
   ce: function(s) { return document.createElement(s); },
   ct: function(s) { return document.createTextNode(s); }
 };
-var mem = (function() {
-  var ram = {};
-  return {
-    setCurrentProps: function(props) {
-      ram.props = props;
-    },
-    getCurrentProps: function() {
-      return ram.props;
-    },
-    setCurrent: function(prop) {
-      ram.prop = prop;
-    },
-    getCurrent: function() {
-      return {
-        name: ram.prop.name,
-        type: ram.prop.type,
-        value: ram.prop.value,
-        path: ram.prop.path
-      };
-    }
-  };
-})();
-function getQuery() {
-  var sort = 0, path = "";
-  var h = location.hash.slice(1);
-  var qs = h.match(/^(?:(\d)?-)?([\S\s]*)$/);
-  if (qs) {
-    sort = +qs[1];
-    path = qs[2];
-    try { path = decodeURIComponent(path); } catch(e) {}
-  }
-  return {
-    sort: sort,
-    path: path
-  };
-}
-function setQuery(path, sort) {
-  location.hash = (sort ? sort + "-" : "") + encodeURIComponent(path);
-}
-function openDir(prop, sort) {
-  var props = getProps(prop);
-  props.sortProps(sort);
-  mem.setCurrent(prop);
-  mem.setCurrentProps(props);
-  if (getQuery().path !== prop.path) setQuery(prop.path);
-  setAddress(prop.path);
-  setPath(prop.path);
-  setCList(prop);
-  setList(props);
-  focusItem();
-}
 function setList(props) {
   var list = dom.id("list");
   var f = document.createDocumentFragment();
@@ -321,14 +270,76 @@ function setPath(path) {
   var cpath = dom.id("cpath");
   cpath.lastChild.nodeValue = path;
 }
-/*
-{
-  name: "document",
-  type: "object",
-  value: "[object HTMLDocument]",
-  path: "window.document"
+var mem = (function() {
+  var ram = {};
+  ram.prop = {};
+  ram.sort = {
+    path: [],
+    type: []
+  };
+  return {
+    setSort: function(path, sorttype) {
+      var idx = ram.sort.path.indexOf(path);
+      if (idx >= 0) {
+        ram.sort.type[idx] = sorttype;
+      } else {
+        ram.sort.path.push(path);
+        ram.sort.type.push(sorttype);
+      }
+      if (ram.sort.path.length !== ram.sort.type.length) {
+        throw Error("ram.sort is broken");
+      }
+    },
+    getSort: function(path) {
+      return ram.sort.type[ram.sort.path.indexOf(path)];
+    },
+    setCurrentProps: function(props) {
+      ram.props = props;
+    },
+    getCurrentProps: function() {
+      return ram.props;
+    },
+    setCurrent: function(prop) {
+      ram.prop = prop;
+    },
+    getCurrent: function() {
+      return {
+        name: ram.prop.name,
+        type: ram.prop.type,
+        value: ram.prop.value,
+        path: ram.prop.path
+      };
+    }
+  };
+})();
+function getQuery() {
+  var sort = 0, path = "";
+  var h = location.hash.slice(1);
+  var qs = h.match(/^(?:(\d)?-)?([\S\s]*)$/);
+  if (qs) {
+    sort = +qs[1];
+    path = qs[2];
+    try { path = decodeURIComponent(path); } catch(e) {}
+  }
+  return {
+    sort: sort,
+    path: path
+  };
 }
-*/
+function setQuery(path, sort) {
+  location.hash = (sort ? sort + "-" : "") + encodeURIComponent(path);
+}
+function openDir(prop) {
+  var props = getProps(prop, mem.getSort(prop.path) || "name");
+  mem.setCurrent(prop);
+  mem.setCurrentProps(props);
+  if (getQuery().path !== prop.path) setQuery(prop.path);
+  setAddress(prop.path);
+  setPath(prop.path);
+  setCList(prop);
+  setList(props);
+  focusItem();
+}
 function memberOp(key) {
   // 0: . 1: [0] 2: ["0x1"]
   try { eval("''." + key); return 0; } catch(e) {}
@@ -341,7 +352,7 @@ function getDirs(path) {
       return (i === 0 || d[0] === "[") ? d : "." + d;
     }).join("");
   }
-  var re = /[^\s.\[]+|\[\s*-?\d+\.?\d*\s*\]|\[\s*("|')(?:\\?[\S\s])*?\1\s*\]/g;
+  var re = /[^\s.\[]+|\[\s*[^"'\]\/\s]+\s*\]|\[\s*("|')(?:\\?[\S\s])*?\1\s*\]/g;
   var path_arr = path.match(re) || [""];
   var current = joinPath(path_arr);
   var parent = joinPath(path_arr.slice(0, -1));
@@ -498,11 +509,11 @@ function getKeys(prop) {
   }
   return props;
 }
-function getProps(prop) {
+function getProps(prop, sort) {
   var props = [];
   props = getKeys(prop);
   props.sortProps = sortProps;
-  props.sortProps("name");
+  props.sortProps(sort);
   return props;
 }
 function sortProps(type) {
@@ -544,12 +555,14 @@ function sortProps(type) {
         sort(p, q, "value");
     });
     break;
+  default:
+    return this;
   }
   return this;
 }
-function goPath(path, sort) {
+function goPath(path) {
   var prop = getProp(path);
-  if (prop) openDir(prop, sort);
+  if (prop) openDir(prop);
 }
 function focusItem(key) {
   if (typeof key === "string") {
@@ -598,14 +611,17 @@ function init() {
   }, false);
   sort_type.addEventListener("click", function() {
     var props = mem.getCurrentProps().sortProps("type");
+    mem.setSort(mem.getCurrent().path, "type");
     setList(props);
   }, false);
   sort_name.addEventListener("click", function() {
     var props = mem.getCurrentProps().sortProps("name");
+    mem.setSort(mem.getCurrent().path, "name");
     setList(props);
   }, false);
   sort_value.addEventListener("click", function() {
     var props = mem.getCurrentProps().sortProps("value");
+    mem.setSort(mem.getCurrent().path, "value");
     setList(props);
   }, false);
 }
