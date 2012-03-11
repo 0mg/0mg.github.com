@@ -196,19 +196,17 @@ window.$testObj = {
   "1": 1201,
   "10": 123,
   "2": 123,
+  "0x1": 123,
   "\0\b\f\n\r\t\v\'\"\\": 1201,
-  "str\ni\0ng": '"\\hoge',
+  "文字列": '"\\hoge',
   "func\u3333tion": function() {},
   "Infinity": true,
   "[\"obj\"][\\\"o\"]": {
     "#": "fuga"
   },
   " u  n    d     ": void 0,
-  "無": null
+  "": null
 };
-function encode(s) {
-  return encodeURIComponent(s);
-}
 var dom = {
   id: function(id) { return document.getElementById(id); },
   q: function(s) { return document.querySelector(s); },
@@ -238,23 +236,29 @@ var mem = (function() {
     }
   };
 })();
-function getHash(h) {
-  if (!h) h = location.hash.slice(1);
-  try {
-    return decodeURIComponent(h);
-  } catch(e) {
-    return h;
+function getQuery() {
+  var sort = 0, path = "";
+  var h = location.hash.slice(1);
+  var qs = h.match(/^(?:(\d)?-)?([\S\s]*)$/);
+  if (qs) {
+    sort = +qs[1];
+    path = qs[2];
+    try { path = decodeURIComponent(path); } catch(e) {}
   }
+  return {
+    sort: sort,
+    path: path
+  };
 }
-function setHash(s) {
-  location.hash = encodeURIComponent(s);
+function setQuery(path, sort) {
+  location.hash = (sort ? sort + "-" : "") + encodeURIComponent(path);
 }
-function openDir(prop, h, sort) {
+function openDir(prop, sort) {
   var props = getProps(prop);
   props.sortProps(sort);
   mem.setCurrent(prop);
   mem.setCurrentProps(props);
-  if (h) setHash(prop.path);
+  if (getQuery().path !== prop.path) setQuery(prop.path);
   setAddress(prop.path);
   setPath(prop.path);
   setCList(prop);
@@ -264,7 +268,8 @@ function openDir(prop, h, sort) {
 function setList(props) {
   var list = dom.id("list");
   var f = document.createDocumentFragment();
-  var i = 0, lim = props.length < 1000 ? props.length : 1000;
+  var i = 0, lim = props.length;
+  if (lim > 1000) lim = 1000;
   for (; i < lim; ++i) {
     f.appendChild(props[i].toNode())
   }
@@ -318,8 +323,7 @@ function getDirs(path) {
       return (i === 0 || d[0] === "[") ? d : "." + d;
     }).join("");
   }
-  var re =
-    /[^\s.\[]+|\[\s*-?\d+\.?\d*\s*\]|\[\s*("|')(?:\\[\S\s]|[\S\s])*?\1\s*\]/g;
+  var re = /[^\s.\[]+|\[\s*-?\d+\.?\d*\s*\]|\[\s*("|')(?:\\?[\S\s])*?\1\s*\]/g;
   var path_arr = path.match(re) || [""];
   var current = joinPath(path_arr);
   var parent = joinPath(path_arr.slice(0, -1));
@@ -411,7 +415,7 @@ Prop.prototype.toNode = function() {
   iname.className = "iname";
   iname.appendChild(dom.ct(this.name));
   this.type !== "unknown" && iname.addEventListener("click", function() {
-    openDir(prop, true);
+    openDir(prop);
   }, false);
 
   ivalue.className = "ivalue";
@@ -525,9 +529,9 @@ function sortProps(type) {
   }
   return this;
 }
-function goPath(path, h) {
+function goPath(path, sort) {
   var prop = getProp(path);
-  if (prop) openDir(prop, h);
+  if (prop) openDir(prop, sort);
 }
 function focusItem(key) {
   if (key) {
@@ -558,17 +562,17 @@ function init() {
       break;
     case 13:
       ev.preventDefault();
-      if (address.value !== mem.getCurrent().path) goPath(address.value, true);
+      if (address.value !== mem.getCurrent().path) goPath(address.value);
       break;
     }
   }, false);
   cup.addEventListener("click", function() {
     var cur_path = mem.getCurrent().path;
     var parent_path = getDirs(cur_path).parent || "window";
-    if (cur_path !== parent_path) goPath(parent_path, true);
+    if (cur_path !== parent_path) goPath(parent_path);
   }, false);
   cgo.addEventListener("click", function() {
-    if (address.value !== mem.getCurrent().path) goPath(address.value, true);
+    if (address.value !== mem.getCurrent().path) goPath(address.value);
   }, false);
   document.addEventListener("mousedown", function() {
     var s = dom.q(".focus");
@@ -588,17 +592,17 @@ function init() {
   }, false);
 }
 addEventListener("hashchange", function() {
-  var h = getHash();
-  var c = mem.getCurrent();
-  if (h !== c.path) {
-    goPath(h);
-    if (h === getDirs(c.path).parent) focusItem(c.name);
+  var que = getQuery();
+  var cur = mem.getCurrent();
+  if (que.path !== cur.path) {
+    goPath(que.path);
+    if (que.path === getDirs(cur.path).parent) focusItem(cur.name);
   }
 }, false);
 addEventListener("load", function() {
   init();
-  var h = getHash();
-  goPath("window", true);
+  var h = getQuery().path;
+  goPath("window");
   setAddress(h);
 }, false);
 //]]></script>
