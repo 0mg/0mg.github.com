@@ -558,7 +558,7 @@ function focusItem(key) {
       var e = keys_e[i];
       if (e.lastChild.nodeValue === key) {
         e.classList.add("focus");
-        e.scrollIntoView();
+        e.parentNode.scrollIntoView();
         break;
       }
     }
