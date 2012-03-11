@@ -142,6 +142,16 @@ if (!document.addEventListener) {
 if (!Element.prototype.addEventListener) {
   Element.prototype.addEventListener = window.addEventListener;
 }
+if (!("textContent" in document.createElement("p"))) {
+  Object.defineProperty(Element.prototype, "textContent", {
+    get: function() {
+      return this.innerText;
+    },
+    set: function(s) {
+      return this.innerText = s;
+    }
+  });
+}
 if (!document.createElement("p").classList) {
   Object.defineProperty(Element.prototype, "classList", {
     get: function() {
