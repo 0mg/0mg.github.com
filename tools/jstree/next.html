@@ -211,14 +211,14 @@ if (!window.console) {
 //]]></script>
 <script>//<![CDATA[
 window.$testObj = {
-  "toString": function() { return -99; },
+  "toString": function かんすう() { return -99; },
   "1": 1201,
   "10": 123,
   "1.1": 123,
   "0x1": 123,
   "\0\b\f\n\r\t\v\'\"\\": 1201,
   "for": '"\\hoge',
-  "func\u3333tion": function() {},
+  "func\u3333tion": function ﾌｧﾝｸｼｮﾝ() {},
   "-Infinity": true,
   "[\"obj\"][\\\"o\"]": {
     "#": "fuga"
@@ -227,11 +227,11 @@ window.$testObj = {
   "": null
 };
 var dom = {
-  id: function(id) { return document.getElementById(id); },
-  q: function(s) { return document.querySelector(s); },
-  qs: function(s) { return document.querySelectorAll(s); },
-  ce: function(s) { return document.createElement(s); },
-  ct: function(s) { return document.createTextNode(s); }
+  id: function id(id) { return document.getElementById(id); },
+  q: function q(s) { return document.querySelector(s); },
+  qs: function qs(s) { return document.querySelectorAll(s); },
+  ce: function ce(s) { return document.createElement(s); },
+  ct: function ct(s) { return document.createTextNode(s); }
 };
 function setList(props) {
   var list = dom.id("list");
@@ -390,13 +390,13 @@ function Prop(name, type, value, path) {
   this.value = value;
   this.path = path;
 }
-function getProp(path) {
+Prop.getProp = function getProp(path) {
   var name = getDirs(path).last;
   try { var value = eval(path); } catch (e) { return false; }
   var type = value === null ? "null" : typeof value;
   return new Prop(name, type, value, path);
 }
-Prop.prototype.birth = function(key) {
+Prop.prototype.birth = function birthProp(key) {
   var fixname = escapeKey(key);
   var name = fixname;
   try {
@@ -419,7 +419,7 @@ Prop.prototype.birth = function(key) {
   }
   return new Prop(name, type, value, path);
 };
-Prop.prototype.birthProps = function() {
+Prop.prototype.birthProps = function birthProps() {
   var props = [];
   var kees = new MemoMap;
   switch (this.type) {
@@ -521,7 +521,7 @@ Prop.sortProps = function sortProps(sorttype) {
   }
   return this;
 }
-Prop.prototype.toNode = function() {
+Prop.prototype.toNode = function toNode() {
 /*
 <tr class="item">
   <td class="itype">number</td><td class="iname">length</td><td class="ivalue">30</td>
@@ -552,7 +552,7 @@ Prop.prototype.toNode = function() {
 
   return item;
 };
-Prop.prototype.toString = function() {
+Prop.prototype.toString = function toString() {
   return this.name;
 };
 function openDir(prop) {
@@ -568,7 +568,7 @@ function openDir(prop) {
   focusItem();
 }
 function goPath(path) {
-  var prop = getProp(path);
+  var prop = Prop.getProp(path);
   if (prop) openDir(prop);
 }
 function focusItem(key) {
