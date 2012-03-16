@@ -101,30 +101,6 @@ th, td {
   width: 100%;
 }
 /*]]>*/</style>
-</head>
-<body>
-<div><input id="address" value="hoge" /><button id="cup">up</button><button id="cgo">go</button></div>
-<h1 id="cname">fuga</h1>
-<table>
-<tbody>
-<tr id="citem" class="item object">
-  <td id="citype" class="itype">オ</td><td><pre id="civalue" class="ivalue">[piyo]</pre></td>
-</tr>
-</tbody>
-</table>
-<table>
-<caption id="cpath">foobar</caption>
-<thead><tr>
-<th><button id="sort_type" class="sort_button">type</button></th>
-<th><button id="sort_name" class="sort_button">key</button></th>
-<th><button id="sort_value" class="sort_button">value</button></th>
-</tr></thead>
-<tbody id="list">
-<tr class="item number">
-  <td class="itype">数</td><td class="iname">nazo</td><td class="ivalue">壱</td>
-</tr>
-</tbody>
-</table>
 <script>//<![CDATA[
 if (!Event.prototype.preventDefault) {
   Event.prototype.preventDefault = function() {
@@ -547,7 +523,7 @@ Prop.prototype.toNode = function toNode() {
   }, false);
 
   ivalue.className = "ivalue";
-  var value = String(this.value).replace(/([\S\s]{140})[\S\s]*/, "$1...");
+  var value = String(this.value).replace(/([\S\s]{140})[\S\s]+/, "$1...");
   ivalue.appendChild(dom.ct(value));
 
   return item;
@@ -647,5 +623,29 @@ addEventListener("load", function() {
   setAddress(h);
 }, false);
 //]]></script>
+</head>
+<body>
+<div><input id="address" value="hoge" /><button id="cup">up</button><button id="cgo">go</button></div>
+<h1 id="cname">fuga</h1>
+<table>
+<tbody>
+<tr id="citem" class="item object">
+  <td id="citype" class="itype">オ</td><td><pre id="civalue" class="ivalue">[piyo]</pre></td>
+</tr>
+</tbody>
+</table>
+<table>
+<caption id="cpath">foobar</caption>
+<thead><tr>
+<th><button id="sort_type" class="sort_button">type</button></th>
+<th><button id="sort_name" class="sort_button">key</button></th>
+<th><button id="sort_value" class="sort_button">value</button></th>
+</tr></thead>
+<tbody id="list">
+<tr class="item number">
+  <td class="itype">数</td><td class="iname">nazo</td><td class="ivalue">壱</td>
+</tr>
+</tbody>
+</table>
 </body>
 </html>
