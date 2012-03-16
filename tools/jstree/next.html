@@ -192,7 +192,7 @@ window.$testObj = {
   "10": 123,
   "1.1": 123,
   "0x1": 123,
-  "\0\b\f\n\r\t\v\'\"\\": 1201,
+  "\0\b\f\n\r\t\x0b\'\"\\": 1201,
   "for": '"\\hoge',
   "func\u3333tion": function ﾌｧﾝｸｼｮﾝ() {},
   "-Infinity": true,
@@ -425,27 +425,19 @@ Prop.prototype.birthProps = function birthProps() {
     break;
   }
   //extend
-  switch (this.type) {
-  case "function":
+  if (this.type === "function") {
     var key = "prototype";
     if (!kees.has(key)) {
       kees.set(key);
       props.push(this.birth(key));
     }
-    //dont break;
-  case "object":
-  case "number":
-  case "boolean":
-  case "string":
-  case "undefined":
+  }
+  if (this.value !== void 0 && this.value !== null) {
     var key = "__proto__";
     if (!kees.has(key)) {
       kees.set(key);
       props.push(this.birth(key));
     }
-    break;
-  case "null":
-    break;
   }
   props.sortProps = Prop.sortProps;
   return props;
