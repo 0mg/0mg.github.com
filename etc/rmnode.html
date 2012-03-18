@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<title>remove node speed</title>
+<script src="ie8.js"></script>
+<script src="dom.js"></script>
+<script>
+function createNode() {
+  var e = dom.ce("p"), f = dom.cf(), i = 9999;
+  e.textContent = "hoge";
+  while (--i) f.appendChild(e.cloneNode(true));
+  document.body.appendChild(f);
+}
+var removenode = {
+  removeChild: function removeChildrenWithRemoveChild() {
+    var b = document.body;
+    while (b.hasChildNodes()) b.removeChild(b.lastChild);
+  },
+  innerHTML: function removeChildrenWithInnerHTML() {
+    document.body.innerHTML = "";
+  }
+};
+function getSpeed(func) {
+  var now = new Date;
+  func();
+  return new Date - now;
+}
+function main() {
+  var x, y, z;
+  createNode();
+  x = getSpeed(removenode.removeChild);
+  createNode();
+  y = getSpeed(removenode.innerHTML);
+  z = (x > y ? x / y : y / x).toFixed(2);
+  document.body.textContent = "<tr><th>" + navigator.userAgent + "</th><td>" + x + "ms</td><td>" + y + "ms</td><td>" + z + "</td></tr>";
+}
+window.addEventListener("load", function() {
+  main();
+}, false);
+</script>
