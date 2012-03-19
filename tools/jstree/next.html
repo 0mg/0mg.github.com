@@ -34,6 +34,9 @@ th, td {
 #civalue {
   white-space: pre-wrap;
 }
+#msg {
+  color: #c00;
+}
 .iname {
   color: blue;
   cursor: pointer;
@@ -209,11 +212,18 @@ var dom = {
   ce: function ce(s) { return document.createElement(s); },
   ct: function ct(s) { return document.createTextNode(s); }
 };
+function setMsg(s) {
+  var msg = dom.id("msg");
+  msg.textContent = s;
+}
 function setList(props) {
   var list = dom.id("list");
   var f = document.createDocumentFragment();
   var i = 0, lim = props.length;
-  if (lim > 1000) lim = 1000;
+  if (lim > 1000) {
+    lim = 1000;
+    setMsg("drawn " + lim + " items of " + props.length);
+  }
   for (; i < lim; ++i) {
     f.appendChild(props[i].toNode())
   }
@@ -529,6 +539,7 @@ function openDir(prop) {
   mem.setCurrent(prop);
   mem.setCurrentProps(props);
   if (getQuery().path !== prop.path) setQuery(prop.path);
+  setMsg("");
   setAddress(prop.path);
   setPath(prop.path);
   setCList(prop);
@@ -617,7 +628,7 @@ addEventListener("load", function() {
 //]]></script>
 </head>
 <body>
-<div><input id="address" value="hoge" /><button id="cup">up</button><button id="cgo">go</button></div>
+<div><input id="address" value="hoge" /><button id="cup">up</button><button id="cgo">go</button><strong id="msg">すごい！</strong></div>
 <h1 id="cname">fuga</h1>
 <table>
 <tbody>
