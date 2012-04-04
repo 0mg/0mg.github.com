@@ -623,7 +623,7 @@ addEventListener("load", function() {
   init();
   var h = getQuery().path;
   goPath("window");
-  setAddress(h);
+  setAddress(h || "window");
 }, false);
 //]]></script>
 </head>
