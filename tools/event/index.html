@@ -187,7 +187,9 @@ for (var i in eventTypes) {
   }
 }
 for (var i = 0; i < eventList.length; ++i) {
-  window.addEventListener(eventList[i], onEvent, false);
+  window.addEventListener(eventList[i], function(e) {
+    onEvent(e);
+  }, false);
 }
 //]]></script>
 </head>
