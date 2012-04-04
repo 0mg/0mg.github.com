@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+}
+html, body {
+  height: 100%;
+}
+iframe {
+  border: 0;
+  height: 99%;
+}
+</style>
+<script src="../dom.js"></script>
+<script>
+addEventListener("DOMContentLoaded", function() {
+  var win1 = dom.id("win1");
+  var win2 = dom.id("win2");
+  var main = (function() {
+    var loaded = 0;
+    function main() {
+      var oe = win2.contentWindow.onEvent;
+      win2.contentWindow.onEvent = function(e) {
+        if (!win1.contentWindow.$testObj.evts) {
+          win1.contentWindow.$testObj.evts = [];
+        }
+        win1.contentWindow.$testObj.evts.unshift(e);
+        win1.contentWindow.$testObj.evts.length = 50;
+        oe(e);
+      };
+    }
+    main.inc = function() {
+      loaded += 1;
+      if (loaded === 2) {
+        main();
+        delete main.inc;
+      }
+    };
+    return main;
+  })();
+  dom.id("win1").addEventListener("load", main.inc);
+  dom.id("win2").addEventListener("load", main.inc);
+}, false);
+</script>
+<title>Window Wrapper</title>
+</head>
+<body>
+<iframe src="../../tools/jstree/next.html" width="85%" id="win1"></iframe>
+<iframe src="../../tools/event/index.html" width="14%" id="win2"></iframe>
+</body>
+</html>

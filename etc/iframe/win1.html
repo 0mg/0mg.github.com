@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Window 1</title>
+<script>
+window.name = document.title;
+</script>
+</head>
+<body>
+<script>
+setTimeout(function(){
+  var v;
+  try {
+    v = parent[1].location;
+  } catch (e) {
+    v = e;
+  }
+  document.write(v);
+}, 1000);
+</script>
+</body>
+</html>
