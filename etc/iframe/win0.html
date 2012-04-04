@@ -23,15 +23,21 @@ addEventListener("DOMContentLoaded", function() {
   var main = (function() {
     var loaded = 0;
     function main() {
-      var oe = win2.contentWindow.onEvent;
-      win2.contentWindow.onEvent = function(e) {
-        if (!win1.contentWindow.$testObj.evts) {
-          win1.contentWindow.$testObj.evts = [];
-        }
-        win1.contentWindow.$testObj.evts.unshift(e);
-        win1.contentWindow.$testObj.evts.length = 50;
+      var w1 = win1.contentWindow;
+      var w2 = win2.contentWindow;
+      var oe = w2.onEvent;
+      var evts = [];
+      var ename = "eventdata";
+      w1[ename] = evts;
+      w1.location.hash = ename;
+      w2.onEvent = function(e) {
         oe(e);
+        evts.unshift(e);
+        evts.length = 50;
+        w1.document.getElementById("cgo").click();
       };
+      w1.document.styleSheets[0].ownerNode.textContent += 
+      "input,button,h1,h1+table,caption,.itype{display:none!important}";
     }
     main.inc = function() {
       loaded += 1;
