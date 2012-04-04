@@ -589,7 +589,7 @@ function init() {
     if (cur_path !== parent_path) goPath(parent_path);
   }, false);
   cgo.addEventListener("click", function() {
-    if (address.value !== mem.getCurrent().path) goPath(address.value);
+    goPath(address.value);
   }, false);
   document.addEventListener("mousedown", function() {
     var s = dom.q(".focus");
