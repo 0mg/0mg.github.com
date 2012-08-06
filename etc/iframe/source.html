@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>source</title>
+<script>
+addEventListener("load", function() {
+  var target = document.getElementById("target");
+  target.contentWindow.postMessage("hoge", "/");
+}, false);
+</script>
+</head>
+<body>
+<iframe src="target.html" id="target"></iframe>
+</body>
+</html>
