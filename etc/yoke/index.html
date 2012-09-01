@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+}
+#dbg {
+  position: absolute;
+  bottom: 0;
+  background: yellow;
+  border-top: 1px solid black;
+  width: 100%;
+}
+.chr {
+  position: absolute;
+  background: black;
+}
+#me {
+  background: red;
+}
+</style>
+<script>
+var dom = {
+  id: function id(id) { return document.getElementById(id); },
+  q: function q(s) { return document.querySelector(s); },
+  qs: function qs(s) { return document.querySelectorAll(s); },
+  ce: function ce(s) { return document.createElement(s); },
+  ct: function ct(s) { return document.createTextNode(s); },
+  cf: function cf() { return document.createDocumentFragment(); }
+};
+function Chr(x, y, w, h, e) {
+  this.x = x | 0;
+  this.y = y | 0;
+  this.w = w | 0;
+  this.h = h | 0;
+  this.e = e;
+  e.style.width = this.w + "px";
+  e.style.height = this.h + "px";
+}
+Chr.prototype.pos = function(x, y) {
+  this.x = x | 0;
+  this.y = y | 0;
+  this.draw();
+};
+Chr.prototype.draw = function() {
+  this.e.style.left = this.x + "px";
+  this.e.style.top = this.y + "px";
+};
+addEventListener("load", function() {
+  var dgb = dom.id("dbg");
+  var my = new Chr(0, 0, 30, 30, dom.id("me"));
+  var you = new Chr(0, 0, 30, 30, dom.id("you"));
+  my.pos(100, 100);
+  you.pos(0, 0);
+  addEventListener("mousedown", function() {
+    my.pos(my.x, my.y + my.h);
+  }, false);
+  addEventListener("mouseup", function() {
+    my.pos(my.x, my.y - my.h);
+  }, false);
+  addEventListener("mousemove", function(e) {
+    var msx = e.x - you.w;
+    var msy = e.y - you.h;
+    you.pos(msx, msy);
+    dgb.textContent = [my.x, my.y, you.x, you.y];
+    if (my.x - you.w < you.x && you.x < my.x + my.w &&
+        my.y - you.h < you.y && you.y < my.y + my.h) {
+      document.title = "Hit";
+      my.e.style.background = "grey";
+    } else {
+      document.title = "-";
+      my.e.style.background = "red";
+    }
+  }, false);
+}, false);
+</script>
+<title>yoke</title>
+</head>
+<body>
+<div id="dbg">_</div>
+<div id="me" class="chr"></div>
+<div id="you" class="chr"></div>
+</body>
+</html>
