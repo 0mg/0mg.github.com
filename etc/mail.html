@@ -1,0 +1,19 @@
+<p id="p"></p>
+<p id="q"></p>
+<input id="i" size="50" value="mailto:example@example.com">
+<script>
+i.addEventListener("input", f = function(e) {
+  e = e.target.value;
+  var s = e.split("").map(function(c, i) {
+    c = c.charCodeAt();
+    var r = Math.random() * 3 | 0;
+    if (i < 7) r = Math.random() * 2 + 1 | 0;
+    return r > 1 ? "&#x" + c.toString(16) + ";" :
+           r > 0 ? "&#" + c + ";" :
+                   "%" + c.toString(16);
+  }).join("");
+  p.textContent = s;
+  q.innerHTML = "<a href=\"" + s + "\">" + e + "</a>";
+});
+f({target:i});
+</script>
