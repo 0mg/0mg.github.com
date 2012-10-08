@@ -46,7 +46,7 @@ addEventListener("load", function() {
                     "catch(" + E_s + "){void(" + dst_s + "=" + E_s + ")}";
   }
   src.addEventListener("keypress", function(event) {
-    if (event.keyCode === 13) {
+    if (event.keyCode === 13 && !event.shiftKey) {
       evalSrc();
       event.preventDefault();
     }
