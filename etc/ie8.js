@@ -16,12 +16,8 @@ if (!Element.prototype.addEventListener) {
 }
 if (!("textContent" in document.createElement("p"))) {
   Object.defineProperty(Element.prototype, "textContent", {
-    get: function() {
-      return this.innerText;
-    },
-    set: function(s) {
-      return this.innerText = s;
-    }
+    get: function() { return this.innerText; },
+    set: function(s) { return this.innerText = s; }
   });
 }
 if (!document.createElement("p").classList) {
