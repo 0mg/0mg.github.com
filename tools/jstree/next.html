@@ -484,8 +484,8 @@ Prop.sortProps = function sortProps(sorttype) {
     break;
   case "value":
     this.sort(function(p, q) {
-      var p_value = String(p.value);
-      var q_value = String(q.value);
+      var p_value = String([p.value]);
+      var q_value = String([q.value]);
       return p_value === q_value ?
         sort(p, q, "name") :
         sort(p, q, "value");
