@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<title>Color Mixer</title>
+<style>/*<![CDATA[*/
+* {
+  margin: 0;
+  padding: 0;
+}
+body {
+  font: normal normal normal 14px/1 monospace;
+}
+#colorbox {
+  background-color: rgb(255, 0, 0);
+  height: 200px;
+}
+#history {
+  width: 215px;
+  height: 20px;
+  text-align: right;
+}
+.slider {
+  display: inline-block;
+  width: 160px;
+  overflow-x: scroll;
+}
+.spacer {
+  width: 800%;
+  height: 1px;
+}
+table {
+  margin: 0 auto;
+  border-collapse: collapse;
+}
+input {
+  font: inherit;
+  padding: 2px;
+}
+th, td {
+  font-weight: normal;
+  padding: 1px;
+}
+.history_part {
+  display: inline-block;
+  width: 5px;
+  height: 100%;
+}
+.slider_input {
+  width: 5ex;
+}
+.input.rrggbb {
+  width: 8ex;
+}
+/*]]>*/</style>
+<script>//<![CDATA[
+if (!window.addEventListener) {
+  window.addEventListener = function(type, f) {
+    return this.attachEvent("on" + type, f);
+  };
+}
+if (!Element.prototype.addEventListener) {
+  Element.prototype.addEventListener = function() {
+    return window.addEventListener.apply(this, arguments);
+  };
+}
+if (!Array.prototype.forEach) {
+  Array.prototype.forEach = function(f) {
+    for (var i = 0; i < this.length; ++i) {
+      f(this[i], i, this);
+    }
+  };
+}
+if (!Array.prototype.map) {
+  Array.prototype.map = function(f) {
+    var a = [];
+    for (var i = 0; i < this.length; ++i) {
+      a[i] = f(this[i], i, this);
+    }
+    return a;
+  };
+}
+if (!window.getComputedStyle) {
+  window.getComputedStyle = function(el) {
+    return el.currentStyle;
+  };
+}
+//]]></script>
+<script>//<![CDATA[
+function rgb2hsl(R, G, B) {
+  R /= 255;
+  G /= 255;
+  B /= 255;
+
+  var max = Math.max(R, G, B);
+  var min = Math.min(R, G, B);
+  var c = max - min;
+
+  var h = max === R ? ((G - B) / c) % 6 :
+          max === G ? ((B - R) / c) + 2 :
+                      ((R - G) / c) + 4;
+  var H = 60 * h;
+
+  var L = (max + min) / 2;
+
+  var S = (L <= 1/2) ? c / (2 * L) : c / (2 - (2 * L));
+
+  H = (H + 360) % 360;
+  S *= 100;
+  L *= 100;
+
+  H = Math.round(H) | 0;
+  S = Math.round(S) | 0;
+  L = Math.round(L) | 0;
+
+  return [H, S, L];
+}
+function hsl2rgb(H, S, L) {
+  S /= 100;
+  L /= 100;
+
+  var c = (1 - Math.abs((2 * L) - 1)) * S;
+  var h = H / 60;
+  var x = c * (1 - Math.abs((h % 2) - 1));
+
+  var rgb = (0 <= h && h < 1) ? [c, x, 0] :
+            (1 <= h && h < 2) ? [x, c, 0] :
+            (2 <= h && h < 3) ? [0, c, x] :
+            (3 <= h && h < 4) ? [0, x, c] :
+            (4 <= h && h < 5) ? [x, 0, c] :
+            (5 <= h && h < 6) ? [c, 0, x] :
+                                [0, 0, 0];
+  var r = rgb[0];
+  var g = rgb[1];
+  var b = rgb[2];
+
+  var m = L - (c / 2);
+
+  var R = r + m;
+  var G = g + m;
+  var B = b + m;
+
+  R *= 255;
+  G *= 255;
+  B *= 255;
+
+  R = Math.round(R) | 0;
+  G = Math.round(G) | 0;
+  B = Math.round(B) | 0;
+
+  return [R, G, B];
+}
+function Slider(type, index, v_max, onSlide) {
+  var that = this;
+  Slider.pool[type][index] = this;
+
+  var slider = document.createElement("input");
+  slider.className = "slider";
+  slider.type = "range";
+  slider.min = 0;
+  slider.max = v_max;
+  slider.value = 0;
+  slider.addEventListener("change", function() {
+    that.onScroll.apply(that, arguments);
+  }, false);
+
+  var input = document.createElement("input");
+  input.className = "slider_input";
+  input.addEventListener("input", function() {
+    that.onInput.apply(that, arguments);
+  }, false);
+  input.addEventListener("blur", function() {
+    that.onBlur.apply(that, arguments);
+  }, false);
+
+  document.getElementById(type + "_" + index + "_slider").appendChild(slider);
+  document.getElementById(type + "_" + index + "_input").appendChild(input);
+
+  this.slider = slider;
+  this.input = input;
+  this.type = type;
+  this.index = index;
+  this.v_max = v_max;
+  this.doEvent = true;
+}
+Slider.pool = {
+  rgb: [],
+  hsl: []
+};
+Slider.prototype.getValue = function() {
+  var now = +this.slider.value;
+  return now;
+};
+Slider.prototype.setValue = function(val_now, doEvent) {
+  this.doEvent = doEvent;
+  this.slider.value = val_now;
+  this.setInput(val_now);
+  if (this.doEvent) this.onScroll();
+};
+Slider.prototype.setInput = function(value) {
+  if (document.activeElement !== this.input) {
+    this.input.value = value;
+  }
+};
+function pushHistory(rgb, hsl) {
+  var history = document.getElementById("history");
+
+  var his = document.createElement("div");
+  his.title = ["#" + rgb.map(function(v) {
+      return (v < 16 ? "0" : "") + v.toString(16);
+    }).join(""), "rgb(" + rgb + ")", "hsl(" + hsl + ")"];
+  his.className = "history_part";
+  his.style.backgroundColor = "rgb(" + rgb + ")";
+  his.addEventListener("click", function() {
+    var el = Slider.pool;
+    el.rgb[0].setValue(rgb[0], true);
+    el.rgb[1].setValue(rgb[1], true);
+    el.rgb[2].setValue(rgb[2], true);
+  }, false);
+
+  history.appendChild(his);
+  while (history.childNodes.length > 43) {
+    history.removeChild(history.firstChild);
+  }
+}
+function applyColor(rgb, hsl) {
+  var target = document.getElementById("colorbox");
+  target.style.backgroundColor = "rgb(" + rgb + ")";
+}
+Slider.prototype.onSlide = function onSlide() {
+  var el = Slider.pool;
+
+  var t1 = this.type;
+  var isRGB = t1 === "rgb";
+  var t2 = isRGB ? "hsl" : "rgb";
+
+  var c1 = [
+    el[t1][0].getValue(),
+    el[t1][1].getValue(),
+    el[t1][2].getValue()
+  ];
+
+  var c2 = (isRGB ? rgb2hsl : hsl2rgb)(c1[0], c1[1], c1[2]);
+
+  el[t1][0].setInput(c1[0]);
+  el[t1][1].setInput(c1[1]);
+  el[t1][2].setInput(c1[2]);
+  el[t2][0].setValue(c2[0], false);
+  el[t2][1].setValue(c2[1], false);
+  el[t2][2].setValue(c2[2], false);
+
+  return isRGB ? [c1, c2] : [c2, c1];
+};
+Slider.prototype.onScroll = function onSliderScroll(evt) {
+  if (!this.doEvent) {
+    this.doEvent = true;
+    return;
+  }
+  var data = this.onSlide();
+  var col = {
+    rgb: data[0],
+    hsl: data[1]
+  };
+  Input.pool.rrggbb[0].setInput(col.rgb);
+  applyColor(col.rgb, col.hsl);
+  pushHistory(col.rgb, col.hsl);
+};
+Slider.prototype.onInput = function onSliderInputModify() {
+  var input = this.input;
+  var v_max = this.v_max;
+  var v = parseInt(input.value, 10) | 0;
+  if (v < 0) v = 0; else if (v_max < v) v = v_max;
+  this.setValue(v, true);
+};
+Slider.prototype.onBlur = function() {
+  this.setInput(this.getValue());
+};
+function Input(type, index, v_max) {
+  var that = this;
+  Input.pool[type][index] = this;
+
+  var input = document.createElement("input");
+  input.className = "input " + type;
+  input.addEventListener("input", function() {
+    that.onInput.apply(that, arguments);
+  }, false);
+  input.addEventListener("blur", function() {
+    that.onBlur.apply(that, arguments);
+  }, false);
+
+  document.getElementById("rrggbb_input").appendChild(input);
+
+  this.input = input;
+  this.v_max = v_max;
+}
+Input.prototype.setInput = function(rgb) {
+  if (document.activeElement !== this.input) {
+    this.input.value = rgb.map(function(v) {
+      return (v < 16 ? "0" : "") + v.toString(16);
+    }).join("");
+  }
+};
+Input.pool = {
+  rrggbb: []
+};
+Input.prototype.onInput = function() {
+  var input = this.input;
+  var v_max = this.v_max;
+  var v = parseInt(input.value, 16) | 0;
+  if (v < 0) v = 0; else if (v_max < v) v = v_max;
+  var v0x = v.toString(16);
+  var rrggbb = ("00000" + v0x).slice(-6);
+  var r = parseInt(rrggbb.slice(0, 2), 16);
+  var g = parseInt(rrggbb.slice(2, 4), 16);
+  var b = parseInt(rrggbb.slice(4, 6), 16);
+  Slider.pool.rgb[0].setValue(r, true);
+  Slider.pool.rgb[1].setValue(g, true);
+  Slider.pool.rgb[2].setValue(b, true);
+};
+Input.prototype.onBlur = function() {
+  this.setInput([
+    Slider.pool.rgb[0].getValue(),
+    Slider.pool.rgb[1].getValue(),
+    Slider.pool.rgb[2].getValue()
+  ]);
+};
+addEventListener("load", function() {
+  new Input("rrggbb", 0, 0xffffff);
+  new Slider("rgb", 0, 255);
+  new Slider("rgb", 1, 255);
+  new Slider("rgb", 2, 255);
+  new Slider("hsl", 0, 359);
+  new Slider("hsl", 1, 100);
+  new Slider("hsl", 2, 100);
+  Slider.pool.rgb[1].setValue(255, true);
+}, false);
+//]]></script>
+</head>
+<body>
+<table>
+<tr><td colspan="3"><div id="colorbox"></div></td></tr>
+<tr><td colspan="3"><div id="history"></div></td></tr>
+<tr><th>R</th><td id="rgb_0_input"></td><td id="rgb_0_slider"></td></tr>
+<tr><th>G</th><td id="rgb_1_input"></td><td id="rgb_1_slider"></td></tr>
+<tr><th>B</th><td id="rgb_2_input"></td><td id="rgb_2_slider"></td></tr>
+<tr><th>H</th><td id="hsl_0_input"></td><td id="hsl_0_slider"></td></tr>
+<tr><th>S</th><td id="hsl_1_input"></td><td id="hsl_1_slider"></td></tr>
+<tr><th>L</th><td id="hsl_2_input"></td><td id="hsl_2_slider"></td></tr>
+<tr><th>#</th><td id="rrggbb_input" colspan="2"></td></tr>
+</table>
+</body>
+</html>
