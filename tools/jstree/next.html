@@ -247,7 +247,7 @@ function setCList(prop) {
   citype.lastChild.nodeValue = prop.type;
 
   var civalue = dom.id("civalue");
-  civalue.lastChild.nodeValue = String(prop.value);
+  civalue.lastChild.nodeValue = String(prop.value + []);
 }
 function setAddress(path) {
   var address = dom.id("address");
@@ -454,8 +454,8 @@ Prop.prototype.birthProps = function birthProps() {
 };
 Prop.sortProps = function sortProps(sorttype) {
   function sort(p, q, k) {
-    var pv = String([p[k]]);
-    var qv = String([q[k]]);
+    var pv = String(p[k] + []);
+    var qv = String(q[k] + []);
     var p_num = isFinite(Number(pv)) && String(Number(pv)) === pv;
     var q_num = isFinite(Number(qv)) && String(Number(qv)) === qv;
     switch ((p_num * 1) | (q_num * 2)) {
@@ -484,8 +484,8 @@ Prop.sortProps = function sortProps(sorttype) {
     break;
   case "value":
     this.sort(function(p, q) {
-      var p_value = String([p.value]);
-      var q_value = String([q.value]);
+      var p_value = String(p.value + []);
+      var q_value = String(q.value + []);
       return p_value === q_value ?
         sort(p, q, "name") :
         sort(p, q, "value");
@@ -525,7 +525,7 @@ Prop.prototype.toNode = function toNode() {
   }, false);
 
   ivalue.className = "ivalue";
-  var value = String(this.value).replace(/([\S\s]{140})[\S\s]+/, "$1...");
+  var value = String(this.value + []).replace(/([\S\s]{140})[\S\s]+/, "$1...");
   ivalue.appendChild(dom.ct(value));
 
   return item;
