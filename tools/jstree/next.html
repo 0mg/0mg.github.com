@@ -454,8 +454,8 @@ Prop.prototype.birthProps = function birthProps() {
 };
 Prop.sortProps = function sortProps(sorttype) {
   function sort(p, q, k) {
-    var pv = String(p[k]);
-    var qv = String(q[k]);
+    var pv = String([p[k]]);
+    var qv = String([q[k]]);
     var p_num = isFinite(Number(pv)) && String(Number(pv)) === pv;
     var q_num = isFinite(Number(qv)) && String(Number(qv)) === qv;
     switch ((p_num * 1) | (q_num * 2)) {
