@@ -1,18 +1,41 @@
 if (!Event.prototype.preventDefault) {
-  Event.prototype.preventDefault = function() {
-    this.returnValue = false;
-  };
+  Object.defineProperty(Event.prototype, "preventDefault", {
+    get: function() {
+      return function() {
+        this.returnValue = false;
+      }
+    }
+  });
+}
+if (!("target" in Event.prototype)) {
+  Object.defineProperty(Event.prototype, "target", {
+    get: function() {
+      return this.srcElement;
+    }
+  });
 }
 if (!window.addEventListener) {
-  window.addEventListener = function(type, f) {
-    return this.attachEvent("on" + type, f);
-  };
+  Object.defineProperty(window, "addEventListener", {
+    get: function() {
+      return function(type, f) {
+        return this.attachEvent("on" + type, f);
+      };
+    }
+  });
 }
 if (!document.addEventListener) {
-  document.addEventListener = window.addEventListener;
+  Object.defineProperty(document, "addEventListener", {
+    get: function() {
+      return window.addEventListener;
+    }
+  });
 }
 if (!Element.prototype.addEventListener) {
-  Element.prototype.addEventListener = window.addEventListener;
+  Object.defineProperty(Element.prototype, "addEventListener", {
+    get: function() {
+      return window.addEventListener;
+    }
+  });
 }
 if (!("textContent" in document.createElement("p"))) {
   Object.defineProperty(Element.prototype, "textContent", {
@@ -48,15 +71,14 @@ if (!document.createElement("p").classList) {
 }
 if (!Array.prototype.forEach) {
   Array.prototype.forEach = function(f) {
-    for (var i = 0; i < this.length; ++i) {
+    for (var i = 0, z = this.length; i < z; ++i) {
       f(this[i], i, this);
     }
   };
 }
 if (!Array.prototype.map) {
   Array.prototype.map = function(f) {
-    var a = [];
-    for (var i = 0; i < this.length; ++i) {
+    for (var a = [], i = 0, z = this.length; i < z; ++i) {
       a[i] = f(this[i], i, this);
     }
     return a;
@@ -64,7 +86,7 @@ if (!Array.prototype.map) {
 }
 if (!Array.prototype.indexOf) {
   Array.prototype.indexOf = function(v) {
-    for (var i = 0; i < this.length; ++i) {
+    for (var i = 0, z = this.length; i < z; ++i) {
       if (this[i] === v) return i;
     }
     return -1;
