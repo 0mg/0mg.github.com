@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<title>Opera's localStorage bug</title>
+<h1>Opera's localStorage bug</h1>
+f = function(){}, l = window.localStorage;<br/>
+[1, 2].forEach(function);
+<h3>Success</h3>
+<pre id="sc"></pre>
+<h3>Error</h3>
+<pre id="er"></pre>
+<script style="display:none;white-space:pre;">
+var f = function(){};
+var l = window.localStorage;
+var success = [], error = [];
+
+var o = [
+  function() { f + l; },
+  function() { f + l + []; },
+  function() { f + l + ""; },
+  function() { f + l + 1; },
+  function() { f + l + 0; },
+  function() { f + l + NaN; },
+  function() { f + l + Infinity; },
+  function() { f + l + null; },
+  function() { f + l + undefined; },
+  function() { f + l + true; },
+  function() { f + l + false; },
+  function() { f + l + /./; },
+  function() { f + l + {}; },
+  function() { f + l + function(){}; },
+  function() { f + l + Object; },
+  function() { f + l + Array; },
+  function() { f + l + String; },
+  function() { f + l + Number; },
+  function() { f + l + Boolean; },
+  function() { f + l + Function; },
+  function() { f + l + RegExp; },
+  function() { f + l + Date; },
+  function() { f + l + parseInt; },
+  function() { f + l + parseFloat; },
+  function() { f + l + String([]); },
+  function() { f + l + String(""); },
+  function() { f + l + String(1); },
+  function() { f + l + String({}); },
+  function() { f + l + ([]).toString(); },
+  function() { f + l + ("").toString(); },
+  function() { f + l + (1).toString(); },
+  function() { f + l + ({}).toString(); },
+  function() { f + l + (+[]); },
+  function() { f + l + (+""); },
+  function() { f + l + (+1); },
+  function() { f + l + (+{}); },
+  function() { f + l + ([]).valueOf(); },
+  function() { f + l + ("").valueOf(); },
+  function() { f + l + (1).valueOf(); },
+  function() { f + l + ({}).valueOf(); },
+  function() { f * l; },
+  function() { f / l; },
+  function() { f - l; },
+  function() { f % l; },
+  function() { f << l; },
+  function() { f >> l; },
+  function() { f >>> l; },
+  function() { f < l; },
+  function() { f > l; },
+  function() { f & l; },
+  function() { f | l; },
+  function() { f && l; },
+  function() { f || l; },
+  function() { f ? l : l; },
+  function() { f, l; },
+  function() { !f + !l; },
+  function() { +f + +l; },
+  function() { ~f + ~l; }
+];
+
+for (var i = 0; i < o.length; ++i) {
+  try {
+    [1,2].forEach(o[i]);
+    success.push(o[i]);
+  }
+  catch(e) {
+    String(e);
+    error.push(o[i]);
+  }
+}
+
+document.getElementById("sc").appendChild(
+  document.createTextNode(success.join("\n"))
+);
+document.getElementById("er").appendChild(
+  document.createTextNode(error.join("\n"))
+);
+</script>
