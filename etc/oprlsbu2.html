@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8" />
+<style>
+body {
+  background: #fcfcfc;
+  line-height: 1.6;
+}
+em {
+  font-size: small;
+}
+dl {
+  margin: 0;
+  margin-bottom: 1px;
+  border-left: 3em solid;
+}
+dl.success {
+  background: #9f9;
+  color: #050;
+}
+dl.error {
+  color: #e00;
+}
+</style>
+<title>Opera's localStorage bug</title>
+</head>
+<body>
+<h1>Opera's localStorage bug</h1>
+<div id="sc"></div>
+<script style="display:block;white-space:pre;">
+function Result() {
+  this.box = [];
+}
+Result.prototype.pushStat = function(exp, stat, desc) {
+  function toNode(exp, stat, desc) {
+    var ndl = document.createElement("dl");
+    var ndt = document.createElement("dt");
+    var ndd = document.createElement("dd");
+    var ndexp = document.createElement("code");
+    var nda = document.createElement("a");
+    var nddesc = document.createElement("em");
+    nda.href = exp;
+    nda.appendChild(document.createTextNode(exp));
+    ndexp.appendChild(nda);
+    ndt.appendChild(document.createTextNode(stat ? "\u2713" : "\u2716"));
+    ndt.appendChild(ndexp);
+    nddesc.appendChild(document.createTextNode(desc));
+    ndd.appendChild(nddesc);
+    ndl.className = stat ? "success" : "error";
+    ndl.appendChild(ndt);
+    ndl.appendChild(ndd);
+    return ndl;
+  }
+  this.box.push({
+    exp: exp,
+    stat: stat,
+    node: toNode(exp, stat, desc)
+  });
+};
+
+var results = new Result;
+
+var o = [
+  "({})",
+  "[]",
+  "(function(){})",
+  "0",
+  "\"\"",
+  "true",
+  "null",
+  "undefined",
+  "/./",
+
+  "Object",
+  "Array",
+  "Function",
+  "Number",
+  "String",
+  "Boolean",
+  "RegExp",
+
+  "Math",
+  "Date",
+
+  "parseInt",
+  "escape",
+  "encodeURI",
+  "localStorage",
+  "sessionStorage",
+
+  "Object.prototype",
+  "({}).__proto__",
+  "Array.prototype",
+  "[].__proto__",
+  "Function.prototype",
+  "(function(){}).__proto__",
+  "Number.prototype",
+  "(1).__proto__",
+  "String.prototype",
+  "(\"\").__proto__",
+  "Boolean.prototype",
+  "(true).__proto__",
+  "RegExp.prototype",
+  "/./.__proto__"
+];
+
+for (var i = 0; i < o.length; ++i) {
+  var x = o[i];
+  var src = "javascript: " + x + " + localStorage + " + x;
+  var desc = "";
+  try {
+    desc = eval(src);
+    results.pushStat(src, true, desc);
+  }
+  catch(e) {
+    desc = e;
+    results.pushStat(src, false, desc);
+  }
+}
+
+var ndsc = document.getElementById("sc");
+
+if (!Array.prototype.forEach) {
+  Array.prototype.forEach = function(f) {
+    for (var i = 0, z = this.length; i < z; ++i) {
+      f(this[i], i, this);
+    }
+  };
+}
+
+results.box.forEach(function(o) {
+  ndsc.appendChild(o.node);
+});
+
+</script>
+</body>
