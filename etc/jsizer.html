@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>html to javascript:...</title>
+</head>
+<body>
+<input id="src" value="" /><button id="go">Convert</button>
+<p><a id="result" target="_blank"></a></p>
+<script>
+var dom = {
+  id: function id(id) { return document.getElementById(id); },
+  q: function q(s) { return document.querySelector(s); },
+  qs: function qs(s) { return document.querySelectorAll(s); },
+  ce: function ce(s) { return document.createElement(s); },
+  ct: function ct(s) { return document.createTextNode(s); },
+  cf: function cf() { return document.createDocumentFragment(); }
+};
+
+var src = dom.id("src");
+var go = dom.id("go");
+var result = dom.id("result");
+
+go.addEventListener("click", function() {
+  go.disabled = true;
+  function enable() { go.disabled = false; }
+  var xhr = new XMLHttpRequest;
+  xhr.open("get", src.value, true);
+  xhr.onload = function() {
+    var str = xhr.responseText;
+    str = encodeURIComponent(encodeURIComponent(str));
+    result.textContent = result.href = "javascript:document.documentElement.outerHTML=decodeURIComponent(\"" + str + "\")";
+    enable();
+  };
+  xhr.onerror = enable;
+  xhr.send(null);
+}, false);
+
+
+</script>
+</body>
+</html>
