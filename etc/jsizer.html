@@ -27,10 +27,9 @@ go.addEventListener("click", function() {
   xhr.open("get", src.value, true);
   xhr.onload = function() {
     var str = xhr.responseText;
-    str = "<script>alert(\"hoge\")</" + "script>";
-    var estr = str.replace(/["\r\n]/g,
-      function(c){return encodeURIComponent(c)});
-    result.textContent = result.href = "javascript:decodeURIComponent(\"" + estr + "\")";
+    var estr = str.replace(/['\r\n]/g,
+      function(c){return escape(c)});
+    result.textContent = result.href = "javascript:unescape('" + estr + "')";
     enable();
   };
   xhr.onerror = enable;
