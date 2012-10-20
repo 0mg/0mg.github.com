@@ -538,9 +538,11 @@ function init() {
     }
   }, false);
   cup.addEventListener("click", function() {
+    var cur_name = mem.getCurrent().name;
     var cur_path = mem.getCurrent().path;
     var parent_path = getDirs(cur_path).parent || "window";
     if (cur_path !== parent_path) goPath(parent_path);
+    focusItem(cur_name);
   }, false);
   cgo.addEventListener("click", function() {
     goPath(address.value);
