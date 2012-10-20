@@ -27,8 +27,8 @@ go.addEventListener("click", function() {
   xhr.open("get", src.value, true);
   xhr.onload = function() {
     var str = xhr.responseText;
-    str = encodeURIComponent(str);
-    result.textContent = result.href = "javascript:decodeURIComponent(\"" + str + "\")";
+    str = encodeURIComponent(str).replace(/'/g, "%27");
+    result.textContent = result.href = "javascript:decodeURIComponent('" + str + "')";
     enable();
   };
   xhr.onerror = enable;
