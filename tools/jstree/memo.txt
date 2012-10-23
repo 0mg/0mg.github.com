@@ -1,0 +1,32 @@
+props = null
+
+getProperties(x){
+  ps=[]
+  for(i in x){
+    ps.push([i,typeof i,x[i]])
+  }
+  return ps
+}
+sort(props,type){
+  props.sort(..)
+}
+disp(props){
+  for(p of props){
+    document.body.innerHTML=p[0]+p[1]+p[2]
+  }
+}
+
+view(obj) {
+  current = obj
+  props = getProperties(current)
+  props = sort(props,0)
+  disp(props)
+}
+
+view(window)↓
+
+window
+{ (props)
+  alert
+  document
+}
