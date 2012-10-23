@@ -27,7 +27,7 @@ go.addEventListener("click", function() {
   xhr.open("get", src.value, true);
   xhr.onload = function() {
     var str = xhr.responseText;
-    var estr = str.replace(/['\r\n]/g,
+    var estr = str.replace(/['\r\n\\]/g,
       function(c){return escape(c)});
     result.textContent = result.href = "javascript:unescape('" + estr + "')";
     enable();
