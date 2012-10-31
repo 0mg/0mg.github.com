@@ -28,9 +28,10 @@ th {
 </head><body><script>//<![CDATA[
 function drawUnicode(base) {
   for (var i = 0; i < 256; ++i) {
-    var code = base + i;
     var td = document.getElementsByTagName("td")[i];
-    td.title = "0x" + ("00" + code.toString(16)).slice(-4).toUpperCase();
+    var code = base + i;
+    var code0x = "0x" + ("00" + code.toString(16)).slice(-4).toUpperCase();
+    td.title = code0x + " = " + code;
     td.firstChild.nodeValue = String.fromCharCode(code);
   }
 }
