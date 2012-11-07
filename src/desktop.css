@@ -3,6 +3,7 @@ html {
   margin: 0 auto;
   max-width: 80ex;
   background: #fff url("../img/skygrad.png") repeat-x fixed;
+  background: #fff linear-gradient(#011473, #285bbd 30ex, #fff 60ex);
 }
 body {
   margin: 2ex;

@@ -2,9 +2,6 @@ h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover {
   background: #f3f3f3;
   border-color: #e3e3e3;
 }
-ul {
-  list-style-image: url("../img/cube16.png");
-}
 h1:before {
   display: inline-block;
   margin: 0 1ex 0 0;
