@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Rainbow Tile CSS</title>
+<style>
+@keyframes _ {
+  0% {
+    background: #f00;
+  }
+  20% {
+    background: #ff0;
+  }
+  40% {
+    background: #0f0;
+  }
+  60% {
+    background: #0ff;
+  }
+  80% {
+    background: #00f;
+  }
+  100% {
+    background: #f00;
+  }
+}
+* {
+  margin: 0;
+  padding: 0;
+}
+p {
+  float: left;
+  width: 24px;
+  height: 24px;
+  animation: _ 2s infinite;
+}
+</style>
+</head>
+<body>
+<script>
+for (var i = 0; i < 1000; ++i) {
+  var p = document.createElement("p");
+  p.textContent = i;
+  p.style.animationDuration = [Math.random() * 3000 + 500 | 0] + "ms";
+  document.body.appendChild(p);
+}
+</script>
+</body>
+</html>

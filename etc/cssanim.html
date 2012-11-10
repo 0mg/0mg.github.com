@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<style>
+@keyframes hoge {
+  0% {
+    transform: rotate(0deg);
+    animation-timing-function: cubic-bezier(0,0,0,10);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+html {
+  background: linear-gradient(red, blue);
+}
+body {
+  display: table-cell;
+  vertical-align: middle;
+  background: #fff;
+  width: 500px;
+  height: 500px;
+  border: 1px dotted;
+}
+p {
+  display: table;
+  margin: auto;
+  border: 1px solid;
+  font-size: 3em;
+  animation: hoge 5s infinite;
+}
+</style>
+<title>CSS Animation</title>
+</head>
+<body>
+<p>あいうえお</p>
+</body>
+</html>
