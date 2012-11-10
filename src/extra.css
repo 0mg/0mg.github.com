@@ -1,8 +1,11 @@
+body {
+  box-shadow: 0 0 1ex rgba(0, 0, 0, 0.1);
+}
 h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover {
   background: #f3f3f3;
   border-color: #e3e3e3;
 }
-h1:before {
+h1::before {
   display: inline-block;
   margin: 0 1ex 0 0;
   padding: 0.5ex;
