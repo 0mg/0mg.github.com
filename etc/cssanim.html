@@ -31,6 +31,11 @@ p {
   animation: hoge 5s infinite;
 }
 </style>
+<script>
+var style2 = document.querySelector("style").cloneNode(true);
+style2.textContent = style2.textContent.replace(/keyframes|linear-gradient|animation|transform|animation-timing-function/g, function(s) { return "-webkit-" + s; });
+document.head.appendChild(style2);
+</script>
 <title>CSS Animation</title>
 </head>
 <body>
