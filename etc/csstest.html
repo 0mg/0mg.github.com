@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<style>
+@keyframes hoge {
+  0% {
+    transform: rotate(0deg);
+    animation-timing-function: cubic-bezier(0, 0, 1, 1);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+html {
+  margin-top: 3em;
+  min-height: 100%;
+  background: white;
+}
+body {
+  outline: 1px dotted;
+}
+p {
+  position: relative;
+  line-height: 48px;
+  overflow: hidden;
+  background: #ddd;
+  width: 48px;
+  height: 48px;
+  left: 48px;
+  text-align: center;
+  outline: 1px solid #000;
+  text-shadow: 1px 1px 0 white;
+  animation: hoge 1s infinite;
+}
+p::before {
+  position: absolute;
+  display: block;
+  width: 46px;
+  height: 46px;
+  border: 1px solid;
+  border-color: white #aaa #aaa white;
+  content: "";
+}
+</style>
+<script>
+var style2 = document.querySelector("style").cloneNode(true);
+style2.textContent = style2.textContent.replace(/keyframes|linear-gradient|animation|transform|animation-timing-function/g, function(s) { return "-webkit-" + s; });
+document.head.appendChild(style2);
+</script>
+<title>CSS Playground</title>
+</head>
+<body>
+<p>0mg</p>
+</body>
+</html>
