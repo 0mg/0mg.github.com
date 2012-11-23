@@ -1,15 +1,1 @@
 @import url("desktop.css");
-body {
-  background-color: #f9f9f9;
-  color: #310;
-}
-a {
-  color: #30c;
-  text-decoration: underline;
-}
-a:visited {
-  text-decoration: none;
-}
-a:hover {
-  color: #c60;
-}
