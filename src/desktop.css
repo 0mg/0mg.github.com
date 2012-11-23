@@ -1,43 +1,61 @@
 * {
   margin: 0;
   padding: 0;
-  font: normal normal normal 100%/1.1 monospace;
+  font: normal normal normal 100%/1 monospace;
 }
 html {
   padding: 1ex;
   background: #fff url("../img/skygrad.png") repeat-x fixed;
   background: #fff linear-gradient(#011473, #285bbd 30ex, #fff 60ex) repeat-x;
+  background: #fff;
 }
 html body {
   margin: 0 auto;
   max-width: 30em;
   color: #000;
+  padding: 1ex;
 }
 body, section {
   background-color: #fff;
-  border: 1px solid silver;
-}
-section {
-  margin: 1ex;
+  border: 1px solid;
 }
 h1 {
-  background: #c0c0c0;
+  color: #fff;
+  background: #000;
   font-weight: bold;
+  padding: 0.5ex;
+  margin: -1ex;
+  margin-bottom: 1ex;
+}
+section {
+  margin-top: 1ex;
+  padding: 1ex;
 }
 li {
   list-style-position: inside;
 }
+ul li {
+  list-style-type: square;
+}
 dt {
   font-weight: bold;
 }
+dd {
+  display: list-item;
+  list-style: square inside;
+}
 a {
-  color: #00f;
-  text-decoration: underline;
+  display: inline-block;
+  color: #000;
+  border-bottom: 1px solid;
 }
 a:visited {
-  color: #800080;
+  border-bottom: 1px dotted;
 }
 a:hover {
-  color: #000;
-  background: #ff0;
+  color: #fff;
+  background: #000;
+}
+img {
+  vertical-align: middle;
 }
