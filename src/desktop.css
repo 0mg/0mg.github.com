@@ -1,41 +1,42 @@
 * {
   margin: 0;
   padding: 0;
-  font: normal normal normal 100%/1 monospace;
+  font: normal normal normal 16px/1 monospace;
 }
 html {
   padding: 1ex;
-  background: #fff url("../img/skygrad.png") repeat-x fixed;
-  background: #fff linear-gradient(#011473, #285bbd 30ex, #fff 60ex) repeat-x;
-  background: #fff;
+  background: #fff url(../img/skygrad.png) repeat-x;
+  background: #fff linear-gradient(#011473, #285bbd 20%, #fff 50%) repeat-x;
 }
-html body {
+body {
   margin: 0 auto;
   max-width: 30em;
   color: #000;
-  padding: 1ex;
-}
-body, section {
-  background-color: #fff;
-  border: 1px solid;
-}
-h1 {
-  color: #fff;
-  background: #000;
-  font-weight: bold;
-  padding: 0.5ex;
-  margin: -1ex;
-  margin-bottom: 1ex;
 }
 section {
   margin-top: 1ex;
+}
+body, section {
   padding: 1ex;
+  border: 1px solid;
+  background-color: #fafafa;
+  box-shadow: 0 0 0.4ex rgba(0, 0, 0, 0.4);
+}
+h1 {
+  margin: -1ex -1ex 1ex -1ex;
+  padding: 0.5ex;
+  border-top: 1px solid #fff;
+  background-color: #ddd;
+  background-image: linear-gradient(#fff, #ccc);
+  font-weight: bold;
+  text-shadow: 1px 1px 1px #fff;
+}
+h1:hover {
+  background-color: #eee;
+  background-image: linear-gradient(#fff, #ddd);;
 }
 li {
   list-style-position: inside;
-}
-ul li {
-  list-style-type: square;
 }
 dt {
   font-weight: bold;
@@ -46,8 +47,9 @@ dd {
 }
 a {
   display: inline-block;
-  color: #000;
   border-bottom: 1px solid;
+  text-decoration: none;
+  color: inherit;
 }
 a:visited {
   border-bottom: 1px dotted;
