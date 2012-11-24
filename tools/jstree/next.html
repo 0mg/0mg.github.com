@@ -208,7 +208,7 @@ if (!window.console) {
 //]]></script>
 <script>//<![CDATA[
 (function() {
-window.$testObj = {
+/*window.$testObj = {
   "toString": function かんすう() { return -99; },
   "1": 1201,
   "10": 123,
@@ -223,7 +223,7 @@ window.$testObj = {
   },
   " u  n    d     ": void 0,
   "": null
-};
+};*/
 var dom = {
   id: function id(id) { return document.getElementById(id); },
   q: function q(s) { return document.querySelector(s); },
@@ -257,16 +257,16 @@ function clearList() {
 }
 function setCList(prop) {
   var cname = dom.id("z-cname");
-  cname.lastChild.nodeValue = prop.name;
+  cname.textContent = prop.name;
 
   var citem = dom.id("z-citem");
   citem.className = "item " + prop.type;
 
   var citype = dom.id("z-citype");
-  citype.lastChild.nodeValue = prop.type;
+  citype.textContent = prop.type;
 
   var civalue = dom.id("z-civalue");
-  civalue.lastChild.nodeValue = String(prop.value + []);
+  civalue.textContent = String(prop.value + []);
 }
 function setAddress(path) {
   var address = dom.id("z-address");
@@ -274,7 +274,7 @@ function setAddress(path) {
 }
 function setPath(path) {
   var cpath = dom.id("z-cpath");
-  cpath.lastChild.nodeValue = path;
+  cpath.textContent = path;
 }
 function MemoMap() {
   if (!(this instanceof MemoMap)) return;
@@ -574,7 +574,7 @@ function focusItem(key) {
     var keys_e = dom.qs(".iname");
     for (var i = 0; i < keys_e.length; ++i) {
       var e = keys_e[i];
-      if (e.lastChild.nodeValue === key) {
+      if (e.textContent === key) {
         e.classList.add("focus");
         e.parentNode.scrollIntoView();
         break;
@@ -648,25 +648,25 @@ addEventListener("load", function() {
 //]]></script>
 </head>
 <body>
-<div><input id="z-address" value="hoge" /><button id="z-cup">up</button><button id="z-cgo">go</button><strong id="z-msg">すごい！</strong></div>
-<h1 id="z-cname">fuga</h1>
+<div><input id="z-address" value="" /><button id="z-cup">up</button><button id="z-cgo">go</button><strong id="z-msg"></strong></div>
+<h1 id="z-cname"> </h1>
 <table>
 <tbody>
-<tr id="z-citem" class="item object">
-  <td id="z-citype" class="itype">オ</td><td><pre id="z-civalue" class="ivalue">[piyo]</pre></td>
+<tr id="z-citem" class="item">
+  <td id="z-citype" class="itype"></td><td><pre id="z-civalue" class="ivalue"></pre></td>
 </tr>
 </tbody>
 </table>
 <table>
-<caption id="z-cpath">foobar</caption>
+<caption id="z-cpath"></caption>
 <thead><tr>
 <th><button id="z-sort_type" class="sort_button">type</button></th>
 <th><button id="z-sort_name" class="sort_button">key</button></th>
 <th><button id="z-sort_value" class="sort_button">value</button></th>
 </tr></thead>
 <tbody id="z-list">
-<tr class="item number">
-  <td class="itype">数</td><td class="iname">nazo</td><td class="ivalue">壱</td>
+<tr class="item">
+  <td class="itype"></td><td class="iname"></td><td class="ivalue"></td>
 </tr>
 </tbody>
 </table>
