@@ -1,7 +1,7 @@
 * {
   margin: 0;
   padding: 0;
-  font: normal normal normal 16px/1 monospace;
+  font: normal normal normal 100%/1.2 monospace;
 }
 html {
   padding: 1ex;
@@ -13,10 +13,10 @@ body {
   max-width: 30em;
   color: #000;
 }
-section {
+.section {
   margin-top: 1ex;
 }
-body, section {
+body, .section {
   padding: 1ex;
   border: 1px solid;
   background-color: #fafafa;
@@ -38,12 +38,11 @@ h1:hover {
 li {
   list-style-position: inside;
 }
+ul li {
+  list-style-type: none;
+}
 dt {
   font-weight: bold;
-}
-dd {
-  display: list-item;
-  list-style: square inside;
 }
 a {
   display: inline-block;
@@ -55,9 +54,9 @@ a:visited {
   border-bottom: 1px dotted;
 }
 a:hover {
-  color: #fff;
-  background: #000;
+  background-color: #fe0;
 }
-img {
+img.appicon {
   vertical-align: middle;
+  margin-right: 3px;
 }
