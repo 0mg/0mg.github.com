@@ -5,35 +5,38 @@
 }
 html {
   padding: 1ex;
-  background: #fff url(../img/skygrad.png) repeat-x;
-  background: #fff linear-gradient(#011473, #285bbd 20%, #fff 50%) repeat-x;
+  background-color: #008080;
+  background-image: linear-gradient(#011473, #285bbd, #fff 50%, rgba(0,0,0,0));
+  background-repeat: repeat-x;
 }
 body {
+  display: table;
   margin: 0 auto;
   max-width: 30em;
   color: #000;
 }
 .section {
   margin-top: 1ex;
+  border: 1px solid;
 }
 body, .section {
-  padding: 1ex;
+  outline: 1px solid #000;
   border: 1px solid;
-  background-color: #fafafa;
-  box-shadow: 0 0 0.4ex rgba(0, 0, 0, 0.4);
+  border-color: #fff #c0c0c0 #c0c0c0 #fff;
+  padding: 1ex;
+  background-color: #fdfdfd;
 }
 h1 {
   margin: -1ex -1ex 1ex -1ex;
   padding: 0.5ex;
-  border-top: 1px solid #fff;
   background-color: #ddd;
-  background-image: linear-gradient(#fff, #ccc);
+  background-image: linear-gradient(to top, #ccc, #fff);
   font-weight: bold;
   text-shadow: 1px 1px 1px #fff;
 }
 h1:hover {
   background-color: #eee;
-  background-image: linear-gradient(#fff, #ddd);;
+  background-image: linear-gradient(to top, #ddd, #fff);
 }
 li {
   list-style-position: inside;
@@ -48,15 +51,43 @@ a {
   display: inline-block;
   border-bottom: 1px solid;
   text-decoration: none;
-  color: inherit;
+  color: #0000ff;
 }
 a:visited {
-  border-bottom: 1px dotted;
+  border-bottom: 1px solid;
+  color: #800080;
 }
 a:hover {
   background-color: #fe0;
+  color: #000;
 }
-img.appicon {
-  vertical-align: middle;
-  margin-right: 3px;
+
+.applinks a {
+  padding-left: 20px;
+  background-repeat: no-repeat;
+  background-position: 0 50%;
+}
+.applinks a[href*="tools/color/"] {
+  background-image: url(../tools/color/favicon.ico);
+}
+.applinks a[href*="tools/event/"] {
+  background-image: url(../tools/event/favicon.ico);
+}
+.applinks a[href*="tools/jseval/"] {
+  background-image: url(../tools/jseval/favicon.ico);
+}
+.applinks a[href*="tools/jstree/"] {
+  background-image: url(../tools/jstree/favicon.ico);
+}
+.applinks a[href*="tools/kanaroma/"] {
+  background-image: url(../tools/kanaroma/favicon.ico);
+}
+.applinks a[href*="tools/morse/"] {
+  background-image: url(../tools/morse/favicon.ico);
+}
+.applinks a[href*="tools/unicode/"] {
+  background-image: url(../tools/unicode/favicon.ico);
+}
+.applinks a[href*="tools/uri/"] {
+  background-image: url(../tools/uri/favicon.ico);
 }
