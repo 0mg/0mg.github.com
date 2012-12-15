@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<style>
+html {
+  background-color: gray;
+  background-image: repeating-linear-gradient(-45deg,
+    hsla(0, 0%, 100%, 0) 0,
+    hsla(0, 0%, 100%, 0) 1em,
+    hsla(0, 0%, 100%, 0.1) 1em,
+    hsla(0, 0%, 100%, 0.1) 2em
+  );
+  height: 100%;
+}
+body {
+  background-color: hsla(0, 0%, 100%, 0.3);
+}
+#a {
+  background-color: blue;
+  background-image: linear-gradient(aqua, blue);
+  box-shadow: 0 0 4em yellow;
+  width: 6em;
+  height: 6em;
+}
+#b {
+  background-color: #f0f;
+  background-image: linear-gradient(#f0f, red);
+  width: 3em;
+  height: 3em;
+}
+</style>
+<script src="drag.js"></script>
+<title>drag</title>
+<h1>drag</h1>
+<div id="a" class="drag_item">
+  <div id="b" class="drag_point"></div>
+</div>
