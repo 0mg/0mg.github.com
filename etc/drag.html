@@ -14,6 +14,7 @@ body {
   background-color: hsla(0, 0%, 100%, 0.3);
 }
 #a {
+  position: relative; /* gecko */
   background-color: blue;
   background-image: linear-gradient(aqua, blue);
   box-shadow: 0 0 4em yellow;
@@ -27,6 +28,8 @@ body {
   height: 3em;
 }
 </style>
+<script src="ie8.js"></script>
+<script src="css.js"></script>
 <script src="drag.js"></script>
 <title>drag</title>
 <h1>drag</h1>

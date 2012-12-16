@@ -37,6 +37,29 @@ if (!Element.prototype.addEventListener) {
     }
   });
 }
+if (!window.removeEventListener) {
+  Object.defineProperty(window, "removeEventListener", {
+    get: function() {
+      return function(type, f) {
+        return this.detachEvent("on" + type, f);
+      };
+    }
+  });
+}
+if (!document.removeEventListener) {
+  Object.defineProperty(document, "removeEventListener", {
+    get: function() {
+      return window.removeEventListener;
+    }
+  });
+}
+if (!Element.prototype.removeEventListener) {
+  Object.defineProperty(Element.prototype, "removeEventListener", {
+    get: function() {
+      return window.removeEventListener;
+    }
+  });
+}
 if (!("textContent" in document.createElement("p"))) {
   Object.defineProperty(Element.prototype, "textContent", {
     get: function() { return this.innerText; },
