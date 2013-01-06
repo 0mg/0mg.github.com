@@ -1,234 +1,234 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head>
+<head class="prevent">
 <meta charset="utf-8" />
-<title>DOM Event Monitor</title>
-<style>/*<![CDATA[*/
-* {
+<title>DOM Event Monitor v2 beta</title>
+<style>
+*:not(input) {
   margin: 0;
   padding: 0;
+  border: 0;
+  font: 14px monospace;
+}
+h1 {
+  background: black;
+  color: white;
 }
 dt, dd {
-  display: inline-block;
-  margin-right: 1ex;
+  float: left;
 }
 dt {
   font-weight: bold;
+  clear: left;
 }
-.main, .side {
-  display: table-cell;
-  width: 50%;
-  border-bottom: solid;
+dd {
+  margin-left: 1ex;
 }
-.side {
-  border-left: solid;
-}
-.footer {
+#current, #log {
   position: absolute;
+  top: 0;
   bottom: 0;
+  width: 40ex;
+  overflow: scroll;
 }
-/*]]>*/</style>
-<script>//<![CDATA[
-if (!window.addEventListener) {
-  window.addEventListener = function(type, f) {
-    document.attachEvent("on" + type, f);
-  };
+#log {
+  left: 40ex;
+  width: 30ex;
 }
-if (!Array.prototype.indexOf) {
-  Array.prototype.indexOf = function(v) {
-    for (var i = 0; i < this.length; ++i) {
-      if (this[i] === v) return i;
-    }
-    return -1;
-  };
+#log li {
+  cursor: pointer;
+  color: blue;
+  text-decoration: none;
 }
-//]]></script>
-<script>//<![CDATA[
-var eventlog = [];
-var eventTypes = {
-  dom3: [
-    "abort",
-    "blur",
-    "click",
-    "compositionstart",
-    "compositionupdate",
-    "compositionend",
-    "dblclick",
-    "DOMActivate",
-    "DOMAttributeNameChanged",
-    "DOMAttrModified",
-    "DOMCharacterDataModified",
-    "DOMElementNameChanged",
-    "DOMFocusIn",
-    "DOMFocusOut",
-    //"DOMNodeInserted",
-    "DOMNodeInsertedIntoDocument",
-    //"DOMNodeRemoved",
-    "DOMNodeRemovedFromDocument",
-    //"DOMSubtreeModified",
-    "error",
-    "focus",
-    "focusin",
-    "focusout",
-    "keydown",
-    "keypress",
-    "keyup",
-    "load",
-    "mousedown",
-    "mouseenter",
-    "mouseleave",
-    "mousemove",
-    "mouseout",
-    "mouseover",
-    "mouseup",
-    "resize",
-    "scroll",
-    "select",
-    "textinput",
-    "unload",
-    "wheel"
+#log li:hover {
+  color: red;
+  text-decoration: underline;
+}
+#control {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+</style>
+<script>
+"use strict";
+
+var EVENT_TYPES = {
+  DOM3: [
+"abort", "blur", "click", "compositionstart", "compositionupdate", "compositionend", "dblclick", "DOMActivate", "DOMAttributeNameChanged", "DOMAttrModified", "DOMCharacterDataModified", "DOMElementNameChanged", "DOMFocusIn", "DOMFocusOut", "DOMNodeInserted", "DOMNodeInsertedIntoDocument", "DOMNodeRemoved", "DOMNodeRemovedFromDocument", "DOMSubtreeModified", "error", "focus", "focusin", "focusout", "keydown", "keypress", "keyup", "load", "mousedown", "mouseenter", "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup", "resize", "scroll", "select", "textinput", "unload", "wheel"
   ],
-  html5: [
-    "abort",
-    "canplay",
-    "canplaythrough",
-    "change",
-    "click",
-    "contextmenu",
-    "cuechange",
-    "dblclick",
-    "drag",
-    "dragend",
-    "dragenter",
-    "dragleave",
-    "dragover",
-    "dragstart",
-    "drop",
-    "durationchange",
-    "emptied",
-    "ended",
-    "input",
-    "invalid",
-    "keydown",
-    "keypress",
-    "keyup",
-    "loadeddata",
-    "loadedmetadata",
-    "loadstart",
-    "mousedown",
-    "mousemove",
-    "mouseout",
-    "mouseover",
-    "mouseup",
-    "mousewheel",
-    "pause",
-    "play",
-    "playing",
-    "progress",
-    "ratechange",
-    "reset",
-    "seeked",
-    "seeking",
-    "select",
-    "show",
-    "stalled",
-    "submit",
-    "suspend",
-    "timeupdate",
-    "volumechange",
-    "waiting",
-    "blur",
-    "error",
-    "focus",
-    "load",
-    "scroll",
-    "afterprint",
-    "beforeprint",
-    "beforeunload",
-    "blur",
-    "error",
-    "focus",
-    "hashchange",
-    "load",
-    "message",
-    "offline",
-    "online",
-    "pagehide",
-    "pageshow",
-    "popstate",
-    "resize",
-    "scroll",
-    "storage",
-    "unload",
-    "readystatechange"
+  HTML5: [
+"abort", "canplay", "canplaythrough", "change", "click", "contextmenu", "cuechange", "dblclick", "drag", "dragend", "dragenter", "dragleave", "dragover", "dragstart", "drop", "durationchange", "emptied", "ended", "input", "invalid", "keydown", "keypress", "keyup", "loadeddata", "loadedmetadata", "loadstart", "mousedown", "mousemove", "mouseout", "mouseover", "mouseup", "mousewheel", "pause", "play", "playing", "progress", "ratechange", "reset", "seeked", "seeking", "select", "show", "stalled", "submit", "suspend", "timeupdate", "volumechange", "waiting", "blur", "error", "focus", "load", "scroll", "afterprint", "beforeprint", "beforeunload", "blur", "error", "focus", "hashchange", "load", "message", "offline", "online", "pagehide", "pageshow", "popstate", "resize", "scroll", "storage", "unload", "readystatechange"
+  ],
+  DOM: [
+"DOMContentLoaded"
   ]
 };
-var eventList = [];
-for (var i in eventTypes) {
-  var types = eventTypes[i], lim = types.length;
-  for (var j = 0; j < lim; ++j) {
-    if (eventList.indexOf(types[j]) === -1) eventList.push(types[j]);
+
+var evlog = {};
+
+
+evlog.listenTypes = [];
+
+evlog.listenTypes.init = function() {
+  var listen_types = this;
+  var all_types = (
+    EVENT_TYPES.DOM3).concat(
+    EVENT_TYPES.HTML5).concat(
+    EVENT_TYPES.DOM).concat(
+    );
+  all_types.forEach(function(type) {
+    if (listen_types.indexOf(type) === -1) {
+      listen_types.push(type);
+    }
+  });
+};
+
+evlog.addEventListenerAll = function() {
+  evlog.listenTypes.forEach(function(type) {
+    window.addEventListener(type, eventHandlerCaller, true);
+  });
+};
+
+var isDescendentOfPreventer = function(e) {
+  while (e) {
+    if (e.classList && e.classList.contains("prevent")) return true;
+    e = e.parentNode;
   }
-}
-function onEvent(event) {
-  var props = document.createElement("dl");
-  var evts = [];
-  for (var i in event) {
-    var ev = event[i];
-    if (typeof ev === "function") {
-      evts.push(["$", i + "()", ".."]);
-    } else {
-      evts.push([i, i, ev]);
+  return false;
+};
+
+var nop = function() {};
+var eventHandler = nop;
+var eventHandlerCaller = function(event) {
+  if (!isDescendentOfPreventer(event.target)) {
+    eventHandler(event);
+  }
+};
+var handleEvent = function handleEvent(event) {
+  evlog.pushLog(event);
+  writeLogList();
+  writeCurrentLog(evlog.log[0]);
+};
+
+evlog.pushLog = function(event) {
+  var eva = new EventArchive(event);
+  evlog.log.unshift(eva);
+  evlog.log.length = evlog.LOG_MAX;
+};
+
+var writeLogList = function() {
+  var log0 = evlog.log[0];
+  var list = document.getElementById("log");
+  var li = document.createElement("li");
+  li.addEventListener("click", function() {
+    writeCurrentLog(log0);
+  });
+  li.textContent = log0.event.type;
+  list.insertBefore(li, list.firstChild);
+  while (list.childNodes.length > evlog.log.length) {
+    list.removeChild(list.lastChild);
+  }
+};
+var writeCurrentLog = function(eva) {
+  var current = eva;
+  var props = {all:null,main:[],consts:[],funs:[]};
+  for (var i in current.event) {
+    var ev = [i, current.event[i]];
+    if (!/[a-z]/.test(i)) props.consts.push(ev);
+    else if (current.event[i].type === "function") props.funs.push(ev);
+    else props.main.push(ev);
+  }
+  props.main.sort();
+  props.consts.sort();
+  props.funs.sort();
+  props.all = (
+    props.main).concat(
+    props.consts).concat(
+    props.funs).concat(
+    );
+
+  var title = document.getElementById("current-type");
+  title.textContent = current.event.type;
+
+  var list = document.getElementById("current-props");
+  var ts = list.querySelectorAll("dt");
+  var ds = list.querySelectorAll("dd");
+  var df = document.createDocumentFragment();
+
+  for (var i = 0; i < props.all.length; ++i) {
+    var ct = ts[i] || df.appendChild(document.createElement("dt"));
+    var cd = ds[i] || df.appendChild(document.createElement("dd"));
+    ct.textContent = props.all[i][0];
+    cd.textContent = props.all[i][1];
+  }
+  if (df.hasChildNodes()) {
+    list.appendChild(df);
+  } else {
+    while (list.childNodes.length > props.all.length * 2) {
+      list.removeChild(list.lastChild);
     }
   }
-  evts.sort();
-  for (var i in evts) {
-    var ev = evts[i];
-    var name = document.createElement("dt");
-    name.appendChild(document.createTextNode(ev[1]));
-    props.appendChild(name);
+};
 
-    var value = document.createElement("dd");
-    value.appendChild(document.createTextNode(ev[2]));
-    props.appendChild(value);
+var EventArchive = function EventArchive(event) {
+  this.date = new Date;
+  this.event = {};
+  for (var pn in event) {
+    var val = event[pn];
+    this.event[pn] = new String(val);
+    this.event[pn].type = typeof val;
   }
-  var propsBox = document.getElementById("event-properties");
-  while (propsBox.hasChildNodes()) propsBox.removeChild(propsBox.lastChild);
-  propsBox.appendChild(props);
+};
 
-  eventlog.unshift(event.type);
-  eventlog.length = 30;
-  var logBox = document.getElementById("event-type-log");
-  while (logBox.hasChildNodes()) logBox.removeChild(logBox.lastChild);
-  logBox.appendChild(document.createTextNode(eventlog.join(" ")));
-}
-for (var i = 0; i < eventList.length; ++i) {
-  window.addEventListener(eventList[i], function(e) {
-    var it = e.target;
-    var result = document.getElementById("event-result");
-    if (it.compareDocumentPosition(result) === 10) return;
-    onEvent(e);
-  }, false);
-}
-//]]></script>
+evlog.log = [];
+evlog.LOG_MAX = 50;
+
+evlog.start = function startLoging() {
+  eventHandler = handleEvent;
+};
+evlog.stop = function stopLoging() {
+  eventHandler = nop;
+};
+evlog.init = function initLoging() {
+  eventHandler = nop;
+  evlog.log.length = 0;
+};
+
+
+evlog.listenTypes.init();
+evlog.addEventListenerAll();
+evlog.init();
+evlog.start();
+
+
+
+
+
+
+</script>
 </head>
 <body>
-<div id="event-result">
-  <div class="main" id="event-properties"></div>
-  <div class="side" id="event-type-log"></div>
-</div>
-<div class="footer" id="event-area">
-  <form>
-  <a href="#a">#a</a>
-  <a href="#b">#b</a>
-  <input name="text" />
-  <input type="reset" name="text" />
-  <input type="radio" name="radio" checked="checked" />
-  <input type="radio" name="radio" />
-  <input type="checkbox" />
-  <input type="range" />
-  <input type="number" />
-  </form>
+<div class="prevent">
+  <div class="section" id="current">
+    <h1 id="current-type"></h1>
+    <dl id="current-props"></dl>
+  </div>
+  <ol id="log"></ol>
+  <div id="control">
+    <input type="button" id="start-stop" value="stop" />
+  </div>
+  <script>
+  document.getElementById("start-stop").addEventListener("click", function(e) {
+    if (eventHandler === handleEvent) {
+      evlog.stop();
+      e.target.value = "start";
+    } else {
+      evlog.start();
+      e.target.value = "stop";
+    }
+  });
+  </script>
 </div>
 </body>
 </html>
