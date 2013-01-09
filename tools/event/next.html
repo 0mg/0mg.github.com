@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <title>DOM Event Monitor v2 beta</title>
 <style>
-html, body, h1, dl, dt, dd, ol, li {
+html, body, h1, pre, ol, li {
   margin: 0;
   padding: 0;
   border: 0;
@@ -13,57 +13,51 @@ html, body, h1, dl, dt, dd, ol, li {
 body {
   background: #f9f9f9;
 }
-dt, dd {
-  float: left;
-}
-dt {
-  font-weight: bold;
-  clear: left;
-}
-dd {
-  margin-left: 1ex;
-}
-h1#current-type {
+#current-type {
   background: black;
   color: white;
 }
-div#current, ol#log {
+#current-props {
+  white-space: pre-wrap;
+}
+#current, #log {
   position: absolute;
   top: 0;
   bottom: 0;
   width: 40ex;
   overflow: scroll;
 }
-div#current > *, ol#log li {
+#current > *, #log li {
   padding-left: 1ex;
 }
-ol#log {
+#log {
   left: 40ex;
   width: 30ex;
+  list-style-type: none;
 }
-ol#log li {
+#log li {
   cursor: pointer;
   color: blue;
   text-decoration: none;
 }
-ol#log li:hover {
+#log li:hover {
   color: red;
   text-decoration: underline;
 }
-div#control {
+#control {
   position: absolute;
   top: 0;
   right: 0;
 }
-fieldset.radio-buttons label {
+.radio-buttons label {
   background: #ccc;
   padding: 0 1ex;
   border: 2px outset white;
 }
-fieldset.radio-buttons label:active {
+.radio-buttons label:active {
   border-style: inset;
 }
-fieldset.radio-buttons label:hover {
+.radio-buttons label:hover {
   background: #ddd;
 }
 </style>
@@ -185,6 +179,14 @@ if (!Array.prototype.indexOf) {
     return -1;
   };
 }
+if (!Array.prototype.some) {
+  Array.prototype.some = function(f) {
+    for (var i = 0, z = this.length; i < z; ++i) {
+      if (f(this[i], i, this)) return true;
+    }
+    return false;
+  };
+}
 if (!Object.getOwnPropertyNames) {
   Object.getOwnPropertyNames = function() { return []; };
 }
@@ -233,17 +235,15 @@ evlog.addEventListenerAll = function() {
 };
 
 var isDescendentOfPreventer = function(e) {
-  while (e) {
-    if (e.classList && e.classList.contains("prevent")) return true;
-    e = e.parentNode;
-  }
-  return false;
+  return [].some.call(document.querySelectorAll(".prevent"), function(p) {
+    return p.contains(e);
+  });
 };
 
 var nop = function() {};
 var eventHandler = nop;
 var newEventHandlerCaller = function(listener_name) {
-  return function() {
+  return function(event) {
     if (evlog.listener === listener_name &&
       !isDescendentOfPreventer(event.target)) {
       eventHandler(event);
@@ -297,27 +297,12 @@ var writeCurrentLog = function(eva) {
   title.textContent = current.event.type;
 
   var list = document.getElementById("current-props");
-  var ts = list.querySelectorAll("dt");
-  var ds = list.querySelectorAll("dd");
-  var df = document.createDocumentFragment();
-
-  for (var i = 0; i < props.all.length; ++i) {
-    var ct = ts[i] || df.appendChild(document.createElement("dt"));
-    var cd = ds[i] || df.appendChild(document.createElement("dd"));
-    ct.textContent = props.all[i][0];
-    cd.textContent = props.all[i][1];
-  }
-  if (df.hasChildNodes()) {
-    list.appendChild(df);
-  } else {
-    while (list.childNodes.length > props.all.length * 2) {
-      list.removeChild(list.lastChild);
-    }
-  }
+  list.textContent = props.all.map(function(e) {
+    return "# " + e[0] + ": " + e[1];
+  }).join("\n");
 };
 
 var EventArchive = function EventArchive(event) {
-  this.date = new Date;
   this.event = {};
   for (var pn in event) {
     var val = event[pn];
@@ -373,7 +358,7 @@ evlog.start();
 <div class="prevent">
   <div class="section" id="current">
     <h1 id="current-type"></h1>
-    <dl id="current-props"></dl>
+    <pre id="current-props"></pre>
   </div>
   <ol id="log"></ol>
 </div>
