@@ -235,6 +235,7 @@ evlog.addEventListenerAll = function() {
 };
 
 var isDescendentOfPreventer = function(e) {
+  if (e === window) return false;
   return [].some.call(document.querySelectorAll(".prevent"), function(p) {
     return p.contains(e);
   });
