@@ -257,12 +257,19 @@ var handleEvent = function handleEvent(event) {
   writeCurrentLog(evlog.log[0]);
 };
 
-evlog.pushLog = function(event) { //maybe logging also listener's start/stop
+evlog.pushLog = function(event) {
   var eva = new EventArchive(event);
   evlog.log.unshift(eva);
-  evlog.log.length = evlog.LOG_MAX;
+  evlog.log.length = evlog.logsize;
 };
-
+var EventArchive = function EventArchive(event) {
+  this.event = {};
+  for (var i in event) {
+    var val = event[i];
+    this.event[i] = new String(val);
+    this.event[i].type = typeof val;
+  }
+};
 var writeLogList = function() {
   var log0 = evlog.log[0];
   var list = document.getElementById("log");
@@ -303,15 +310,6 @@ var writeCurrentLog = function(eva) {
   }).join("\n");
 };
 
-var EventArchive = function EventArchive(event) {
-  this.event = {};
-  for (var pn in event) {
-    var val = event[pn];
-    this.event[pn] = new String(val);
-    this.event[pn].type = typeof val;
-  }
-};
-
 evlog.log = [];
 
 evlog.start = function startLoging() {
@@ -319,6 +317,8 @@ evlog.start = function startLoging() {
 };
 evlog.stop = function stopLoging() {
   eventHandler = nop;
+  var log0 = document.getElementById("log").firstChild;
+  if (log0) log0.style.borderTop = "solid #000";
 };
 evlog.init = function initLoging() {
   eventHandler = nop;
@@ -327,7 +327,7 @@ evlog.init = function initLoging() {
 
 
 evlog.listener = "window";
-evlog.LOG_MAX = 50;
+evlog.logsize = 50;
 
 evlog.listenTypes.init();
 evlog.addEventListenerAll();
@@ -365,7 +365,7 @@ evlog.start();
 </div>
 <script>
 document.getElementById("lissel-" + evlog.listener).checked = true;
-document.getElementById("logsz-" + evlog.LOG_MAX).checked = true;
+document.getElementById("logsz-" + evlog.logsize).checked = true;
 document.getElementById("logsw-" +
   (eventHandler === handleEvent ? "on" : "off")).checked = true;
 document.getElementById("logsw").addEventListener("click", function(e) {
@@ -377,7 +377,7 @@ document.getElementById("logsw").addEventListener("click", function(e) {
 });
 document.getElementById("logsz").addEventListener("click", function(e) {
   if (/^logsz-\d+$/.test(e.target.id) && e.target.checked) {
-    evlog.LOG_MAX = e.target.value | 0;
+    evlog.logsize = e.target.value | 0;
   }
 });
 document.getElementById("lissel").addEventListener("click", function(e) {
