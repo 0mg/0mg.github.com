@@ -2,8 +2,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head class="prevent">
 <meta charset="utf-8" />
-<title>DOM Event Monitor v2 beta</title>
-<style>
+<link rel="shortcut icon" href="favicon.ico" />
+<title>DOM Events Monitor v2 beta</title>
+<style>/* <![CDATA[ */
 html, body, h1, pre, ol, li {
   margin: 0;
   padding: 0;
@@ -60,17 +61,8 @@ body {
 .radio-buttons label:hover {
   background: #ddd;
 }
-</style>
-<script>
-if (!Event.prototype.preventDefault) {
-  Object.defineProperty(Event.prototype, "preventDefault", {
-    get: function() {
-      return function() {
-        this.returnValue = false;
-      }
-    }
-  });
-}
+/* ]]> */</style>
+<script>/* <![CDATA[ */
 if (!("target" in Event.prototype)) {
   Object.defineProperty(Event.prototype, "target", {
     get: function() {
@@ -101,59 +93,10 @@ if (!Element.prototype.addEventListener) {
     }
   });
 }
-if (!window.removeEventListener) {
-  Object.defineProperty(window, "removeEventListener", {
-    get: function() {
-      return function(type, f) {
-        return this.detachEvent("on" + type, f);
-      };
-    }
-  });
-}
-if (!document.removeEventListener) {
-  Object.defineProperty(document, "removeEventListener", {
-    get: function() {
-      return window.removeEventListener;
-    }
-  });
-}
-if (!Element.prototype.removeEventListener) {
-  Object.defineProperty(Element.prototype, "removeEventListener", {
-    get: function() {
-      return window.removeEventListener;
-    }
-  });
-}
 if (!("textContent" in document.createElement("p"))) {
   Object.defineProperty(Element.prototype, "textContent", {
     get: function() { return this.innerText; },
     set: function(s) { return this.innerText = s; }
-  });
-}
-if (!document.createElement("p").classList) {
-  Object.defineProperty(Element.prototype, "classList", {
-    get: function() {
-      var it = this;
-      var classes = it.className.replace(/\s+/g, " ").replace(/^ +| +$/g, "");
-      return {
-        contains: function(s) {
-          return (" " + classes + " ").indexOf(" " + s + " ") >= 0;
-        },
-        add: function(s) {
-          if (!this.contains(s)) it.className += " " + s;
-        },
-        remove: function(s) {
-          if (this.contains(s)) {
-            it.className = (" " + classes + " ").
-              replace(RegExp(" " + s + "(?= )", "g"), "").
-              replace(/^ +| +$/g, "");
-          }
-        },
-        toString: function() {
-          return it.className;
-        }
-      };
-    }
   });
 }
 if (!Array.prototype.forEach) {
@@ -187,14 +130,8 @@ if (!Array.prototype.some) {
     return false;
   };
 }
-if (!Object.getOwnPropertyNames) {
-  Object.getOwnPropertyNames = function() { return []; };
-}
-if (!window.console) {
-  console = {log:function(){}};
-}
-</script>
-<script>
+/* ]]> */</script>
+<script>/* <![CDATA[ */
 "use strict";
 
 var EVENT_TYPES = {
@@ -312,15 +249,15 @@ var writeCurrentLog = function(eva) {
 
 evlog.log = [];
 
-evlog.start = function startLoging() {
+evlog.start = function() {
   eventHandler = handleEvent;
 };
-evlog.stop = function stopLoging() {
+evlog.stop = function() {
   eventHandler = nop;
   var log0 = document.getElementById("log").firstChild;
   if (log0) log0.style.borderTop = "solid #000";
 };
-evlog.init = function initLoging() {
+evlog.init = function() {
   eventHandler = nop;
   evlog.log.length = 0;
 };
@@ -335,17 +272,38 @@ evlog.init();
 evlog.start();
 
 
-
-
-
-
-</script>
+/* ]]> */</script>
+<script>/* <![CDATA[ */
+addEventListener("load", function() {
+  document.getElementById("logsw-" +
+    (eventHandler === handleEvent ? "on" : "off")).checked = true;
+  document.getElementById("lissel-" + evlog.listener).checked = true;
+  document.getElementById("logsz-" + evlog.logsize).checked = true;
+  document.getElementById("logsw").addEventListener("click", function(e) {
+    if (e.target.id === "logsw-on" && e.target.checked) {
+      evlog.start();
+    } else if (e.target.id === "logsw-off" && e.target.checked) {
+      evlog.stop();
+    }
+  });
+  document.getElementById("logsz").addEventListener("click", function(e) {
+    if (/^logsz-\d+$/.test(e.target.id) && e.target.checked) {
+      evlog.logsize = e.target.value | 0;
+    }
+  });
+  document.getElementById("lissel").addEventListener("click", function(e) {
+    if (/^lissel-(?:window|document)$/.test(e.target.id) &&e.target.checked) {
+      evlog.listener = e.target.value;
+    }
+  });
+}, true);
+/* ]]> */</script>
 </head>
 <body>
 <div id="control">
   <fieldset id="logsw" class="radio-buttons">
-    <legend>loging ON/OFF</legend>
-    <label id="logswbox-on"><input id="logsw-on" name="logsw" type="radio" value="on" />ON</label><label id="logswbox-off"><input id="logsw-off" name="logsw" type="radio" value="off" />OFF</label>
+    <legend>logging ON/OFF</legend>
+    <label><input id="logsw-on" name="logsw" type="radio" value="on" />ON</label><label><input id="logsw-off" name="logsw" type="radio" value="off" />OFF</label>
   </fieldset>
   <fieldset id="lissel" class="radio-buttons">
     <legend>listener</legend>
@@ -363,28 +321,5 @@ evlog.start();
   </div>
   <ol id="log"></ol>
 </div>
-<script>
-document.getElementById("lissel-" + evlog.listener).checked = true;
-document.getElementById("logsz-" + evlog.logsize).checked = true;
-document.getElementById("logsw-" +
-  (eventHandler === handleEvent ? "on" : "off")).checked = true;
-document.getElementById("logsw").addEventListener("click", function(e) {
-  if (e.target.id === "logsw-on" && e.target.checked) {
-    evlog.start();
-  } else if (e.target.id === "logsw-off" && e.target.checked) {
-    evlog.stop();
-  }
-});
-document.getElementById("logsz").addEventListener("click", function(e) {
-  if (/^logsz-\d+$/.test(e.target.id) && e.target.checked) {
-    evlog.logsize = e.target.value | 0;
-  }
-});
-document.getElementById("lissel").addEventListener("click", function(e) {
-  if (/^lissel-(?:window|document)$/.test(e.target.id) &&e.target.checked) {
-    evlog.listener = e.target.value;
-  }
-});
-</script>
 </body>
 </html>
