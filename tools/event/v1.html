@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<link rel="shortcut icon" href="favicon.ico" />
+<title>DOM Event Monitor</title>
+<style>/*<![CDATA[*/
+* {
+  margin: 0;
+  padding: 0;
+}
+dt, dd {
+  display: inline-block;
+  margin-right: 1ex;
+}
+dt {
+  font-weight: bold;
+}
+.main, .side {
+  display: table-cell;
+  width: 50%;
+}
+.side {
+  border-left: solid;
+}
+/*]]>*/</style>
+<script>//<![CDATA[
+if (!window.addEventListener) {
+  window.addEventListener = function(type, f) {
+    document.attachEvent("on" + type, f);
+  };
+}
+if (!Array.prototype.indexOf) {
+  Array.prototype.indexOf = function(v) {
+    for (var i = 0; i < this.length; ++i) {
+      if (this[i] === v) return i;
+    }
+    return -1;
+  };
+}
+//]]></script>
+<script>//<![CDATA[
+var eventlog = [];
+function onEvent(event) {
+  var props = document.createElement("dl");
+  for (var i in event) {
+    var name = document.createElement("dt");
+    name.appendChild(document.createTextNode(i));
+    props.appendChild(name);
+
+    var value = document.createElement("dd");
+    value.appendChild(document.createTextNode(event[i]));
+    props.appendChild(value);
+  }
+  var propsBox = document.getElementById("event-properties");
+  while (propsBox.hasChildNodes()) propsBox.removeChild(propsBox.lastChild);
+  propsBox.appendChild(props);
+
+  eventlog.unshift(event.type);
+  eventlog.length = 30;
+  var logBox = document.getElementById("event-type-log");
+  while (logBox.hasChildNodes()) logBox.removeChild(logBox.lastChild);
+  logBox.appendChild(document.createTextNode(eventlog.join(" ")));
+}
+var eventTypes = {
+  dom3: [
+    "abort",
+    "blur",
+    "click",
+    "compositionstart",
+    "compositionupdate",
+    "compositionend",
+    "dblclick",
+    "DOMActivate",
+    "DOMAttributeNameChanged",
+    "DOMAttrModified",
+    "DOMCharacterDataModified",
+    "DOMElementNameChanged",
+    "DOMFocusIn",
+    "DOMFocusOut",
+    //"DOMNodeInserted",
+    "DOMNodeInsertedIntoDocument",
+    //"DOMNodeRemoved",
+    "DOMNodeRemovedFromDocument",
+    //"DOMSubtreeModified",
+    "error",
+    "focus",
+    "focusin",
+    "focusout",
+    "keydown",
+    "keypress",
+    "keyup",
+    "load",
+    "mousedown",
+    "mouseenter",
+    "mouseleave",
+    "mousemove",
+    "mouseout",
+    "mouseover",
+    "mouseup",
+    "resize",
+    "scroll",
+    "select",
+    "textinput",
+    "unload",
+    "wheel"
+  ],
+  html5: [
+    "abort",
+    "canplay",
+    "canplaythrough",
+    "change",
+    "click",
+    "contextmenu",
+    "cuechange",
+    "dblclick",
+    "drag",
+    "dragend",
+    "dragenter",
+    "dragleave",
+    "dragover",
+    "dragstart",
+    "drop",
+    "durationchange",
+    "emptied",
+    "ended",
+    "input",
+    "invalid",
+    "keydown",
+    "keypress",
+    "keyup",
+    "loadeddata",
+    "loadedmetadata",
+    "loadstart",
+    "mousedown",
+    "mousemove",
+    "mouseout",
+    "mouseover",
+    "mouseup",
+    "mousewheel",
+    "pause",
+    "play",
+    "playing",
+    "progress",
+    "ratechange",
+    "reset",
+    "seeked",
+    "seeking",
+    "select",
+    "show",
+    "stalled",
+    "submit",
+    "suspend",
+    "timeupdate",
+    "volumechange",
+    "waiting",
+    "blur",
+    "error",
+    "focus",
+    "load",
+    "scroll",
+    "afterprint",
+    "beforeprint",
+    "beforeunload",
+    "blur",
+    "error",
+    "focus",
+    "hashchange",
+    "load",
+    "message",
+    "offline",
+    "online",
+    "pagehide",
+    "pageshow",
+    "popstate",
+    "resize",
+    "scroll",
+    "storage",
+    "unload",
+    "readystatechange"
+  ]
+};
+var eventList = [];
+for (var i in eventTypes) {
+  var types = eventTypes[i], lim = types.length;
+  for (var j = 0; j < lim; ++j) {
+    if (eventList.indexOf(types[j]) === -1) eventList.push(types[j]);
+  }
+}
+for (var i = 0; i < eventList.length; ++i) {
+  window.addEventListener(eventList[i], function(e) {
+    onEvent(e);
+  }, false);
+}
+//]]></script>
+</head>
+<body>
+<div class="main" id="event-properties"></div>
+<div class="side" id="event-type-log"></div>
+</body>
+</html>
