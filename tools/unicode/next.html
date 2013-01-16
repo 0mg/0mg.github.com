@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<link rel="shortcut icon" href="favicon.ico" />
+<title>Unicode Table</title>
+<style>/* <![CDATA[ */
+body{
+  background-color: #eee;
+  color: #000;
+}
+table {
+  border-collapse: collapse;
+}
+td, th {
+  background-color: #fff;
+  font-size: 3ex;
+  line-height: 1em;
+  width: 1em;
+  text-align: center;
+  border: 1px solid #999;
+}
+th {
+  background-color: #ccc;
+}
+table {
+  float: left;
+  margin-right: 1ex;
+}
+#preview {
+  visibility: hidden;
+}
+#pvchar {
+  font-size: 8em;
+}
+/* ]]> */</style>
+<script>
+if (!Event.prototype.preventDefault) {
+  Object.defineProperty(Event.prototype, "preventDefault", {
+    get: function() {
+      return function() {
+        this.returnValue = false;
+      }
+    }
+  });
+}
+if (!("target" in Event.prototype)) {
+  Object.defineProperty(Event.prototype, "target", {
+    get: function() {
+      return this.srcElement;
+    }
+  });
+}
+if (!window.addEventListener) {
+  Object.defineProperty(window, "addEventListener", {
+    get: function() {
+      return function(type, f) {
+        return this.attachEvent("on" + type, f);
+      };
+    }
+  });
+}
+if (!document.addEventListener) {
+  Object.defineProperty(document, "addEventListener", {
+    get: function() {
+      return window.addEventListener;
+    }
+  });
+}
+if (!Element.prototype.addEventListener) {
+  Object.defineProperty(Element.prototype, "addEventListener", {
+    get: function() {
+      return window.addEventListener;
+    }
+  });
+}
+if (!window.removeEventListener) {
+  Object.defineProperty(window, "removeEventListener", {
+    get: function() {
+      return function(type, f) {
+        return this.detachEvent("on" + type, f);
+      };
+    }
+  });
+}
+if (!document.removeEventListener) {
+  Object.defineProperty(document, "removeEventListener", {
+    get: function() {
+      return window.removeEventListener;
+    }
+  });
+}
+if (!Element.prototype.removeEventListener) {
+  Object.defineProperty(Element.prototype, "removeEventListener", {
+    get: function() {
+      return window.removeEventListener;
+    }
+  });
+}
+if (!("textContent" in document.createElement("p"))) {
+  Object.defineProperty(Element.prototype, "textContent", {
+    get: function() { return this.innerText; },
+    set: function(s) { return this.innerText = s; }
+  });
+}
+if (!document.createElement("p").classList) {
+  Object.defineProperty(Element.prototype, "classList", {
+    get: function() {
+      var it = this;
+      var classes = it.className.replace(/\s+/g, " ").replace(/^ +| +$/g, "");
+      return {
+        contains: function(s) {
+          return (" " + classes + " ").indexOf(" " + s + " ") >= 0;
+        },
+        add: function(s) {
+          if (!this.contains(s)) it.className += " " + s;
+        },
+        remove: function(s) {
+          if (this.contains(s)) {
+            it.className = (" " + classes + " ").
+              replace(RegExp(" " + s + "(?= )", "g"), "").
+              replace(/^ +| +$/g, "");
+          }
+        },
+        toString: function() {
+          return it.className;
+        }
+      };
+    }
+  });
+}
+if (!Array.prototype.forEach) {
+  Array.prototype.forEach = function(f) {
+    for (var i = 0, z = this.length; i < z; ++i) {
+      f(this[i], i, this);
+    }
+  };
+}
+if (!Array.prototype.map) {
+  Array.prototype.map = function(f) {
+    for (var a = [], i = 0, z = this.length; i < z; ++i) {
+      a[i] = f(this[i], i, this);
+    }
+    return a;
+  };
+}
+if (!Array.prototype.indexOf) {
+  Array.prototype.indexOf = function(v) {
+    for (var i = 0, z = this.length; i < z; ++i) {
+      if (this[i] === v) return i;
+    }
+    return -1;
+  };
+}
+if (!Object.getOwnPropertyNames) {
+  Object.getOwnPropertyNames = function() { return []; };
+}
+if (!window.console) {
+  console = {log:function(){}};
+}
+</script>
+<script>/* <![CDATA[ */
+"use strict";
+var drawUnicode = function(base) {
+  var cells = document.createDocumentFragment();
+  for (var i = 0; i < 16; ++i) {
+    var tr = document.createElement("tr");
+    var th = document.createElement("th");
+    th.textContent = i.toString(16).toUpperCase();
+    tr.appendChild(th);
+    for (var k = 0; k < 16; ++k) {
+      var code = base + (16 * i) + k;
+      var chr = String.fromCharCode(code);
+      var td = document.createElement("td");
+      td.title =
+        "U+" + ("000" + code.toString(16)).slice(-4).toUpperCase() +
+        ", " +
+        "0x" + code.toString(16) +
+        ", " +
+        "" + code;
+      td.textContent = chr;
+      tr.appendChild(td);
+    }
+    cells.appendChild(tr);
+  }
+  var tbody = document.getElementById("tbody");
+  while (tbody.hasChildNodes()) tbody.removeChild(tbody.lastChild);
+  tbody.appendChild(cells);
+};
+var createControl = function() {
+  var df = document.createDocumentFragment();
+  for (var i = 0; i < 256; ++i) {
+    var option = document.createElement("option");
+    option.value = String(256 * i);
+    option.textContent = (0 + i.toString(16)).slice(-2).toUpperCase();
+    df.appendChild(option);
+  }
+  df.firstChild.selected = true;
+  return df;
+};
+var createThs = function() {
+  var tr = document.createElement("tr");
+  var th = document.createElement("th");
+  tr.appendChild(th);
+  for (var i = 0; i < 16; ++i) {
+    th = document.createElement("th");
+    th.textContent = i.toString(16).toUpperCase();
+    tr.appendChild(th);
+  }
+  return tr;
+};
+addEventListener("load", function() {
+  var select = document.getElementById("codenum");
+  select.addEventListener("change", function(e) {
+    drawUnicode(Number(e.target.value));
+  });
+  select.appendChild(createControl());
+  document.getElementById("thead").appendChild(createThs());
+  document.getElementById("tbody").addEventListener("click", function(e) {
+    var cell = e.target;
+    if (cell.tagName === "TD") {
+      var preview = document.getElementById("preview");
+      var pvcode = document.getElementById("pvcode");
+      var pvchar = document.getElementById("pvchar");
+      var pvhex = document.getElementById("pvhex");
+      var pvdec = document.getElementById("pvdec");
+      var chr = cell.textContent;
+      var code = chr.charCodeAt(0) || 0;
+      pvcode.textContent =
+        "U+" + ("000" + code.toString(16)).slice(-4).toUpperCase();
+      pvchar.textContent = chr;
+      pvhex.textContent = "0x" + code.toString(16);
+      pvdec.textContent = code;
+      preview.style.visibility = "visible";
+    }
+  });
+  //---
+  select.focus();
+  drawUnicode(0);
+});
+/* ]]> */</script>
+</head>
+<body>
+  <table id="table">
+    <caption>U+<select id="codenum"></select></caption>
+    <thead id="thead"></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <table id="preview">
+    <tr><th id="pvcode" colspan="2"></th></tr>
+    <tr><td id="pvchar" colspan="2"></td></tr>
+    <tr><th>hex</th><td id="pvhex"></td></tr>
+    <tr><th>dec</th><td id="pvdec"></td></tr>
+  </table>
+</body>
+</html>
