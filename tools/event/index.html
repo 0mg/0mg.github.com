@@ -275,10 +275,6 @@ evlog.start();
 /* ]]> */</script>
 <script>/* <![CDATA[ */
 addEventListener("load", function() {
-  document.getElementById("logsw-" +
-    (eventHandler === handleEvent ? "on" : "off")).checked = true;
-  document.getElementById("lissel-" + evlog.listener).checked = true;
-  document.getElementById("logsz-" + evlog.logsize).checked = true;
   document.getElementById("logsw").addEventListener("click", function(e) {
     if (e.target.id === "logsw-on" && e.target.checked) {
       evlog.start();
@@ -296,6 +292,10 @@ addEventListener("load", function() {
       evlog.listener = e.target.value;
     }
   });
+  document.getElementById("logsw-" +
+    (eventHandler === handleEvent ? "on" : "off")).checked = true;
+  document.getElementById("lissel-" + evlog.listener).checked = true;
+  document.getElementById("logsz-" + evlog.logsize).checked = true;
 }, true);
 /* ]]> */</script>
 </head>
