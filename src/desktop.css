@@ -16,22 +16,23 @@ body {
   color: #000;
   line-height: 1.2;
 }
-ul,dl,.section {
+ul,dl,section {
   margin: 1ex 0 0;
 }
-.section {
+section {
+  display: block;
   border: 1px solid #808080;
   padding: 1ex;
   background-color: #fdfdfd;
 }
-body > .section {
+body > section {
   float: left;
   margin: 0.5ex 1ex 0.5ex 0;
 }
 body > h1 {
   color: #c0c0c0;
 }
-.section h1 {
+section h1 {
   margin: -1ex;
   margin-bottom: 1ex;
   padding: 0.5ex;
@@ -41,7 +42,7 @@ body > h1 {
   background-color: #ddd;
   background-image: linear-gradient(#fff, #ccc);
 }
-.section h1:hover {
+section h1:hover {
   background-color: #eee;
   background-image: linear-gradient(#fff, #ddd);
 }
