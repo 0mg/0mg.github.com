@@ -15,10 +15,11 @@ table {
 td, th {
   background-color: #fff;
   font-size: 3ex;
-  line-height: 1em;
+  line-height: 1;
   width: 1em;
   text-align: center;
   border: 1px solid #999;
+  overflow: hidden;
 }
 th {
   background-color: #ccc;
@@ -32,6 +33,8 @@ table {
 }
 #pvchar {
   font-size: 8em;
+  overflow: auto;
+  margin: 0;
 }
 /* ]]> */</style>
 <script>
@@ -163,6 +166,9 @@ if (!window.console) {
 "use strict";
 var drawUnicode = function(base) {
   var cells = document.createDocumentFragment();
+  var onclick = function(e) {
+    prevChar(e.target.textContent);
+  };
   for (var i = 0; i < 16; ++i) {
     var tr = document.createElement("tr");
     var th = document.createElement("th");
@@ -172,6 +178,7 @@ var drawUnicode = function(base) {
       var code = base + (16 * i) + k;
       var chr = String.fromCharCode(code);
       var td = document.createElement("td");
+      td.addEventListener("click", onclick);
       td.title =
         "U+" + ("000" + code.toString(16)).slice(-4).toUpperCase() +
         ", " +
@@ -186,6 +193,19 @@ var drawUnicode = function(base) {
   var tbody = document.getElementById("tbody");
   while (tbody.hasChildNodes()) tbody.removeChild(tbody.lastChild);
   tbody.appendChild(cells);
+};
+var prevChar = function(chr) {
+  var preview = document.getElementById("preview");
+  var pvcode = document.getElementById("pvcode");
+  var pvchar = document.getElementById("pvchar");
+  var pvhex = document.getElementById("pvhex");
+  var pvdec = document.getElementById("pvdec");
+  var code = chr.charCodeAt(0) || 0;
+  pvcode.textContent =
+    "U+" + ("000" + code.toString(16)).slice(-4).toUpperCase();
+  pvchar.textContent = chr;
+  pvhex.textContent = "0x" + code.toString(16);
+  pvdec.textContent = code;
 };
 var createControl = function() {
   var df = document.createDocumentFragment();
@@ -216,22 +236,12 @@ addEventListener("load", function() {
   });
   select.appendChild(createControl());
   document.getElementById("thead").appendChild(createThs());
-  document.getElementById("tbody").addEventListener("click", function(e) {
+  document.getElementById("tbody").addEventListener("click", function fun(e) {
     var cell = e.target;
+    var preview = document.getElementById("preview");
     if (cell.tagName === "TD") {
-      var preview = document.getElementById("preview");
-      var pvcode = document.getElementById("pvcode");
-      var pvchar = document.getElementById("pvchar");
-      var pvhex = document.getElementById("pvhex");
-      var pvdec = document.getElementById("pvdec");
-      var chr = cell.textContent;
-      var code = chr.charCodeAt(0) || 0;
-      pvcode.textContent =
-        "U+" + ("000" + code.toString(16)).slice(-4).toUpperCase();
-      pvchar.textContent = chr;
-      pvhex.textContent = "0x" + code.toString(16);
-      pvdec.textContent = code;
       preview.style.visibility = "visible";
+      document.getElementById("tbody").removeEventListener(e.type, fun);
     }
   });
   //---
@@ -248,7 +258,7 @@ addEventListener("load", function() {
   </table>
   <table id="preview">
     <tr><th id="pvcode" colspan="2"></th></tr>
-    <tr><td id="pvchar" colspan="2"></td></tr>
+    <tr><td colspan="2"><pre id="pvchar"></pre></td></tr>
     <tr><th>hex</th><td id="pvhex"></td></tr>
     <tr><th>dec</th><td id="pvdec"></td></tr>
   </table>
