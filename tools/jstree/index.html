@@ -630,6 +630,24 @@ function init() {
     mem.setSort(mem.getCurrent().path, "value");
     setList(props);
   }, false);
+  cgo.addEventListener("dragover", function(e) {
+    e.preventDefault();
+  }, false);
+  cgo.addEventListener("drop", function(ev) {
+    var fr = new FileReader;
+    fr.onload = function() {
+      var result;
+      try {
+        result = JSON.parse(fr.result);
+      } catch(err) {
+        result = fr.result;
+      }
+      var name = "_droppedFile_" + Date.now();
+      window[name] = result;
+      goPath("window." + name);
+    };
+    fr.readAsBinaryString(ev.dataTransfer.files[0]);
+  }, false);
 }
 addEventListener("hashchange", function() {
   var que = getQuery();
