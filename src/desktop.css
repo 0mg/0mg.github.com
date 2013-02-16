@@ -60,13 +60,13 @@ dt {
 }
 a {
   color: #0000ff;
+  text-decoration: none;
 }
 a:visited {
   color: #7777ff;
 }
 a:hover {
-  background-color: #fff000;
-  color: #000;
+  text-decoration: underline;
 }
 
 .applinks a {
