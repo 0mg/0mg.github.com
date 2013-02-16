@@ -99,7 +99,8 @@ var getJSONP = (function() {
     __: "_",
     _s: "/",
     _d: ".",
-    _c: ":"
+    _c: ":",
+    _m: "-"
   };
   hash.en = (function(src) {
     var dst = {};
@@ -109,8 +110,8 @@ var getJSONP = (function() {
     return dst;
   })(hash.de);
   hash.make = function makeHash(url) {
-    return url.replace(/[:/.]/g, function(c) {
-      return hash.en[c];
+    return url.replace(/./g, function(c) {
+      return hash.en[c] || c;
     });
   };
   return function getJSONP(url, callback) {
@@ -131,8 +132,7 @@ var getJSONP = (function() {
 //
 function getURLKeys(page_url) {
   var keys;
-  var re = /^\??https?:\/\/(([^.]+)\.github\.com)(\/.+?)?\/?$/;
-  var ctx = page_url.match(re);
+  var ctx = page_url.match(getURLKeys.re);
   if (ctx) {
     keys = {
       repo: ctx[1],
@@ -144,6 +144,7 @@ function getURLKeys(page_url) {
   }
   return keys;
 }
+getURLKeys.re = /^https?:\/\/(([-a-zA-Z0-9]+)\.github\.com)(\/.+?)?\/?$/;
 function getPageURL(api_url) {
   var prefix = "https://github.com/";
   var ctx = api_url.slice(prefix.length);
@@ -194,17 +195,18 @@ function onGotJSON(json) {
 }
 addEventListener("load", function() {
   var api_url;
-  var q = location.search.slice(1);
+  var q = location.search.slice(1) || location.protocol + "//" + location.host;
   var keys = getURLKeys(q);
   if (keys) {
     api_url = "https://api.github.com/repos/" + keys.user +
       "/" + keys.repo + "/contents" + keys.path;
     getJSONP(api_url, onGotJSON);
+    document.getElementById("meta").textContent = "loading..";
     document.getElementById("title").textContent =
       document.title = "Index of " + keys.repo + keys.path;
   } else {
     document.getElementById("meta").textContent =
-      "location.search must be '?http://<username>.github.com[/<path>]'";
+      "location.search must be ?" + getURLKeys.re;
   }
 }, true);
 /* ]]> */</script>
