@@ -59,11 +59,11 @@ dt {
   font-weight: bold;
 }
 a {
-  color: #0000ff;
+  color: #0000dd;
   text-decoration: none;
 }
 a:visited {
-  color: #7777ff;
+  color: #7777dd;
 }
 a:hover {
   text-decoration: underline;
