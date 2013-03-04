@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+html, body, canvas {
+  margin: 0;
+  padding: 0;
+}
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #ccc linear-gradient(#f00, #0f0, #00f);
+  color: red;
+  overflow: hidden;
+}
+#a {
+  background: #fff;
+  display: block;
+}
+</style>
+<script>
+addEventListener("load", function() {
+  main();
+}, true);
+function dbg(str) {
+  document.title = str;
+}
+function main() {
+  var cv = document.querySelector("canvas");
+  var c = cv.getContext("2d");
+  var onMove = getOnMove(c);
+  cv.addEventListener("mousemove", function(e) {
+    onMove(e);
+  }, false);
+  addEventListener("mousemove", function(e) {
+    if (e.target !== cv || !window.clickin) {
+      window.hx = e.offsetX;
+      window.hy = e.offsetY;
+      dbg("hist"+[hx,hy]);
+    }
+  }, false);
+  addEventListener("mousedown", function() {
+    window.clickin = true;
+    dbg("down");
+  }, true);
+  addEventListener("mouseup", function() {
+    window.clickin = false;
+    dbg("up");
+  }, true);
+}
+window.clickin = false;
+function getOnMove(c) {
+  return function onMove(e) {
+    if (!window.clickin) return;
+    var x = e.offsetX, y = e.offsetY;
+    var hx = window.hx || x, hy = window.hy || y;
+    var w = 2, h;
+    h = w;
+    x -= w / 2;
+    y -= h / 2;
+    dbg([x, y]);
+    c.lineWidth = 5;
+    c.lineJoin = "round";
+    c.beginPath();
+    c.moveTo(hx, hy);
+    c.lineTo(window.hx = x, window.hy = y);
+    c.closePath();
+    c.stroke();
+  };
+};
+</script>
+<title></title>
+</head>
+<body>
+<canvas id="a" width="400" height="400"></canvas>
+</body>
+</html>
