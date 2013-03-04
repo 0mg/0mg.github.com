@@ -3,20 +3,29 @@
 <head>
 <meta charset="utf-8">
 <style>
-html, body, canvas {
-  margin: 0;
-  padding: 0;
+html {
+  background: red;
 }
-html, body {
-  width: 100%;
-  height: 100%;
-  background: #ccc linear-gradient(#f00, #0f0, #00f);
+body {
+  background: #777;
   color: red;
-  overflow: hidden;
+  font-family: monospace;
+  line-height: 1.3;
 }
 #a {
   background: #fff;
-  display: block;
+  border: 1em solid #99f;
+}
+#dbgvw {
+  background: black;
+  color: white;
+  min-height: 1em;
+  border: 1px dotted;
+  margin-bottom: 1ex;
+}
+form {
+  display: inline-block;
+  background: yellow;
 }
 </style>
 <script>
@@ -24,7 +33,7 @@ addEventListener("load", function() {
   main();
 }, true);
 function dbg(str) {
-  document.title = str;
+  document.querySelector("#dbgvw").textContent = str;
 }
 function main() {
   var cv = document.querySelector("canvas");
@@ -33,6 +42,8 @@ function main() {
   cv.addEventListener("mousemove", function(e) {
     onMove(e);
   }, false);
+  cv.width = window.innerWidth * 0.8;
+  cv.height = window.innerHeight * 0.8;
   addEventListener("mousemove", function(e) {
     if (e.target !== cv || !window.clickin) {
       window.hx = e.offsetX;
@@ -40,13 +51,16 @@ function main() {
       dbg("hist"+[hx,hy]);
     }
   }, false);
-  addEventListener("mousedown", function() {
+  cv.addEventListener("mousedown", function() {
     window.clickin = true;
     dbg("down");
   }, true);
   addEventListener("mouseup", function() {
     window.clickin = false;
     dbg("up");
+  }, true);
+  addEventListener("reset", function() {
+    c.clearRect(0, 0, cv.width, cv.height);
   }, true);
 }
 window.clickin = false;
@@ -70,9 +84,11 @@ function getOnMove(c) {
   };
 };
 </script>
-<title></title>
+<title>paint</title>
 </head>
 <body>
+<div id="dbgvw">?</div>
 <canvas id="a" width="400" height="400"></canvas>
+<form><input type="reset" id="cls" /></form>
 </body>
 </html>
