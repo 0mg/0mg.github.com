@@ -35,6 +35,7 @@ form {
 window.hx = 0;
 window.hy = 0;
 window.clickin = false;
+window.erasin = false;
 addEventListener("load", function() {
   main();
 }, true);
@@ -105,6 +106,10 @@ function main() {
     c.putImageData(ss, 0, 0);
     dbg(hist.index);
   }, false);
+  document.querySelector("#btn3").addEventListener("click", function() {
+    window.erasin = !window.erasin;
+    c.strokeStyle = window.erasin ? "#fff": "#000";
+  }, false);
 }
 function clear(c) {
   var cv = c.canvas;
@@ -152,6 +157,7 @@ function getOnMove(c, cv) {
 <form>
 <input type="button" id="btn1" value="1" />
 <input type="button" id="btn2" value="2" />
+<input type="button" id="btn3" value="3" />
 <input type="reset" id="cls" />
 </form>
 </body>
