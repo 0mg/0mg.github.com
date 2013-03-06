@@ -13,7 +13,7 @@ body {
   line-height: 1.3;
 }
 #a {
-  margin-top: 1em;
+  margin: 1em;
   background: #fff;
   border: 1em solid #99f;
 }
@@ -25,12 +25,16 @@ body {
   top: 0;
 }
 form {
-  display: inline-block;
   background: yellow;
+  position: fixed;
+  bottom: 0;
 }
 </style>
 <script>
 "use strict";
+window.hx = 0;
+window.hy = 0;
+window.clickin = false;
 addEventListener("load", function() {
   main();
 }, true);
@@ -41,12 +45,11 @@ function dbg(str, keep) {
   } else {
     val = document.querySelector("#dbgvw").textContent = str;
   }
-  window.status = document.querySelector("#dbgvw").textContent;
 }
 function main() {
   var cv = document.querySelector("canvas");
-  cv.width = window.innerWidth * 0.8;
-  cv.height = window.innerHeight * 0.8;
+  cv.width = document.documentElement.clientWidth * 0.8;
+  cv.height = document.documentElement.clientHeight * 0.8;
   var c = cv.getContext("2d");
   var hist = {
     data: [c.getImageData(0, 0, cv.width, cv.height)],
@@ -54,9 +57,10 @@ function main() {
   };
   var onMove = getOnMove(c, cv);
   cv.addEventListener("mousedown", function(e) {
-    window.hx = getX(e.clientX, cv);
+    window.hx = getX(e.clientX, cv) - 0.1;
     window.hy = getY(e.clientY, cv);
     window.clickin = true;
+    onMove(e);
     dbg("cv.down");
   }, false);
   addEventListener("mousemove", function(e) {
@@ -75,7 +79,7 @@ function main() {
     dbg("wn.up");
   }, false);
   addEventListener("reset", function() {
-    clear(c, cv);
+    clear(c);
     dbg("cls");
   }, false);
   document.querySelector("#btn1").addEventListener("click", function() {
@@ -86,23 +90,24 @@ function main() {
     hist.index -= 1;
     var ss = hist.data[hist.index];
     dbg(hist.index);
-    clear(c, cv);
+    clear(c);
     c.putImageData(ss, 0, 0);
   }, false);
   document.querySelector("#btn2").addEventListener("click", function() {
-    hist.index += 1;
-    if (hist.index >= hist.data.length) {
+    if (hist.index >= hist.data.length - 1) {
       hist.index = hist.data.length - 1;
       return;
     }
+    hist.index += 1;
     var ss = hist.data[hist.index];
     dbg(hist.index);
-    clear(c, cv);
+    clear(c);
     c.putImageData(ss, 0, 0);
     dbg(hist.index);
   }, false);
 }
-function clear(c, cv) {
+function clear(c) {
+  var cv = c.canvas;
   c.clearRect(0, 0, cv.width, cv.height);
 }
 function getX(clientX, cv) {
@@ -121,12 +126,11 @@ function getY(clientY, cv) {
     (document.documentElement.scrollTop || document.body.scrollTop);
   return y;
 }
-window.clickin = false;
 function getOnMove(c, cv) {
   return function onMove(e) {
     var x = getX(e.clientX, cv);
     var y = getY(e.clientY, cv)
-    var hx = window.hx || x, hy = window.hy || y;
+    var hx = window.hx, hy = window.hy;
     dbg([x, y]);
     c.lineWidth = 5;
     c.lineJoin = "round";
@@ -144,7 +148,7 @@ function getOnMove(c, cv) {
 </head>
 <body>
 <div id="dbgvw">?</div>
-<canvas id="a" width="400" height="400"></canvas>
+<canvas id="a" width="0" height="0"></canvas>
 <form>
 <input type="button" id="btn1" value="1" />
 <input type="button" id="btn2" value="2" />
