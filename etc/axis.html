@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta charset="utf-8">
+<style>/* <![CDATA[ */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+html {
+  background: #999;
+}
+#space {
+  background: #000;
+}
+#debug {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  background: white;
+  color: black;
+}
+form {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+}
+/* ]]> */</style>
+<script>/* <![CDATA[ */
+window.app = {
+  player: {
+    img: null,
+    x: 0,
+    y: 0,
+    z: 0,
+    w: window.innerWidth / 10,
+    h: window.innerHeight / 10,
+    gx: function() {
+      return this.x + window.app.w/2 - this.w/2;
+    },
+    gy: function() {
+      return this.y + window.app.h/2 - this.h/2;
+    },
+    gz: function() {
+      return this.z;
+    }
+  }
+};
+function dg(str) {
+  var vw = document.querySelector("#debug");
+  vw.textContent = str;
+}
+function main() {
+  var i = Math.random() * Math.PI * 2;
+  var id = Math.random() * 5 + 5;
+  var j = Math.random() * Math.PI * 2;
+  var jd = Math.random() * 8 + 4;
+  var k = Math.random() * Math.PI * 2;
+  var kd = Math.random() * 3 + 3;
+  window.app.timer = setInterval(function() {
+    var d = Math.min(window.app.w, window.app.h) / 3;
+    var x = d * Math.cos(i);
+    var y = d * Math.sin(j);
+    var z = d * Math.sin(k);
+    i += Math.PI/180 * id;
+    j += Math.PI/180 * jd;
+    k += Math.PI/180 * kd;
+    if (i > Math.PI * 2) i = 0;
+    if (j > Math.PI * 2) j = 0;
+    if (k > Math.PI * 2) k = 0;
+    window.app.player.x = x;
+    window.app.player.y = y;
+    window.app.player.z = z;
+    cls();
+    if (z >= 0) drawBase();
+    putPlayer();
+    if (z < 0) drawBase();
+  }, 40);
+}
+addEventListener("load", function() {
+  var space = document.querySelector("#space");
+  var cv = space.getContext("2d");
+  space.width = document.documentElement.clientWidth;
+  space.height = document.documentElement.clientHeight;
+  window.app.cv = cv;
+  window.app.w = space.width;
+  window.app.h = space.height;
+  cls();
+  drawBase();
+  //putPlayer();return;
+  main();
+  document.querySelector("#btn1").addEventListener("click", function(e) {
+    clearInterval(window.app.timer);
+  }, false);
+}, true);
+function putPlayer() {
+  var cv = window.app.cv;
+  var w = window.app.player.w, h = window.app.player.h;
+  var x = window.app.player.gx();
+  var y = window.app.player.gy();
+  var z = window.app.player.gz();
+  var zm = 1 * Math.pow(2, (1/360) * (z) * 3);
+  var hu = 0;
+  var st = 0;
+  var lt = 50 + ((1/360) * (z) * 60);
+  //dg(lt);
+  cv.fillStyle = "hsla(" + hu + "," + st + "%," + lt + "%,1)";
+  var ww = w * zm, hh = h * zm;
+  var px = x + w/2 - ww/2, py = y + h/2 - hh/2;
+  cv.beginPath();
+  //cv.fillRect(x + w/2 - ww/2, y + h/2 - hh/2, ww, hh);return;
+  cv.moveTo(px, py);
+  cv.lineTo(px + ww*.5, py + hh*.2);
+  cv.lineTo(px + ww, py + 0);
+  cv.lineTo(px + ww*.8, py + hh*.5);
+  cv.lineTo(px + ww, py + hh);
+  cv.lineTo(px + ww*.5, py + hh*.8);
+  cv.lineTo(px + 0, py + hh);
+  cv.lineTo(px + ww*.2, py + hh*.5);
+  cv.closePath();
+  cv.fill();
+}
+function cls() {
+  var cv = window.app.cv;
+  var w = window.app.w, h = window.app.h;
+  cv.clearRect(0, 0, w, h);
+}
+function drawBase() {
+  var cv = window.app.cv;
+  var space = cv.canvas;
+  var w = space.width;
+  var h = space.height;
+  cv.lineWidth = 5;
+  cv.strokeStyle = "#444";
+  cv.beginPath();
+  cv.moveTo(0, 0);
+  cv.lineTo(w/2, h/2);
+  cv.lineTo(w/2, 0);
+  cv.lineTo(w, h/2);
+  cv.lineTo(0, h/2);
+  cv.lineTo(w/2, h);
+  cv.lineTo(w/2, h/2);
+  cv.lineTo(w, h);
+  cv.stroke();
+}
+/* ]]> */</script>
+<title>axis</title>
+</head>
+<body>
+<canvas id="space"></canvas>
+<div id="debug"></div>
+<form><input type="button" id="btn1" value="1" /></form>
+</body>
+</html>
