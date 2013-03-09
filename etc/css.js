@@ -1,15 +1,28 @@
-addEventListener("load", function() {
-  var df = document.createDocumentFragment();
-  var head = document.querySelector("head");
-  Array.prototype.forEach.call(document.querySelectorAll("style"), function(e) {
+window.addEventListener && addEventListener("load", function() {
+  var convertCSS = function(cssText) {
     var style = document.createElement("style");
     var sel = ["linear-gradient", "repeating-linear-gradient"].join("|");
-    var csstext = e.textContent.
-      replace(RegExp(sel, "g"), function(s) {
-        return "-webkit-" + s;
-      });
-    style.textContent = csstext;
-    df.appendChild(style);
+    var newCSSText = cssText.replace(RegExp(sel, "g"), function(s) {
+      return "-webkit-" + s;
+    });
+    style.textContent = newCSSText;
+    document.head.appendChild(style);
+  };
+  convertCSS.byURL = function(url) {
+    var it = this;
+    var xhr = new XMLHttpRequest;
+    xhr.open("get", url, true);
+    xhr.addEventListener("load", function() {
+      it(xhr.responseText);
+    });
+    xhr.send(null);
+    return null;
+  };
+  [].forEach.call(document.styleSheets, function(css) {
+    if (css.href) {
+      convertCSS.byURL(css.href);
+    } else {
+      convertCSS(css.ownerNode.textContent);
+    }
   });
-  head.insertBefore(df, head.firstChild);
-});
+}, true);
