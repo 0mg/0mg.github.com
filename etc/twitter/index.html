@@ -1,50 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8"><link rel="shortcut icon" href="../favicon.ico">
-<link rel="stylesheet" type="text/css" href="../base.css">
-<title>0witter</title>
-<script src="http://platform.twitter.com/anywhere.js?id=e5uRPFBMQJcwfbEcPnwiw&amp;v=chirp_preview" type="text/javascript"></script>
-<style type="text/css">
-dt {
-    font-weight: bold;
-}
-textarea#source {
-    padding: 2px;
-    width: 95%;
-    height: 10em;
-}
-dd#output {
-    padding: 2px;
-}
+<meta charset="utf-8" />
+<title>tw-minus</title>
+<style>
 </style>
 </head>
 <body>
-<h1>0witter</h1>
-<dl>
-    <dt>JavaScript</dt>
-    <dd><textarea id="source">var s=document.createElement("script");s.type="text/javascript"; s.src="https://api.twitter.com/1/statuses/home_timeline.json?callback=F&amp;count=20&amp;dummy="+-new Date; document.body.replaceChild(s,document.body.lastChild); F=function(x){for(var i=0,c="";x[i];++i)c+=x[i].user.screen_name+" > "+x[i].text+"\n";alert(c)};</textarea></dd>
-    <dt>Output</dt>
-    <dd><pre id="output"> </pre></dd>
-</dl>
-<script type="text/javascript">
-(function() {
-    var src = document.getElementById("source");
-    var out = document.getElementById("output");
-    src.onkeyup = function(v) {
-        (function() {
-            if ((v||event).keyCode === 13) {
-                src.value = src.value.replace(/[\r\n]/g, "");
-                try {
-                    throw eval(src.value);
-                } catch(e) {
-                    out.firstChild.nodeValue = e;
-                }
-            }
-        }).call(window)
-    };
-    src.focus();
-})();
+<pre>
+https://api.twitter.com/oauth/request_token
+https://api.twitter.com/oauth/authorize
+https://api.twitter.com/oauth/access_token
+</pre>
+<script>
 </script>
 </body>
 </html>
