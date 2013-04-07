@@ -33,20 +33,10 @@ table {
 }
 #pvchar {
   font-size: 8em;
-  overflow: auto;
   margin: 0;
 }
 /* ]]> */</style>
-<script>
-if (!Event.prototype.preventDefault) {
-  Object.defineProperty(Event.prototype, "preventDefault", {
-    get: function() {
-      return function() {
-        this.returnValue = false;
-      }
-    }
-  });
-}
+<script>/* <![CDATA[ */
 if (!("target" in Event.prototype)) {
   Object.defineProperty(Event.prototype, "target", {
     get: function() {
@@ -63,20 +53,6 @@ if (!window.addEventListener) {
     }
   });
 }
-if (!document.addEventListener) {
-  Object.defineProperty(document, "addEventListener", {
-    get: function() {
-      return window.addEventListener;
-    }
-  });
-}
-if (!Element.prototype.addEventListener) {
-  Object.defineProperty(Element.prototype, "addEventListener", {
-    get: function() {
-      return window.addEventListener;
-    }
-  });
-}
 if (!window.removeEventListener) {
   Object.defineProperty(window, "removeEventListener", {
     get: function() {
@@ -86,10 +62,10 @@ if (!window.removeEventListener) {
     }
   });
 }
-if (!document.removeEventListener) {
-  Object.defineProperty(document, "removeEventListener", {
+if (!Element.prototype.addEventListener) {
+  Object.defineProperty(Element.prototype, "addEventListener", {
     get: function() {
-      return window.removeEventListener;
+      return window.addEventListener;
     }
   });
 }
@@ -106,62 +82,7 @@ if (!("textContent" in document.createElement("p"))) {
     set: function(s) { return this.innerText = s; }
   });
 }
-if (!document.createElement("p").classList) {
-  Object.defineProperty(Element.prototype, "classList", {
-    get: function() {
-      var it = this;
-      var classes = it.className.replace(/\s+/g, " ").replace(/^ +| +$/g, "");
-      return {
-        contains: function(s) {
-          return (" " + classes + " ").indexOf(" " + s + " ") >= 0;
-        },
-        add: function(s) {
-          if (!this.contains(s)) it.className += " " + s;
-        },
-        remove: function(s) {
-          if (this.contains(s)) {
-            it.className = (" " + classes + " ").
-              replace(RegExp(" " + s + "(?= )", "g"), "").
-              replace(/^ +| +$/g, "");
-          }
-        },
-        toString: function() {
-          return it.className;
-        }
-      };
-    }
-  });
-}
-if (!Array.prototype.forEach) {
-  Array.prototype.forEach = function(f) {
-    for (var i = 0, z = this.length; i < z; ++i) {
-      f(this[i], i, this);
-    }
-  };
-}
-if (!Array.prototype.map) {
-  Array.prototype.map = function(f) {
-    for (var a = [], i = 0, z = this.length; i < z; ++i) {
-      a[i] = f(this[i], i, this);
-    }
-    return a;
-  };
-}
-if (!Array.prototype.indexOf) {
-  Array.prototype.indexOf = function(v) {
-    for (var i = 0, z = this.length; i < z; ++i) {
-      if (this[i] === v) return i;
-    }
-    return -1;
-  };
-}
-if (!Object.getOwnPropertyNames) {
-  Object.getOwnPropertyNames = function() { return []; };
-}
-if (!window.console) {
-  console = {log:function(){}};
-}
-</script>
+/* ]]> */</script>
 <script>/* <![CDATA[ */
 "use strict";
 var drawUnicode = function(base) {
@@ -244,7 +165,6 @@ addEventListener("load", function() {
       document.getElementById("tbody").removeEventListener(e.type, fun);
     }
   });
-  //---
   select.focus();
   drawUnicode(0);
 });
