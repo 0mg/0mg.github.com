@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<link rel="shortcut icon" href="favicon.ico" />
+<title>Unicode Table</title>
+<style>/*<![CDATA[*/
+body{
+  background-color: purple;
+  color: white;
+}
+table {
+  border-collapse: collapse;
+}
+td, th {
+  background-color: black;
+  color: white;
+  font-size: 3ex;
+  line-height: 1;
+  width: 1em;
+  text-align: center;
+  border: 1px solid silver;
+}
+th {
+  background-color: gray;
+  color: white;
+}
+/*]]>*/</style>
+</head><body><script>//<![CDATA[
+function drawUnicode(base) {
+  for (var i = 0; i < 256; ++i) {
+    var td = document.getElementsByTagName("td")[i];
+    var code = base + i;
+    var codex = "0x" + ("000" + code.toString(16)).slice(-4).toUpperCase();
+    td.title = codex + " = " + code;
+    td.firstChild.nodeValue = String.fromCharCode(code);
+  }
+}
+function createControl() {
+  var select = document.createElement("select");
+  for (var i = 0; i < 256; ++i) {
+    var option = document.createElement("option");
+    option.value = 256 * i;
+    option.appendChild(document.createTextNode(
+      ("0" + i.toString(16)).slice(-2).toUpperCase()
+    ));
+    select.appendChild(option);
+  }
+  select.getElementsByTagName("option")[0].selected = "selected";
+  select.onchange = function() { drawUnicode(Number(this.value)); };
+  return select;
+}
+function createTable() {
+  var table = document.createElement("table");
+
+  var caption = document.createElement("caption");
+  caption.appendChild(document.createTextNode("Unicode: 0x"));
+  caption.appendChild(createControl());
+  table.appendChild(caption);
+
+  var tbody = document.createElement("tbody");
+  for (var col = 0; col < 17; ++col) {
+    var tr = document.createElement("tr");
+    for (var row = 0; row < 17; ++row) {
+      if (col === 0 || row === 0) {
+        var th = document.createElement("th");
+        if (col > 0 || row > 0) {
+          var thText = ((col || row) - 1).toString(16).toUpperCase();
+          th.appendChild(document.createTextNode(thText));
+        }
+        tr.appendChild(th);
+      } else {
+        var td = document.createElement("td");
+        td.appendChild(document.createTextNode(""));
+        tr.appendChild(td);
+      }
+    }
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+
+  return table;
+}
+document.body.appendChild(createTable());
+drawUnicode(256 * 0);
+document.getElementsByTagName("select")[0].focus();
+//]]></script></body></html>
