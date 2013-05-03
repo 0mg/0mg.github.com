@@ -48,7 +48,7 @@ body {
 #control {
   position: absolute;
   top: 0;
-  right: 0;
+  left: 70ex;
 }
 .radio-buttons label {
   background: #ccc;
@@ -288,7 +288,7 @@ addEventListener("load", function() {
     }
   });
   document.getElementById("lissel").addEventListener("click", function(e) {
-    if (/^lissel-(?:window|document)$/.test(e.target.id) &&e.target.checked) {
+    if (/^lissel-(?:window|document)$/.test(e.target.id) && e.target.checked) {
       evlog.listener = e.target.value;
     }
   });
@@ -300,9 +300,9 @@ addEventListener("load", function() {
 /* ]]> */</script>
 </head>
 <body>
-<div id="control">
+<div id="control" class="prevent">
   <fieldset id="logsw" class="radio-buttons">
-    <legend>logging ON/OFF</legend>
+    <legend>logging</legend>
     <label><input id="logsw-on" name="logsw" type="radio" value="on" />ON</label><label><input id="logsw-off" name="logsw" type="radio" value="off" />OFF</label>
   </fieldset>
   <fieldset id="lissel" class="radio-buttons">
