@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  background: black;
+}
+.box {
+  position: fixed;
+}
+</style>
+<script>
+D = function D(e) {
+  if (e) e.add = D.add, e.sa = D.sa;
+  return e;
+};
+D.add = function add() {
+  for (var i = 0; i < arguments.length; ++i) this.appendChild(arguments[i]);
+  return this;
+};
+D.sa = function sa() { this.setAttribute.apply(this, arguments); return this; };
+D.q = function(s) { return D((this === D ? document: this).querySelector(s)); };
+D.ce = function(s) { return D(document.createElement(s)); };
+D.rm = function(e) { return e && e.parentNode.removeChild(e); };
+addEventListener("click", function(e) {
+  var width = 100, wait = 2000;
+  var box = D.ce("div").sa("class", "box");
+  box.style.backgroundColor = "#fff";
+  box.style.width = width + "px";
+  box.style.height = width + "px";
+  box.style.left = (e.clientX - width / 2) + "px";
+  box.style.top  = (e.clientY - width / 2) + "px";
+  box.style.boxShadow = "0 0 " + width + "px white";
+  box.style.transition = "opacity " + wait + "ms";
+  box.style.borderRadius = width / 2 + "px";
+  D.q("body").add(box);
+  setTimeout(function() { box.style.opacity = "0"; }, 0);
+  setTimeout(function() { D.rm(box); }, wait);
+});
+</script>
+<title></title>
+</head>
+<body>
+</body>
+</html>
