@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <link rel="shortcut icon" href="favicon.ico" />
-<style>/*<![CDATA[*/
-* {
+<style>/* <![CDATA[ */
+html, body, dl, dt, dd, pre {
   margin: 0;
   padding: 0;
 }
@@ -19,49 +19,62 @@ textarea {
   height: 12em;
   word-wrap: break-word;
 }
-/*]]>*/</style>
-<script>//<![CDATA[
+/* ]]> */</style>
+<script>/* <![CDATA[ */
 if (!Event.prototype.preventDefault) {
   Event.prototype.preventDefault = function() {
     this.returnValue = false;
   };
+}
+if (!("target" in Event.prototype)) {
+  Object.defineProperty(Event.prototype, "target", {
+    get: function() {
+      return this.srcElement;
+    }
+  });
 }
 if (!window.addEventListener) {
   window.addEventListener = function(type, f) {
     return this.attachEvent("on" + type, f);
   };
 }
-if (!Element.prototype.addEventListener) {
-  Element.prototype.addEventListener = window.addEventListener;
+if (!document.addEventListener) {
+  document.addEventListener = window.addEventListener;
 }
-//]]></script>
-<script>//<![CDATA[
-addEventListener("load", function() {
-  var src = document.getElementById("src");
-  function evalSrc() {
-    var src_s = "document.getElementById('src').value";
-    var dst_s = "document.getElementById('dst').lastChild.nodeValue";
-    var E_s = "E" + Math.random().toFixed(20).toString().slice(2);
+if (!("textContent" in document.createElement("p"))) {
+  Object.defineProperty(Element.prototype, "textContent", {
+    get: function() { return this.innerText; },
+    set: function(s) { return this.innerText = s; }
+  });
+}
+/* ]]> */</script>
+<script>/* <![CDATA[ */
+document.addEventListener("keypress", function(e) {
+  if (e.target === document.getElementById("src") &&
+    e.keyCode === 13 && !e.shiftKey) {
+    var S = {
+      SRC: "document.getElementById('src').value",
+      DST: "document.getElementById('dst').textContent",
+      ERR: (function f() {
+        var s = "E" + String(Math.random()).slice(2);
+        return s in window ? f(): s;
+      })()
+    };
     location.href = "javascript:" +
-                    "try{throw(String(eval(" + src_s + ")))}" +
-                    "catch(" + E_s + "){void(" + dst_s + "=" + E_s + ")}";
+      "try{void(" + S.DST + "=String(eval(" + S.SRC + ")))}" +
+      "catch(" + S.ERR + "){void(" + S.DST + "=" + S.ERR + ")}";
+    e.preventDefault();
   }
-  src.addEventListener("keypress", function(event) {
-    if (event.keyCode === 13 && !event.shiftKey) {
-      evalSrc();
-      event.preventDefault();
-    }
-  }, false);
-}, false);
-//]]></script>
+});
+/* ]]> */</script>
 <title>JavaScript Evaluator</title>
 </head>
-<body>
-<dl>
+<body role="application">
+<dl role="main">
   <dt>JavaScript</dt>
-  <dd><textarea id="src"></textarea></dd>
+  <dd><textarea aria-controls="dst" id="src"></textarea></dd>
   <dt>Result</dt>
-  <dd><pre id="dst"> </pre></dd>
+  <dd><pre aria-owns="src" id="dst"></pre></dd>
 </dl>
 </body>
 </html>
