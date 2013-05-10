@@ -4,23 +4,23 @@ html, body, h1, dl, dt, dd, ul, li {
   padding: 0;
   font-size: 100%;
 }
-/* reset for IE8 */
+/* format */
 section, article, aside, nav {
   display: block;
 }
 /* base */
 html {
-  padding: 1ex;
   background-color: #fdfdfd;
-  background-image: linear-gradient(#011473, #285bbd, hsla(0,0%,50%,0));
-  background-repeat: repeat-x;
 }
 body {
+  padding: 1ex 0 1ex 1ex;
+  background-image: linear-gradient(#011473, #285bbd, hsla(0,0%,50%,0));
   color: #000;
-  font: 100%/1.2 "";
+  line-height: 1.2;
 }
 /* banner */
 [role=banner] {
+  font-weight: bold;
   color: #c0c0c0;
 }
 /* window shape */
@@ -78,11 +78,11 @@ body > nav {
   /* banner position */
   [role=banner] {
     position: absolute;
-    top: 0;
+    top: 1ex;
   }
   body {
     position: relative;
-    padding-top: 3.3ex;
+    padding-top: 4.3ex;
   }
 }
 /* blocks */
