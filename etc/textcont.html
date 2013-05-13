@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<style>
+body {
+  background: #f9f9f9;
+  font-family: monospace;
+  font-size: 14px;
+}
+th, td {
+  padding: 1ex;
+  background: #eee;
+  text-align: left;
+}
+th:first-child {
+  text-align: right;
+}
+td {
+  background: white;
+}
+th:empty, td:empty {
+  background: silver;
+}
+</style>
+<title>textContent = undefined</title>
+<table id="dst" border="1"></table>
+<script>/* <![CDATA[ */
+function t(p) {
+  function o(s) {
+    return ["(" + typeof s + ")", "\"" + s + "\""].join(" ");
+  }
+  return [
+    "<td>" + [p.hasChildNodes() ? o(p.firstChild.nodeValue) : ""] + "</td>",
+    "<td>" + ["textContent" in p ? o(p.textContent) : ""] + "</td>",
+    "<td>" + ["innerText" in p ? o(p.innerText) : ""]  + "</td>",
+  ].join("");
+}
+function nv(s) {
+  var p = document.createElement("p");
+  p.appendChild(document.createTextNode(""));
+  p.firstChild.nodeValue = s;
+  return t(p);
+}
+function tc(s) {
+  var p = document.createElement("p");
+  if ("textContent" in p) p.textContent = s;
+  return t(p);
+}
+function it(s) {
+  var p = document.createElement("p");
+  if ("innerText" in p) p.innerText = s;
+  return t(p);
+}
+document.getElementById("dst").innerHTML = [
+  "<caption>" + navigator.userAgent + "</caption>",
+  "<tr><th></th><th>p.firstChild.nodeValue</th><th>p.textContent</th><th>p.innerText</th></tr>",
+  "<tr><th>p.firstChild.nodeValue = undefined</th>" + nv(undefined) + "</tr>",
+  "<tr><th>p.textContent = undefined</th>" + tc(undefined) + "</tr>",
+  "<tr><th>p.innerText = undefined</th>" + it(undefined) + "</tr>",
+
+  "<tr><th></th><th>p.firstChild.nodeValue</th><th>p.textContent</th><th>p.innerText</th></tr>",
+  "<tr><th>p.firstChild.nodeValue = null</th>" + nv(null) + "</tr>",
+  "<tr><th>p.textContent = null</th>" + tc(null) + "</tr>",
+  "<tr><th>p.innerText = null</th>" + it(null) + "</tr>"
+].
+join("\n");
+/* ]]> */</script>
