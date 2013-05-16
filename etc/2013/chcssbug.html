@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+#parent {
+  position: absolute;
+}
+.foo {
+  position: absolute;
+  background-color: yellow;
+  color: blue;
+}
+.bar {
+  background-color: aqua;
+  color: red;
+}
+</style>
+<title>background-color not work in chrome</title>
+</head>
+<body>
+<div><button id="button">add and change className</button></div>
+<ul id="parent"></ul>
+<script>
+document.getElementById("button").onclick = function() {
+  var parent = document.getElementById("parent");
+  var child = document.createElement("li");
+  var text = document.createTextNode("");
+
+  // append child to document
+  child.appendChild(text);
+  parent.appendChild(child);
+
+  // change className and text
+  child.className = "foo";
+  text.nodeValue = child.className;
+
+  // change className and text
+  setTimeout(function() {
+    child.className = "bar";
+    text.nodeValue = child.className;
+  }, 300);
+};
+</script>
+</body>
+</html>
