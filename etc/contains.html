@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>element.contains</title>
+<script>
+window.onload = function() {
+  var element = document.getElementsByTagName("title")[0];
+  var result = element.contains(element.firstChild);
+  document.getElementById("dst").appendChild(document.createTextNode(result));
+};
+</script>
+</head>
+<body>
+<h1 id="dst"></h1>
+</body>
+</html>
