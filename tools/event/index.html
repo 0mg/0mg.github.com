@@ -174,7 +174,11 @@ evlog.addEventListenerAll = function() {
 var isDescendentOfPreventer = function(e) {
   if (e === window) return false;
   return [].some.call(document.querySelectorAll(".prevent"), function(p) {
-    return p.contains(e);
+    return p.contains(e) || (
+      // IE9,10 e.contains(e.firstChild := text node) is false
+      // DOMNodeRemoved busy
+      e.nodeType === document.TEXT_NODE && p.contains(e.parentNode)
+    );
   });
 };
 
