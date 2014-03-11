@@ -82,38 +82,46 @@ if (!("textContent" in document.createElement("p"))) {
     set: function(s) { return this.innerText = s; }
   });
 }
+if (!Array.prototype.map) {
+  Array.prototype.map = function(f) {
+    for (var a = [], i = 0, z = this.length; i < z; ++i) {
+      a[i] = f(this[i], i, this);
+    }
+    return a;
+  };
+}
 /* ]]> */</script>
 <script>/* <![CDATA[ */
 "use strict";
-var drawUnicode = function(base) {
-  var cells = document.createDocumentFragment();
-  var onclick = function(e) {
-    prevChar(e.target.textContent);
-  };
-  for (var i = 0; i < 16; ++i) {
-    var tr = document.createElement("tr");
-    var th = document.createElement("th");
-    th.textContent = i.toString(16).toUpperCase();
-    tr.appendChild(th);
-    for (var k = 0; k < 16; ++k) {
-      var code = base + (16 * i) + k;
-      var chr = String.fromCharCode(code);
-      var td = document.createElement("td");
-      td.addEventListener("click", onclick);
-      td.title =
-        "U+" + ("000" + code.toString(16)).slice(-4).toUpperCase() +
-        ", " +
-        "0x" + code.toString(16) +
-        ", " +
-        "" + code;
-      td.textContent = chr;
-      tr.appendChild(td);
-    }
-    cells.appendChild(tr);
+var supchar = {};
+supchar.is = function(c) {
+  return /^[\ud800-\udbff][\udc00-\udfff]$/.test(c);
+};
+supchar.encode = function(unicode) {
+  if (unicode < 0x10000) return [unicode];
+  var hi = (unicode - 0x10000) / 0x400 + 0xd800;
+  var lo = (unicode - 0x10000) % 0x400 + 0xdc00;
+  return [hi, lo];
+};
+supchar.decode = function(c) {
+  if (supchar.is(c)) {
+    var hi = c.charCodeAt(0);
+    var lo = c.charCodeAt(1);
+    return 0x10000 + ((hi - 0xd800) * 0x400) + (lo - 0xdc00);
+  } else if (c.length === 1) {
+    return c.charCodeAt(0);
+  } else {
+    throw Error("invalid string");
   }
+};
+var drawUnicode = function(base) {
   var tbody = document.getElementById("tbody");
-  while (tbody.hasChildNodes()) tbody.removeChild(tbody.lastChild);
-  tbody.appendChild(cells);
+  var cells = tbody.getElementsByTagName("td");
+  for (var i = 0; i <= 0xff; ++i) {
+    var code = supchar.encode(base + i);
+    var chr = String.fromCharCode.apply(String, code);
+    cells[i].textContent = chr;
+  }
 };
 var prevChar = function(chr) {
   var preview = document.getElementById("preview");
@@ -121,19 +129,20 @@ var prevChar = function(chr) {
   var pvchar = document.getElementById("pvchar");
   var pvhex = document.getElementById("pvhex");
   var pvdec = document.getElementById("pvdec");
-  var code = chr.charCodeAt(0) || 0;
-  pvcode.textContent =
-    "U+" + ("000" + code.toString(16)).slice(-4).toUpperCase();
+  var code = chr.split("").map(function(c) { return c.charCodeAt(0); });
+  pvcode.textContent = "U+" +
+    (supchar.is(chr) ? supchar.decode(chr).toString(16) :
+      ("000" + code[0].toString(16)).slice(-4)).toUpperCase();
   pvchar.textContent = chr;
-  pvhex.textContent = "0x" + code.toString(16);
+  pvhex.textContent = code.map(function(c) { return c.toString(16); });
   pvdec.textContent = code;
 };
 var createControl = function() {
   var df = document.createDocumentFragment();
-  for (var i = 0; i < 256; ++i) {
+  for (var i = 0; i <= 0x10FF; ++i) {
     var option = document.createElement("option");
-    option.value = String(256 * i);
-    option.textContent = (0 + i.toString(16)).slice(-2).toUpperCase();
+    option.value = i * 0x100;
+    option.textContent = (i < 0x10 ? 0 : "") + i.toString(16).toUpperCase();
     df.appendChild(option);
   }
   df.firstChild.selected = true;
@@ -150,6 +159,23 @@ var createThs = function() {
   }
   return tr;
 };
+var createTds = function() {
+  var onClickCell = function() {};
+  var df = document.createDocumentFragment();
+  for (var i = 0; i <= 0xf; ++i) {
+    var tr = document.createElement("tr");
+    var th = document.createElement("th");
+    th.textContent = i.toString(16).toUpperCase();
+    tr.appendChild(th);
+    for (var k = 0; k <= 0xf; ++k) {
+      var td = document.createElement("td");
+      td.addEventListener("click", onClickCell);
+      tr.appendChild(td);
+    }
+    df.appendChild(tr);
+  }
+  return df;
+};
 addEventListener("load", function() {
   var select = document.getElementById("codenum");
   select.addEventListener("change", function(e) {
@@ -157,12 +183,20 @@ addEventListener("load", function() {
   });
   select.appendChild(createControl());
   document.getElementById("thead").appendChild(createThs());
+  document.getElementById("tbody").appendChild(createTds());
   document.getElementById("tbody").addEventListener("click", function fun(e) {
     var cell = e.target;
     var preview = document.getElementById("preview");
     if (cell.tagName === "TD") {
       preview.style.visibility = "visible";
       document.getElementById("tbody").removeEventListener(e.type, fun);
+    }
+  });
+  document.getElementById("tbody").addEventListener("click", function(e) {
+    var cell = e.target;
+    var preview = document.getElementById("preview");
+    if (cell.tagName === "TD") {
+      prevChar(cell.textContent || "\0");
     }
   });
   select.focus();
