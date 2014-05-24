@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<style>/* <![CDATA[ */
+body {
+  background: white;
+}
+#editor {
+  border-collapse: collapse;
+  background-color: white;
+}
+#editor td {
+  width: 20px;
+  height: 20px;
+  border: 1px solid silver;
+}
+[data-on=true] {
+  background: black;
+}
+#canvas {
+  background: white;
+}
+/* ]]> */</style>
+<title></title>
+</head>
+<body>
+<button onclick="dec()">--</button>
+<button onclick="inc()">++</button>
+<button onclick="reset()">reset</button>
+<table id="editor"></table>
+<canvas id="canvas"></canvas>
+<script>/* <![CDATA[ */
+var data = {
+  width: 8,
+  height: 8
+};
+var inc = function() {
+  data.width++;
+  data.height++;
+  reset();
+};
+var dec = function() {
+  data.width--;
+  data.height--;
+  reset();
+};
+var reset = function() {
+  var www = data.width;
+  var hhh = data.height;
+  canvas.width = www;
+  canvas.height = hhh;
+  editor.innerHTML = "";
+  document.body.style.backgroundImage = "";
+  for (var i = 0; i < www; i++) {
+    var tr = document.createElement("tr");
+    for (var k = 0; k < hhh; k++) {
+      var td = document.createElement("td");
+      td.dataset.x = k;
+      td.dataset.y = i;
+      tr.appendChild(td);
+    }
+    editor.appendChild(tr);
+  }
+};
+reset();
+addEventListener("click", function(e) {
+  var tgt = e.target;
+  if (tgt && tgt.tagName === "TD") {
+    tgt.dataset.on = tgt.dataset.on !== "true";
+    var ctx = canvas.getContext("2d");
+    ctx[tgt.dataset.on === "true" ? "fillRect" : "clearRect"](tgt.dataset.x, tgt.dataset.y, 1, 1);
+    var img = canvas.toDataURL();
+    document.body.style.backgroundImage = "url("+ img + ")";
+  }
+});
+/* ]]> */</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
