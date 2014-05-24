@@ -1,12 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
 <title>Cookie</title>
-</head>
-<body>
+<dt>Referrer:<dd id="referrer">
+<dt>Cookie:<dd id="cookie">
 <script>
-document.write(document.cookie);
+function $(q, s) { document.querySelector(q).textContent = s }
+$("#referrer", document.referrer);
+$("#cookie", document.cookie);
 </script>
-</body>
-</html>
