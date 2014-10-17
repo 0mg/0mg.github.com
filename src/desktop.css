@@ -145,3 +145,6 @@ a:hover {
 .applinks a[href^="tools/uri/"] {
   background-image: url(../tools/uri/favicon.ico);
 }
+.applinks a[href^="https://tw-minus.herokuapp.com/"] {
+  background-image: url(https://github.com/0mg/tw-minus/raw/master/html/favicon.ico)
+}
