@@ -52,26 +52,32 @@ if (!("textContent" in document.createElement("p"))) {
 document.addEventListener("keypress", function(e) {
   if (e.target === document.getElementById("src") &&
     e.keyCode === 13 && !e.shiftKey) {
-    var S = {
-      SRC: "document.getElementById('src').value",
-      DST: "document.getElementById('dst').textContent",
-      ERR: (function f() {
-        var s = "E" + String(Math.random()).slice(2);
-        return s in window ? f(): s;
-      })()
-    };
-    location.href = "javascript:" +
-      "try{void(" + S.DST + "=String(eval(" + S.SRC + ")))}" +
-      "catch(" + S.ERR + "){void(" + S.DST + "=" + S.ERR + ")}";
+    var cevt = document.createEvent("event");
+    cevt.initEvent("click", true, true);
+    document.getElementById("eval").dispatchEvent(cevt);
     e.preventDefault();
   }
+});
+document.addEventListener("click", function(e) {
+  if (e.target !== document.getElementById("eval")) return;
+  var S = {
+    SRC: "document.getElementById('src').value",
+    DST: "document.getElementById('dst').textContent",
+    ERR: (function f() {
+      var s = "E" + String(Math.random()).slice(2);
+      return s in window ? f(): s;
+    })()
+  };
+  location.href = "javascript:" +
+    "try{void(" + S.DST + "=String(eval(" + S.SRC + ")))}" +
+    "catch(" + S.ERR + "){void(" + S.DST + "=" + S.ERR + ")}";
 });
 /* ]]> */</script>
 <title>JavaScript Evaluator</title>
 </head>
 <body>
 <dl>
-  <dt>JavaScript</dt>
+  <dt>JavaScript <button id="eval">></button></dt>
   <dd><textarea id="src"></textarea></dd>
   <dt>Result</dt>
   <dd><pre id="dst"></pre></dd>
