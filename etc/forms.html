@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+html {background:gray}
+body {background:#fff;display:flex}
+#s1 {background:#ff9}
+#s2 {background:#f9f}
+#s3 {background:#9ff}
+</style>
+<title>Crossfire test</title>
+<div id="s1"></div>
+<div id="s2"></div>
+<div id="s3"></div>
+<script>
+var dom = {
+  id: function id(id) { return document.getElementById(id); },
+  q: function q(s) { return document.querySelector(s); },
+  qs: function qs(s) { return document.querySelectorAll(s); },
+  ce: function ce(s) { return document.createElement(s); },
+  ct: function ct(s) { return document.createTextNode(s); },
+  cf: function cf() { return document.createDocumentFragment(); }
+};
+var rand = function(arr) {
+  return arr[Math.random() * (arr.length ) | 0];
+};
+var genNode = function() {
+  var df = dom.cf();
+  for (var i=0;i<10;++i) {
+    if (Math.random() < .5) {
+      var a = dom.ce(rand(["a","button"]));
+      a.href = "";
+      a.textContent = "hoge";
+    } else {
+      var a = dom.ce("input");
+      a.type = rand(["","range","text","button","submit","radio","checkbox","file"]);
+    }
+    var li = dom.ce("p"); li.appendChild(a);
+    df.appendChild(li);
+  }
+  return df;
+};
+s1.appendChild(genNode());
+s2.appendChild(genNode());
+s3.appendChild(genNode());
+</script>
