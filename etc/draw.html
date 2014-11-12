@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<style>
+html, body, canvas {
+  margin: 0;
+  padding: 0;
+}
+html, body {
+  overflow: hidden;
+}
+canvas {
+  background: #fff;
+}
+</style>
+<script>
+var initScreen = function() {
+  var w = Math.max(screen.width, screen.height);
+  var h = Math.max(screen.width, screen.height);
+  var html = document.documentElement;
+  html.style.width = w + "px";
+  html.style.height = h + "px";
+  var canvas = document.querySelector("#canvas");
+  canvas.width = w;
+  canvas.height = h;
+};
+var canvasDraw = function(x, y, canvas) {
+  var c = canvas.getContext("2d");
+  var lastPoint = canvas.dataset;
+  if (lastPoint.x === undefined) lastPoint.x = x;
+  if (lastPoint.y === undefined) lastPoint.y = y;
+  c.strokeStyle = "rgb(0,0,0)";
+  c.lineWidth = 4;
+  c.lineJoin = "round";
+  c.beginPath();
+  c.moveTo(lastPoint.x, lastPoint.y);
+  c.lineTo(x, y);
+  c.closePath();
+  c.stroke();
+};
+var getX = function(mouseX, canvas) {
+  return mouseX - (canvas.offsetLeft + canvas.clientLeft);
+};
+var getY = function(mouseY, canvas) {
+  return mouseY - (canvas.offsetTop + canvas.clientTop);
+};
+var main = function() {
+  initScreen();
+  var canvas = document.querySelector("#canvas");
+  var mousedown = false;
+  var onMouseDown = function(e) {
+    mousedown = true;
+  };
+  var onMouseUp = function(e) {
+    mousedown = false;
+  };
+  var onMouseMove = function(e) {
+    var x = getX(e.pageX, canvas);
+    var y = getY(e.pageY, canvas);
+    var lastPoint = canvas.dataset;
+    if (!mousedown) {
+      lastPoint.x = x;
+      lastPoint.y = y;
+      return;
+    }
+    canvasDraw(x, y, canvas);
+    lastPoint.x = x;
+    lastPoint.y = y;
+  };
+  addEventListener("mousedown", onMouseDown);
+  addEventListener("mouseup", onMouseUp);
+  addEventListener("mousemove", onMouseMove);
+};
+if (document.readyState === "complete") main();
+else addEventListener("load", main);
+</script>
+<title>Draw</title>
+<canvas id="canvas"></canvas>
