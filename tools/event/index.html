@@ -63,105 +63,55 @@ body {
 }
 /* ]]> */</style>
 <script>/* <![CDATA[ */
-if (!("target" in Event.prototype)) {
-  Object.defineProperty(Event.prototype, "target", {
-    get: function() {
-      return this.srcElement;
-    }
-  });
-}
-if (!window.addEventListener) {
-  Object.defineProperty(window, "addEventListener", {
-    get: function() {
-      return function(type, f) {
-        return this.attachEvent("on" + type, f);
-      };
-    }
-  });
-}
-if (!document.addEventListener) {
-  Object.defineProperty(document, "addEventListener", {
-    get: function() {
-      return window.addEventListener;
-    }
-  });
-}
-if (!Element.prototype.addEventListener) {
-  Object.defineProperty(Element.prototype, "addEventListener", {
-    get: function() {
-      return window.addEventListener;
-    }
-  });
-}
-if (!("textContent" in document.createElement("p"))) {
-  Object.defineProperty(Element.prototype, "textContent", {
-    get: function() { return this.innerText; },
-    set: function(s) { return this.innerText = s; }
-  });
-}
-if (!Array.prototype.forEach) {
-  Array.prototype.forEach = function(f) {
-    for (var i = 0, z = this.length; i < z; ++i) {
-      f(this[i], i, this);
-    }
-  };
-}
-if (!Array.prototype.map) {
-  Array.prototype.map = function(f) {
-    for (var a = [], i = 0, z = this.length; i < z; ++i) {
-      a[i] = f(this[i], i, this);
-    }
-    return a;
-  };
-}
-if (!Array.prototype.indexOf) {
-  Array.prototype.indexOf = function(v) {
-    for (var i = 0, z = this.length; i < z; ++i) {
-      if (this[i] === v) return i;
-    }
-    return -1;
-  };
-}
-if (!Array.prototype.some) {
-  Array.prototype.some = function(f) {
-    for (var i = 0, z = this.length; i < z; ++i) {
-      if (f(this[i], i, this)) return true;
-    }
-    return false;
-  };
-}
-/* ]]> */</script>
-<script>/* <![CDATA[ */
 "use strict";
 
-var EVENT_TYPES = {
-  DOM3: [
-"abort", "blur", "click", "compositionstart", "compositionupdate", "compositionend", "dblclick", "DOMActivate", "DOMAttributeNameChanged", "DOMAttrModified", "DOMCharacterDataModified", "DOMElementNameChanged", "DOMFocusIn", "DOMFocusOut", "DOMNodeInserted", "DOMNodeInsertedIntoDocument", "DOMNodeRemoved", "DOMNodeRemovedFromDocument", "DOMSubtreeModified", "error", "focus", "focusin", "focusout", "keydown", "keypress", "keyup", "load", "mousedown", "mouseenter", "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup", "resize", "scroll", "select", "textinput", "unload", "wheel"
-  ],
-  HTML5: [
-"abort", "afterprint", "beforeprint", "beforeunload", "blur", "cancel", "canplay", "canplaythrough", "change", "click", "close", "contextmenu", "cuechange", "dblclick", "drag", "dragend", "dragenter", "dragleave", "dragover", "dragstart", "drop", "durationchange", "emptied", "ended", "error", "focus", "hashchange", "input", "invalid", "keydown", "keypress", "keyup", "load", "loadeddata", "loadedmetadata", "loadstart", "message", "mousedown", "mousemove", "mouseout", "mouseover", "mouseup", "mousewheel", "offline", "online", "pagehide", "pageshow", "pause", "play", "playing", "popstate", "progress", "ratechange", "reset", "resize", "scroll", "seeked", "seeking", "select", "show", "stalled", "storage", "submit", "suspend", "timeupdate", "unload", "volumechange", "waiting", "contextmenu", "DOMContentLoaded", "offline", "online", "readystatechange"
-  ],
-  DOM: [
-  ]
+var EVENT_TYPES = { // http://www.w3.org/standards/techs/js
+
+  // http://www.w3.org/TR/html5/index.html#ix-event-handlers
+  HTML5: ["abort", "afterprint", "beforeprint", "beforeunload", "blur", "cancel", "canplay", "canplaythrough", "change", "click", "cuechange", "dblclick", "durationchange", "emptied", "ended", "error", "focus", "hashchange", "input", "invalid", "keydown", "keypress", "keyup", "load", "loadeddata", "loadedmetadata", "loadstart", "message", "mousedown", "mouseenter", "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup", "mousewheel", "offline", "online", "pagehide", "pageshow", "pause", "play", "playing", "popstate", "progress", "ratechange", "reset", "resize", "scroll", "seeked", "seeking", "select", "show", "stalled", "storage", "submit", "suspend", "timeupdate", "toggle", "unload", "volumechange", "waiting"],
+
+  // http://www.w3.org/TR/html5/index.html#events-0
+  // "This section is non-normative."
+  HTML5_non: ["abort", "afterprint", "beforeprint", "beforeunload", "blur", "change", "click", "DOMContentLoaded", "error", "focus", "hashchange", "input", "invalid", "load", "message", "offline", "online", "pagehide", "pageshow", "popstate", "readystatechange", "reset", "submit", "unload"],
+
+  HTML5_legacy: ["abort", "afterprint", "beforeprint", "beforeunload", "blur", "cancel", "canplay", "canplaythrough", "change", "click", "close", "contextmenu", "cuechange", "dblclick", "drag", "dragend", "dragenter", "dragleave", "dragover", "dragstart", "drop", "durationchange", "emptied", "ended", "error", "focus", "hashchange", "input", "invalid", "keydown", "keypress", "keyup", "load", "loadeddata", "loadedmetadata", "loadstart", "message", "mousedown", "mousemove", "mouseout", "mouseover", "mouseup", "mousewheel", "offline", "online", "pagehide", "pageshow", "pause", "play", "playing", "popstate", "progress", "ratechange", "reset", "resize", "scroll", "seeked", "seeking", "select", "show", "stalled", "storage", "submit", "suspend", "timeupdate", "unload", "volumechange", "waiting", "contextmenu", "DOMContentLoaded", "offline", "online", "readystatechange"],
+
+  // https://dvcs.w3.org/hg/dom3events/raw-file/tip/html/DOM3-Events.html
+  DOM3: ["DOMActivate", "DOMAttrModified", "DOMCharacterDataModified", "DOMFocusIn", "DOMFocusOut", "DOMNodeInserted", "DOMNodeInsertedIntoDocument", "DOMNodeRemoved", "DOMNodeRemovedFromDocument", "DOMSubtreeModified", "abort", "beforeinput", "blur", "click", "compositionend", "compositionstart", "compositionupdate", "dblclick", "error", "focus", "focusin", "focusout", "input", "keydown", "keypress", "keyup", "load", "mousedown", "mouseenter", "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup", "resize", "scroll", "select", "unload", "wheel", "zoom"],
+
+  DOM3_legacy: ["abort", "blur", "click", "compositionstart", "compositionupdate", "compositionend", "dblclick", "DOMActivate", "DOMAttributeNameChanged", "DOMAttrModified", "DOMCharacterDataModified", "DOMElementNameChanged", "DOMFocusIn", "DOMFocusOut", "DOMNodeInserted", "DOMNodeInsertedIntoDocument", "DOMNodeRemoved", "DOMNodeRemovedFromDocument", "DOMSubtreeModified", "error", "focus", "focusin", "focusout", "keydown", "keypress", "keyup", "load", "mousedown", "mouseenter", "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup", "resize", "scroll", "select", "textinput", "unload", "wheel"],
+
+  // http://www.w3.org/TR/touch-events/#list-of-touchevent-types
+  touch: ["touchstart", "touchend", "touchmove", "touchcancel"],
+
+  // http://www.w3.org/TR/progress-events/#suggested-names-for-events-using-the-progressevent-interface
+  progress: ["loadstart ", "progress ", "error ", "abort ", "load ", "loadend"],
+
+  // http://www.w3.org/TR/pointerevents/#list-of-pointer-events
+  pointer: ["pointerdown", "pointerup", "pointercancel", "pointermove", "pointerover", "pointerout", "pointerenter", "pointerleave", "gotpointercapture", "lostpointercapture"],
+
+  // http://www.w3.org/TR/proximity/
+  proximity: ["deviceproximity", "userproximity"],
+
+  // http://www.w3.org/TR/websockets/#the-websocket-interface
+  websocket: ["open", "message", "error", "close"],
+
+  // http://www.w3.org/TR/battery-status/#event-handlers
+  battery: ["chargingchange", "chargingtimechange", "dischargingtimechange", "levelchange"],
+
+  // http://www.w3.org/TR/ambient-light/#event-handlers
+  light: ["devicelight"]
 };
 
 var evlog = {};
 
-
-evlog.listenTypes = [];
-
-evlog.listenTypes.init = function() {
-  var listen_types = this;
-  var all_types = (
-    EVENT_TYPES.DOM3).concat(
-    EVENT_TYPES.HTML5).concat(
-    EVENT_TYPES.DOM).concat(
-    );
-  all_types.forEach(function(type) {
-    if (listen_types.indexOf(type) === -1) {
-      listen_types.push(type);
-    }
+evlog.listenTypes = new function() {
+  var all_types = [].concat.apply([],
+    Object.keys(EVENT_TYPES).map(function(i) { return EVENT_TYPES[i]; }));
+  all_types = all_types.sort().filter(function(item, i) {
+    return item !== all_types[i + 1];
   });
+  return all_types;
 };
 
 evlog.addEventListenerAll = function() {
@@ -270,7 +220,6 @@ evlog.init = function() {
 evlog.listener = "window";
 evlog.logsize = 50;
 
-evlog.listenTypes.init();
 evlog.addEventListenerAll();
 evlog.init();
 evlog.start();
