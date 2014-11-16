@@ -123,148 +123,34 @@ window.$testObj = {
   " u  n    d     ": void 0,
   "": null
 };
-var dom = {
-  id: function id(id) { return document.getElementById(id); },
-  q: function q(s) { return document.querySelector(s); },
-  qs: function qs(s) { return document.querySelectorAll(s); },
-  ce: function ce(s) { return document.createElement(s); },
-  ct: function ct(s) { return document.createTextNode(s); }
+delete window.$testObj;
+//"use strict";
+// Global vars
+var D, T, O, V, U, LS, Prop;
+
+// DOM Functions
+D = {
+  q: function(s) { return document.querySelector(s); },
+  qs: function(s) { return document.querySelectorAll(s); },
+  ce: function(s) { return document.createElement(s); },
+  cf: function() { return document.createDocumentFragment(); },
+  ct: function(s) { return document.createTextNode(s); }
 };
-var T = {
-  strify: function(value) {
-    try { return String(value); }
-    catch(e) {}
-    try { return Object.prototype.toString.call(value); }
-    catch(e) {}
-  }
+
+// TEXT Functions
+T = {};
+T.strify = function(value) {
+  try { return String(value); }
+  catch(e) {}
+  try { return Object.prototype.toString.call(value); }
+  catch(e) {}
 };
-function setMsg(s) {
-  var msg = dom.id("z-msg");
-  msg.textContent = s;
-}
-function setList(props) {
-  var list = dom.id("z-list");
-  var f = document.createDocumentFragment();
-  var i = 0, lim = props.length;
-  if (lim > 1000) {
-    lim = 1000;
-    setMsg("drawn " + lim + " items of " + props.length);
-  }
-  for (; i < lim; ++i) {
-    f.appendChild(props[i].toNode())
-  }
-  clearList();
-  list.appendChild(f);
-}
-function clearList() {
-  var list = dom.id("z-list");
-  while (list.hasChildNodes()) {
-    list.removeChild(list.lastChild);
-  }
-}
-function setCList(prop) {
-  var cname = dom.id("z-cname");
-  cname.textContent = prop.name;
-
-  var citem = dom.id("z-citem");
-  citem.className = "item " + prop.type;
-
-  var citype = dom.id("z-citype");
-  citype.textContent = prop.type;
-
-  var civalue = dom.id("z-civalue");
-  civalue.textContent = T.strify(prop.value);
-}
-function setAddress(path) {
-  var address = dom.id("z-address");
-  address.value = path;
-}
-function setPath(path) {
-  var cpath = dom.id("z-cpath");
-  cpath.textContent = path;
-}
-function MemoMap() {
-  if (!(this instanceof MemoMap)) return;
-  var keys = [];
-  var values = [];
-  this.get = function getValue(key) {
-    return values[keys.indexOf(key)];
-  };
-  this.has = function hasKey(key) {
-    return keys.indexOf(key) >= 0;
-  };
-  this.set = function setValue(key, value) {
-    var i = keys.indexOf(key);
-    if (i >= 0) {
-      values[i] = value;
-    } else {
-      keys.push(key);
-      values.push(value);
-    }
-    if (keys.length !== values.length) {
-      throw Error("MemoMap's keys or values are broken");
-    }
-  };
-}
-var mem = (function() {
-  var ram = {};
-  ram.prop = {};
-  ram.sort = new MemoMap;
-  return {
-    setSort: function(path, sorttype) {
-      ram.sort.set(path, sorttype);
-    },
-    getSort: function(path) {
-      return ram.sort.get(path);
-    },
-    setCurrentProps: function(props) {
-      ram.props = props;
-    },
-    getCurrentProps: function() {
-      return ram.props;
-    },
-    setCurrent: function(prop) {
-      ram.prop = prop;
-    },
-    getCurrent: function() {
-      return {
-        name: ram.prop.name,
-        type: ram.prop.type,
-        value: ram.prop.value,
-        path: ram.prop.path
-      };
-    }
-  };
-})();
-function getQuery() {
-  var sort = 0, path = "";
-  var h = location.hash.slice(1);
-  var qs = h.match(/^(?:(\d)?-)?([\S\s]*)$/);
-  if (qs) {
-    sort = +qs[1];
-    path = qs[2];
-    try { path = decodeURIComponent(path); } catch(e) {}
-  }
-  return {
-    sort: sort,
-    path: path
-  };
-}
-function setQuery(path, sort) {
-  location.hash = (sort ? sort + "-" : "") + encodeURIComponent(path);
-}
-function memberOp(key) {
-  // 0: . 1: [0] 2: ["0x1"]
-  try { eval("''." + key); return 0; } catch(e) {}
-  if (String(Number(key)) === key) return 1;
-  return 2;
-}
-function getDirs(path) {
-  function joinPath(path_arr) {
+T.parsePath = function(path) {
+  var joinPath = function(path_arr) {
     return path_arr.slice().map(function(d, i) {
       return (i === 0 || d[0] === "[") ? d : "." + d;
     }).join("");
-  }
+  };
   var re = /[^\s.\[]+|\[\s*[^"'\]\/\s]+\s*\]|\[\s*("|')(?:\\?[\S\s])*?\1\s*\]/g;
   var path_arr = path.match(re) || [""];
   var current = joinPath(path_arr);
@@ -276,8 +162,8 @@ function getDirs(path) {
     last: last
   };
   return dirs;
-}
-function escapeKey(key) {
+};
+T.escapeKey = function(key) {
   return key.replace(/[\S\s]/g, function(c) {
     var chr = {
       "\0": "\\0",
@@ -294,8 +180,207 @@ function escapeKey(key) {
     };
     return chr[c] || c;
   });
-}
-var Prop = function(name, value, path, type) {
+};
+
+// VIEW Functions
+V = {};
+V.drawPropsList = function(props) {
+  var list = D.q("#z-list");
+  var df = D.cf();
+  var MAX = 1000;
+  props.some(function(prop, i) {
+    if (i > MAX) return true;
+    df.appendChild(prop.toNode());
+  });
+  while (list.hasChildNodes()) {
+    list.removeChild(list.lastChild);
+  }
+  list.appendChild(df);
+  if (props.length > MAX) {
+    D.q("#z-msg").textContent = "drew " + MAX + " items of " + props.length;
+  }
+};
+V.drawCurrentProp = function(prop) {
+  D.q("#z-cname").textContent = prop.name;
+  D.q("#z-citem").className = "item " + prop.type;
+  D.q("#z-citype").textContent = prop.type;
+  D.q("#z-civalue").textContent = T.strify(prop.value);
+};
+V.openDir = function(prop) {
+  var props = prop.birthProps();
+  props.sortProps(LS.mem.getSort(prop.path));
+  LS.mem.setCurrent(prop);
+  LS.mem.setCurrentProps(props);
+  if (U.getQuery().path !== prop.path) U.setQuery(prop.path);
+  D.q("#z-msg").textContent = "";
+  D.q("#z-address").value = prop.path;
+  D.q("#z-cpath").textContent = prop.path;
+  V.drawCurrentProp(prop);
+  V.drawPropsList(props);
+  V.focusItem();
+};
+V.goPath = function(path) {
+  var prop = Prop.getProp(path);
+  if (prop) V.openDir(prop);
+};
+V.focusItem = function(key) {
+  if (typeof key === "string") {
+    [].some.call(D.qs(".iname"), function(e) {
+      if (e.textContent === key) {
+        e.classList.add("focus");
+        e.parentNode.scrollIntoView();
+        return true;
+      }
+    });
+  } else {
+    document.documentElement.scrollIntoView();
+  }
+};
+V.main = function() {
+  var address = D.q("#z-address");
+  var cup = D.q("#z-cup");
+  var cgo = D.q("#z-cgo");
+  var sort_type = D.q("#z-sort_type");
+  var sort_name = D.q("#z-sort_name");
+  var sort_value = D.q("#z-sort_value");
+  address.addEventListener("keypress", function(ev) {
+    switch (ev.keyCode) {
+    case 27:
+      address.value = LS.mem.getCurrent().path;
+      break;
+    case 13:
+      ev.preventDefault();
+      if (address.value !== LS.mem.getCurrent().path) V.goPath(address.value);
+      break;
+    }
+  });
+  cup.addEventListener("click", function() {
+    var cur_path = LS.mem.getCurrent().path;
+    var parent_path = T.parsePath(cur_path).parent || "window";
+    if (cur_path !== parent_path) V.goPath(parent_path);
+  });
+  cgo.addEventListener("click", function() {
+    V.goPath(address.value);
+  });
+  document.addEventListener("mousedown", function() {
+    var s = D.q(".focus");
+    if (s) s.classList.remove("focus");
+  });
+  sort_type.addEventListener("click", function() {
+    var props = LS.mem.getCurrentProps().sortProps("type");
+    LS.mem.setSort(LS.mem.getCurrent().path, "type");
+    V.drawPropsList(props);
+  });
+  sort_name.addEventListener("click", function() {
+    var props = LS.mem.getCurrentProps().sortProps("name");
+    LS.mem.setSort(LS.mem.getCurrent().path, "name");
+    V.drawPropsList(props);
+  });
+  sort_value.addEventListener("click", function() {
+    var props = LS.mem.getCurrentProps().sortProps("value");
+    LS.mem.setSort(LS.mem.getCurrent().path, "value");
+    V.drawPropsList(props);
+  });
+  cgo.addEventListener("dragover", function(e) {
+    e.preventDefault();
+  });
+  cgo.addEventListener("drop", function(ev) {
+    var fr = new FileReader;
+    fr.onload = function() {
+      var result;
+      try {
+        result = JSON.parse(fr.result);
+      } catch(err) {
+        result = fr.result;
+      }
+      var name = "_droppedFile_" + Date.now();
+      window[name] = result;
+      V.goPath("window." + name);
+    };
+    fr.readAsBinaryString(ev.dataTransfer.files[0]);
+  });
+  var h = U.getQuery().path;
+  V.goPath("window");
+  D.q("#z-address").value = h || "window";
+};
+
+// OBJECT Functions
+O = {};
+O.MemoMap = function() { "use strict";
+  var keys = [];
+  var values = [];
+  this.get = function(key) {
+    return values[keys.indexOf(key)];
+  };
+  this.has = function(key) {
+    return keys.indexOf(key) >= 0;
+  };
+  this.set = function(key, value) {
+    var i = keys.indexOf(key);
+    if (i >= 0) {
+      values[i] = value;
+    } else {
+      keys.push(key);
+      values.push(value);
+    }
+    if (keys.length !== values.length) {
+      throw Error("MemoMap's keys or values are broken");
+    }
+  };
+};
+
+// Load&Save Functions
+LS = {};
+LS.mem = new function() {
+  var ram = {};
+  ram.prop = {};
+  ram.sort = new O.MemoMap;
+  this.setSort = function(path, sorttype) {
+    ram.sort.set(path, sorttype);
+  };
+  this.getSort = function(path) {
+    return ram.sort.get(path);
+  };
+  this.setCurrentProps = function(props) {
+    ram.props = props;
+  };
+  this.getCurrentProps = function() {
+    return ram.props;
+  };
+  this.setCurrent = function(prop) {
+    ram.prop = prop;
+  };
+  this.getCurrent = function() {
+    return {
+      name: ram.prop.name,
+      type: ram.prop.type,
+      value: ram.prop.value,
+      path: ram.prop.path
+    };
+  };
+};
+
+// URL Functions
+U = {};
+U.getQuery = function() {
+  var sort = 0, path = "";
+  var qs = location.hash.slice(1).match(/^(?:(\d)?-)?([\S\s]*)$/);
+  if (qs) {
+    sort = +qs[1];
+    path = qs[2];
+    try { path = decodeURIComponent(path); } catch(e) {}
+  }
+  return {
+    sort: sort,
+    path: path
+  };
+};
+U.setQuery = function(path, sort) {
+  location.hash = (sort ? sort + "-" : "") + encodeURIComponent(path);
+};
+
+// PROP Functions
+Prop = function(name, value, path, type) {
   this.name = name;
   this.value = value;
   this.path = path;
@@ -306,12 +391,12 @@ var Prop = function(name, value, path, type) {
     typeof value;
 };
 Prop.getProp = function(path) {
-  var name = getDirs(path).last, value;
+  var name = T.parsePath(path).last, value;
   try { value = eval(path); } catch (e) { value = e; }
   return new Prop(name, value, path);
 };
 Prop.prototype.birth = function(key) {
-  var fixname = escapeKey(key);
+  var fixname = T.escapeKey(key);
   var name = fixname;
   var value;
   var type;
@@ -321,8 +406,16 @@ Prop.prototype.birth = function(key) {
     value = "";
     type = "unknown";
   }
+  // 0: . 1: [0] 2: ["0x1"]
+  var optype;
+  try {
+    eval("''." + key); optype = 0;
+  } catch(e) {
+    if (String(Number(key)) === key) optype = 1;
+    else optype = 2;
+  }
   var path;
-  switch (memberOp(key)) {
+  switch (optype) {
   case 0:
     path = this.path + "." + fixname;
     break;
@@ -410,17 +503,17 @@ Prop.sortProps = function sortProps(sorttype) {
     break;
   }
   return this;
-}
-Prop.prototype.toNode = function toNode() {
+};
+Prop.prototype.toNode = function() {
 /*
 <tr class="item">
   <td class="itype">number</td><td class="iname">length</td><td class="ivalue">30</td>
 */
   var prop = this;
-  var item = dom.ce("tr");
-  var itype = dom.ce("td");
-  var iname = dom.ce("td");
-  var ivalue = dom.ce("td");
+  var item = D.ce("tr");
+  var itype = D.ce("td");
+  var iname = D.ce("td");
+  var ivalue = D.ce("td");
 
   item.className = "item " + this.type;
   item.appendChild(itype);
@@ -428,133 +521,37 @@ Prop.prototype.toNode = function toNode() {
   item.appendChild(ivalue);
 
   itype.className = "itype"
-  itype.appendChild(dom.ct(this.type));
+  itype.appendChild(D.ct(this.type));
 
   iname.className = "iname";
-  iname.appendChild(dom.ct(this.name));
+  iname.appendChild(D.ct(this.name));
   this.type !== "unknown" && iname.addEventListener("click", function() {
-    openDir(prop);
+    V.openDir(prop);
   });
 
   ivalue.className = "ivalue";
   var value = T.strify(this.value).replace(/([\S\s]{140})[^]+/, "$1...");
-  ivalue.appendChild(dom.ct(value));
+  ivalue.appendChild(D.ct(value));
 
   return item;
 };
 Prop.prototype.toString = function toString() {
   return this.name;
 };
-function openDir(prop) {
-  var props = prop.birthProps();
-  props.sortProps(mem.getSort(prop.path));
-  mem.setCurrent(prop);
-  mem.setCurrentProps(props);
-  if (getQuery().path !== prop.path) setQuery(prop.path);
-  setMsg("");
-  setAddress(prop.path);
-  setPath(prop.path);
-  setCList(prop);
-  setList(props);
-  focusItem();
-}
-function goPath(path) {
-  var prop = Prop.getProp(path);
-  if (prop) openDir(prop);
-}
-function focusItem(key) {
-  if (typeof key === "string") {
-    [].some.call(dom.qs(".iname"), function(e) {
-      if (e.textContent === key) {
-        e.classList.add("focus");
-        e.parentNode.scrollIntoView();
-        return true;
-      }
-    });
-  } else {
-    document.documentElement.scrollIntoView();
-  }
-}
-function init() {
-  var address = dom.id("z-address");
-  var cup = dom.id("z-cup");
-  var cgo = dom.id("z-cgo");
-  var sort_type = dom.id("z-sort_type");
-  var sort_name = dom.id("z-sort_name");
-  var sort_value = dom.id("z-sort_value");
-  address.addEventListener("keypress", function(ev) {
-    switch (ev.keyCode) {
-    case 27:
-      address.value = mem.getCurrent().path;
-      break;
-    case 13:
-      ev.preventDefault();
-      if (address.value !== mem.getCurrent().path) goPath(address.value);
-      break;
-    }
-  });
-  cup.addEventListener("click", function() {
-    var cur_path = mem.getCurrent().path;
-    var parent_path = getDirs(cur_path).parent || "window";
-    if (cur_path !== parent_path) goPath(parent_path);
-  });
-  cgo.addEventListener("click", function() {
-    goPath(address.value);
-  });
-  document.addEventListener("mousedown", function() {
-    var s = dom.q(".focus");
-    if (s) s.classList.remove("focus");
-  });
-  sort_type.addEventListener("click", function() {
-    var props = mem.getCurrentProps().sortProps("type");
-    mem.setSort(mem.getCurrent().path, "type");
-    setList(props);
-  });
-  sort_name.addEventListener("click", function() {
-    var props = mem.getCurrentProps().sortProps("name");
-    mem.setSort(mem.getCurrent().path, "name");
-    setList(props);
-  });
-  sort_value.addEventListener("click", function() {
-    var props = mem.getCurrentProps().sortProps("value");
-    mem.setSort(mem.getCurrent().path, "value");
-    setList(props);
-  });
-  cgo.addEventListener("dragover", function(e) {
-    e.preventDefault();
-  });
-  cgo.addEventListener("drop", function(ev) {
-    var fr = new FileReader;
-    fr.onload = function() {
-      var result;
-      try {
-        result = JSON.parse(fr.result);
-      } catch(err) {
-        result = fr.result;
-      }
-      var name = "_droppedFile_" + Date.now();
-      window[name] = result;
-      goPath("window." + name);
-    };
-    fr.readAsBinaryString(ev.dataTransfer.files[0]);
-  });
-}
+
+// main
 addEventListener("hashchange", function() {
-  var que = getQuery();
-  var cur = mem.getCurrent();
+  var que = U.getQuery();
+  var cur = LS.mem.getCurrent();
   if (que.path !== cur.path) {
-    goPath(que.path);
-    if (que.path === getDirs(cur.path).parent) focusItem(cur.name);
+    V.goPath(que.path);
+    if (que.path === T.parsePath(cur.path).parent) V.focusItem(cur.name);
   }
 });
-addEventListener("load", function() {
-  init();
-  var h = getQuery().path;
-  goPath("window");
-  setAddress(h || "window");
-});
-})();
-</script>
+if (document.readyState === "complete") V.main();
+else addEventListener("load", V.main);
+
+})();</script>
 <title>JSObjTree v3.1</title>
 <nav><input id="z-address" value=""><button id="z-cup">up</button><button id="z-cgo">go</button><strong id="z-msg"></strong></nav>
 <h1 id="z-cname"> </h1>
