@@ -189,15 +189,16 @@ V.drawPropsList = function(props) {
   var df = D.cf();
   var MAX = 1000;
   props.some(function(prop, i) {
-    if (i > MAX) return true;
+    if (i + 1 > MAX) return true;
     df.appendChild(prop.toNode());
   });
   while (list.hasChildNodes()) {
     list.removeChild(list.lastChild);
   }
   list.appendChild(df);
-  if (props.length > MAX) {
-    D.q("#z-msg").textContent = "drew " + MAX + " items of " + props.length;
+  if (list.childNodes.length < props.length) {
+    D.q("#z-msg").textContent =
+      "drew " + list.childNodes.length + " items of " + props.length;
   }
 };
 V.drawCurrentProp = function(prop) {
@@ -457,8 +458,8 @@ Prop.prototype.birthProps = function() {
   props.sortProps = Prop.sortProps;
   return props;
 };
-Prop.sortProps = function sortProps(sorttype) {
-  function sort(p, q, k) {
+Prop.sortProps = function(sorttype) {
+  var sort = function(p, q, k) {
     var pv = T.strify(p[k]);
     var qv = T.strify(q[k]);
     var p_num = isFinite(Number(pv)) && String(Number(pv)) === pv;
@@ -473,7 +474,7 @@ Prop.sortProps = function sortProps(sorttype) {
     case 3:
       return pv - qv;
     }
-  }
+  };
   switch (sorttype) {
   case "type":
     this.sort(function(p, q) {
@@ -535,7 +536,7 @@ Prop.prototype.toNode = function() {
 
   return item;
 };
-Prop.prototype.toString = function toString() {
+Prop.prototype.toString = function() {
   return this.name;
 };
 
