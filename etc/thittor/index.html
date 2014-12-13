@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="und">
+<meta charset="utf-8">
+<style>
+body {
+  background: #eee;
+}
+ol, li, p, button {
+  margin: 0;
+  padding: 0;
+}
+#timeline {
+  list-style: none;
+  max-width: 400px;
+}
+#tweet_template {
+  display: none;
+}
+.tweet {
+  position: relative;
+  min-height: 48px;
+  margin-bottom: -1px;
+  padding: 10px;
+  padding-left: 70px;
+  border: 1px solid silver;
+  background: #fff;
+}
+.tweet.text {
+  white-space: pre-wrap;
+}
+.icon {
+  position: absolute;
+  left: 10px;
+  width: 48px;
+  height: 48px;
+}
+.name {
+  font-weight: bold;
+}
+.screen_name {
+  color: silver;
+  margin-left: 1ex;
+}
+.text {
+  margin: 1ex 0;
+}
+button.react {
+  border: 0;
+  background: transparent;
+  font-size: medium;
+}
+.react {
+  margin-right: 3ex;
+  cursor: pointer;
+  font-weight: bold;
+  color: silver;
+}
+.react.fav:hover {
+  color: #fa3;
+}
+.react.fuck:hover {
+  color: #f00;
+}
+.speak {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  font-size: small;
+  font-weight: bold;
+  color: #000;
+  text-shadow: 1px 1px #fff;
+}
+.speak[data-show="true"] {
+  display: block;
+}
+.speak[data-show="false"] {
+  display: none;
+}
+#speak {
+}
+</style>
+<script>
+var speaklist = {
+  fav: ["ありがとう", "わーい！", "やった＾＾", "Thank you", "YES", "おお！", "えへへ///", "うれしい"],
+  fuck: ["ごめんなさい", "ギャー！", "うわー！", "OH MY GOD!", "ウッ", "やめて＞＜", "痛い！", "えーん(泣)", "かなしい"]
+};
+var letters = "ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわをん！？　、。人間";
+
+// insert tweet to timeline automatic
+var tltimer = setInterval(function() {
+  var tweet_parent = document.querySelector("#timeline");
+  var tweet = document.querySelector("#tweet_template").cloneNode(true);
+  tweet.removeAttribute("id");
+  tweet.querySelector(".screen_name").textContent =
+    "@" + Math.random().toString(36).slice(5);
+  tweet.querySelector(".text").textContent =
+    Array(Math.random() * 100 + 2 | 0).join(".").replace(/./g, function() {
+      return letters[Math.random() * letters.length | 0];
+      return String.fromCharCode(0x3000 + (Math.random() * 255 | 0));
+    });
+  tweet_parent.insertBefore(tweet, tweet_parent.firstChild);
+}, 10000);
+
+// [stop timeline] button
+addEventListener("DOMContentLoaded", function() {
+  var btn = document.createElement("button");
+  btn.style.position = "absolute";
+  btn.style.top = "0";
+  btn.style.right = "0";
+  btn.textContent = "Fin";
+  btn.addEventListener("click", function() {
+    clearInterval(tltimer);
+    btn.disabled = true;
+  });
+  document.body.appendChild(btn);
+});
+
+// on click [star] or [fuck] button
+addEventListener("click", function(e) {
+  var tgt = e.target;
+  if (tgt.classList.contains("react")) {
+    // counter
+    tgt.textContent = tgt.textContent.replace(/\d+|$/, function(s) {
+      return +s + 1;
+    });
+    // icon speaking
+    var tweet = tgt.parentNode;
+    var icon = tweet.querySelector(".icon");
+    var speak_parent = tweet;
+    var speak = document.createElement("p");
+    [].forEach.call(tweet.querySelectorAll(".speak"), function(e) {
+      speak_parent.removeChild(e);
+    });
+    speak_parent.appendChild(speak);
+    speak.classList.add("speak");
+    speak.dataset.show = "true";
+    if (tgt.classList.contains("fav")) {
+      speak.classList.add("fav");
+      speak.textContent =
+        speaklist.fav[Math.random() * speaklist.fav.length | 0];
+    } else if (tgt.classList.contains("fuck")) {
+      speak.classList.add("fuck");
+      speak.textContent =
+        speaklist.fuck[Math.random() * speaklist.fuck.length | 0];
+    }
+    setTimeout(function() {
+      if (speak_parent.contains(speak)) {
+        speak_parent.removeChild(speak);
+      }
+    }, 1000);
+  }
+});
+</script>
+<title>Thittor</title>
+<ol id="timeline">
+<li class="tweet"><img class="icon" src="skull48.jpg" alt="💀"><span class="name">人間</span><span class="screen_name">@human*1</span><p class="text">こんにちは！人間です！</p><button class="react fav">★</button><button class="react fuck">☢</button></li>
+<li id="tweet_template" class="tweet"><img class="icon" src="skull48.jpg" alt="💀"><span class="name">人間</span><span class="screen_name">@human*</span><p class="text"></p><button class="react fav">★</button><button class="react fuck">☢</button></li>
+</ol>
+</html>
