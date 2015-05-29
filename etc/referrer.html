@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<title>Referrer</title>
+<p>Referrer is "<span id="refval"></span>"</p>
+<ul>
+<li><a href="" id="http">HTTP</a>
+<li><a href="" id="https">HTTPS</a>
+</ul>
+<script>
+var dom = {
+  id: function(id) { return document.getElementById(id); }
+};
+var refval = dom.id("refval");
+var http = dom.id("http");
+var https = dom.id("https");
+var url_noscheme = location.host + location.pathname;
+http.href = "http://" + url_noscheme;
+https.href = "https://" + url_noscheme;
+refval.textContent = document.referrer;
+</script>
