@@ -1,0 +1,45 @@
+h1, ul {
+  margin: 0;
+  padding: 0;
+}
+h1 {
+  font-size: medium;
+}
+li {
+  list-style: none;
+}
+body {
+  background: #f9f9f9;
+  font-family: monospace;
+}
+script {
+  display: block;
+  width: 10px;
+  height: 10px;
+  background: blue;
+}
+#json {
+  width: 100%;
+  height: 12em;
+  font-size: 12px;
+  display: none;
+}
+.gitfile {
+}
+.gitfile:hover {
+}
+.file {
+}
+.dir {
+  background: #eea;
+}
+a {
+  color: #00f;
+  text-decoration: none;
+}
+a:visited {
+  color: #66f;
+}
+a:hover {
+  text-decoration: underline;
+}
