@@ -172,6 +172,6 @@ addEventListener("load", function() {
 //
 if (location.search === "") {
   location.replace(location.href + "?" +
-    location.href.replace(/^(https?:\/\/[-a-zA-Z0-9]+\.github\.)com/, "$1io")
+    location.href.replace(/^(https?:\/\/[-a-zA-Z0-9]+\.github\.)io/, "$1com")
   );
 }
