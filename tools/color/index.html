@@ -1,9 +1,6 @@
 <!DOCTYPE html>
-<html lang="ja" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta charset="utf-8" />
-<title>Color Mixer</title>
-<style>/*<![CDATA[*/
+<meta charset="utf-8">
+<style>
 * {
   margin: 0;
   padding: 0;
@@ -51,41 +48,8 @@ th, td {
 .input.rrggbb {
   width: 8ex;
 }
-/*]]>*/</style>
-<script>//<![CDATA[
-if (!window.addEventListener) {
-  window.addEventListener = function(type, f) {
-    return this.attachEvent("on" + type, f);
-  };
-}
-if (!Element.prototype.addEventListener) {
-  Element.prototype.addEventListener = function() {
-    return window.addEventListener.apply(this, arguments);
-  };
-}
-if (!Array.prototype.forEach) {
-  Array.prototype.forEach = function(f) {
-    for (var i = 0; i < this.length; ++i) {
-      f(this[i], i, this);
-    }
-  };
-}
-if (!Array.prototype.map) {
-  Array.prototype.map = function(f) {
-    var a = [];
-    for (var i = 0; i < this.length; ++i) {
-      a[i] = f(this[i], i, this);
-    }
-    return a;
-  };
-}
-if (!window.getComputedStyle) {
-  window.getComputedStyle = function(el) {
-    return el.currentStyle;
-  };
-}
-//]]></script>
-<script>//<![CDATA[
+</style>
+<script>
 function rgb2hsl(R, G, B) {
   R /= 255;
   G /= 255;
@@ -159,18 +123,18 @@ function Slider(type, index, v_max, onSlide) {
   slider.min = 0;
   slider.max = v_max;
   slider.value = 0;
-  slider.addEventListener("change", function() {
+  slider.addEventListener("input", function() {
     that.onScroll.apply(that, arguments);
-  }, false);
+  });
 
   var input = document.createElement("input");
   input.className = "slider_input";
   input.addEventListener("input", function() {
     that.onInput.apply(that, arguments);
-  }, false);
+  });
   input.addEventListener("blur", function() {
     that.onBlur.apply(that, arguments);
-  }, false);
+  });
 
   document.getElementById(type + "_" + index + "_slider").appendChild(slider);
   document.getElementById(type + "_" + index + "_input").appendChild(input);
@@ -180,7 +144,6 @@ function Slider(type, index, v_max, onSlide) {
   this.type = type;
   this.index = index;
   this.v_max = v_max;
-  this.doEvent = true;
 }
 Slider.pool = {
   rgb: [],
@@ -191,10 +154,9 @@ Slider.prototype.getValue = function() {
   return now;
 };
 Slider.prototype.setValue = function(val_now, doEvent) {
-  this.doEvent = doEvent;
   this.slider.value = val_now;
   this.setInput(val_now);
-  if (this.doEvent) this.onScroll();
+  if (doEvent) this.onScroll();
 };
 Slider.prototype.setInput = function(value) {
   if (document.activeElement !== this.input) {
@@ -215,7 +177,7 @@ function pushHistory(rgb, hsl) {
     el.rgb[0].setValue(rgb[0], true);
     el.rgb[1].setValue(rgb[1], true);
     el.rgb[2].setValue(rgb[2], true);
-  }, false);
+  });
 
   history.appendChild(his);
   while (history.childNodes.length > 43) {
@@ -251,10 +213,6 @@ Slider.prototype.onSlide = function onSlide() {
   return isRGB ? [c1, c2] : [c2, c1];
 };
 Slider.prototype.onScroll = function onSliderScroll(evt) {
-  if (!this.doEvent) {
-    this.doEvent = true;
-    return;
-  }
   var data = this.onSlide();
   var col = {
     rgb: data[0],
@@ -282,10 +240,10 @@ function Input(type, index, v_max) {
   input.className = "input " + type;
   input.addEventListener("input", function() {
     that.onInput.apply(that, arguments);
-  }, false);
+  });
   input.addEventListener("blur", function() {
     that.onBlur.apply(that, arguments);
-  }, false);
+  });
 
   document.getElementById("rrggbb_input").appendChild(input);
 
@@ -332,10 +290,9 @@ addEventListener("load", function() {
   new Slider("hsl", 1, 100);
   new Slider("hsl", 2, 100);
   Slider.pool.rgb[1].setValue(255, true);
-}, false);
-//]]></script>
-</head>
-<body>
+});
+</script>
+<title>Color Mixer</title>
 <table>
 <tr><td colspan="3"><div id="colorbox"></div></td></tr>
 <tr><td colspan="3"><div id="history"></div></td></tr>
@@ -347,5 +304,3 @@ addEventListener("load", function() {
 <tr><th>L</th><td id="hsl_2_input"></td><td id="hsl_2_slider"></td></tr>
 <tr><th>#</th><td id="rrggbb_input" colspan="2"></td></tr>
 </table>
-</body>
-</html>
