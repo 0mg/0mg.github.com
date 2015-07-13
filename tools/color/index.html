@@ -37,16 +37,21 @@ th, td {
   font-weight: normal;
   padding: 1px;
 }
+th {
+  width: 2ex;
+  text-align: left;
+}
+th + td {
+  width: 5ex;
+}
+.slider_input {
+}
+.input.rrggbb {
+}
 .history_part {
   display: inline-block;
   width: 5px;
   height: 100%;
-}
-.slider_input {
-  width: 5ex;
-}
-.input.rrggbb {
-  width: 8ex;
 }
 </style>
 <script>
@@ -123,11 +128,22 @@ function Slider(type, index, v_max, onSlide) {
   slider.min = 0;
   slider.max = v_max;
   slider.value = 0;
+  var browserHasInputEvent = false;
+  slider.addEventListener("input", function fn(e) {
+    browserHasInputEvent = true;
+    e.target.removeEventListener(e.type, fn);
+  });
   slider.addEventListener("input", function() {
     that.onScroll.apply(that, arguments);
   });
+  slider.addEventListener("change", function() {
+    if (!browserHasInputEvent) {
+      that.onScroll.apply(that, arguments);
+    }
+  });
 
   var input = document.createElement("input");
+  input.size = "3";
   input.className = "slider_input";
   input.addEventListener("input", function() {
     that.onInput.apply(that, arguments);
@@ -237,6 +253,7 @@ function Input(type, index, v_max) {
   Input.pool[type][index] = this;
 
   var input = document.createElement("input");
+  input.size = "6";
   input.className = "input " + type;
   input.addEventListener("input", function() {
     that.onInput.apply(that, arguments);
