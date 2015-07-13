@@ -1,0 +1,179 @@
+<style>
+* {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background: #e0eeff url(tp.ico) fixed;
+}
+table#bitmap_canvas {
+  margin: 8px;
+  border: 4px outset white;
+  empty-cells: show;
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 512px;
+}
+table#bitmap_canvas td {
+  border: 1px solid rgba(0,0,0,.3);
+  width: 31px;
+  height: 32px;
+}
+</style>
+<script>
+var icon_header = [
+  "00 00 01 00 01 00 10 10 10 00 01 00 04 00 28 01",
+  "00 00 16 00 00 00 28 00 00 00 10 00 00 00 20 00",
+  "00 00 01 00 04 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+];
+var icon_palette = [
+  "00 00 00",
+  "00 00 80",
+  "00 80 00",
+  "00 80 80",
+  "80 00 00",
+  "80 00 80",
+  "80 80 00",
+  "80 80 80",
+  "C0 C0 C0",
+  "00 00 FF",
+  "00 FF 00",
+  "00 FF FF",
+  "FF 00 00",
+  "FF 00 FF",
+  "FF FF 00",
+  "FF FF FF"
+];
+var icon_bitmap = [
+  "BB 00 00 00 00 00 00 00",
+  "AA AA AA AA AA AA AA AA",
+  "CC CC CC CC CC CC CC CC",
+  "99 99 99 99 99 99 99 99",
+  "AA AA AA AA AA AA AA AA",
+  "CC CC CC CC CC CC CC CC",
+  "00 00 00 00 00 00 00 00",
+  "19 19 2A 2A 4C 4C BB BB",
+  "00 00 00 00 00 00 00 00",
+  "A0 AA AA AA AA AA AA AA",
+  "00 00 00 00 00 00 00 00",
+  "CC CC CC CC CC CC CC CC",
+  "00 00 00 00 00 00 00 00",
+  "FF FF FF FF FF FF FF FF",
+  "01 23 45 67 89 AB CD EF",
+  "CC CC CC CC CC CC CC CC"
+];
+var icon_transparent = [
+  "11 11",
+  "11 11",
+  "11 11",
+  "11 11",
+  "11 11",
+  "11 11",
+  "11 11",
+  "11 11",
+  "11 11",
+  "11 11",
+  "11 11",
+  "11 11",
+  "11 11",
+  "11 11",
+  "00 00",
+  "11 11"
+];
+var colors16 = icon_palette.map(function(e) {
+  return "#" + e.split(" ").reverse().join("");
+});
+colors16[16] = "transparent";
+var icon_table2 =
+  icon_header.concat(
+    icon_palette.map(function(e) { return e + " 00" })
+  ).concat(
+    icon_bitmap.reverse()
+  ).concat(
+    icon_transparent.map(function(e) { return e + " FF FF" }).reverse()
+  );
+var bufferify = function(table) {
+  var arr = [];
+  table.forEach(function(e) {
+    arr = arr.concat(e.split(/\s+/).map(function(chr) {
+      return parseInt(chr, 16);
+    }));
+  });
+  return arr.map(function(n) {
+    return String.fromCharCode(n);
+  }).join("");
+};
+var buf = bufferify(icon_table2);
+var cellmap = Array(16 * 16);
+var transparentmap = Array(16 * 16);
+var pencolor = 0x0;
+var paint = function(pos) {
+  cellmap[pos] = pencolor;
+  cellsall[pos].style.backgroundColor = colors16[pencolor];
+};
+var onCellClick = function(e) {
+  var cell = e.target;
+  var pos = cell.dataset.position;
+  paint(pos);
+};
+var onMouseMoveOnCell = function(e) {
+  if (!dragging) return;
+  var cell = e.target;
+  var pos = cell.dataset.position;
+  paint(pos);
+};
+var onClickPaletteColor = function(e) {
+  var pa = e.target;
+  pencolor = palette_map[pa.dataset.position];
+};
+var palette_map = [
+  0x0, 0xF, 0x10
+];
+var dragging = false;
+var cellsall = [];
+addEventListener("mousedown", function() {
+  dragging = true;
+});
+addEventListener("mouseup", function() {
+  dragging = false;
+});
+addEventListener("load", function() {
+  var tds = document.querySelector("#bitmap_canvas").querySelectorAll("td");
+  cellsall = [].slice.call(tds);
+  [].forEach.call(tds, function(td, i) {
+    td.addEventListener("mousedown", onCellClick);
+    td.addEventListener("mousemove", onMouseMoveOnCell);
+    td.dataset.position = i;
+  });
+  var pals = document.querySelector("#palette").querySelectorAll(".palcolor");
+  [].forEach.call(pals, function(pa, i) {
+    pa.dataset.position = i;
+    pa.addEventListener("click", onClickPaletteColor);
+  });
+});
+</script>
+<title>Favicon editor</title>
+<script>document.write("<img width=300 src=data:image/vnd.microsoft.icon;base64," + btoa(buf) + ">")</script>
+<table id="bitmap_canvas">
+<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
+<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
+<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
+<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
+<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
+<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
+<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
+<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
+<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
+<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
+<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
+<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
+<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
+<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
+<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
+</table>
+<div id="palette">
+<button class="palcolor" id="palette_0">BLACK</button>
+<button class="palcolor" id="palette_1">WHITE</button>
+<button class="palcolor" id="palette_2">Transparent</button>
+</div>
