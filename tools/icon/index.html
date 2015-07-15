@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <style>
-* {
-  margin: 0;
-  padding: 0;
-}
 body {
-  background: #e0eeff url(tp.ico) fixed;
+  background: #e0eeff;
+}
+button {
+  margin: 0;
+  line-height: 1;
 }
 table#bitmap_canvas {
-  margin: 8px;
   border: 4px outset white;
   empty-cells: show;
-  border-collapse: collapse;
-  table-layout: fixed;
   width: 512px;
+  table-layout: fixed;
+  border-collapse: collapse;
+  background: transparent url(tp.ico) fixed;
 }
 table#bitmap_canvas td {
   box-sizing: border-box;
@@ -25,6 +25,9 @@ table#bitmap_canvas td[data-brightness=fine] {
 }
 table#bitmap_canvas td[data-brightness=dark] {
   border: 1px solid rgba(255, 255, 255, .5);
+}
+#palette {
+  line-height: 0;
 }
 #palette .palcolor {
   display: inline-block;
@@ -121,27 +124,38 @@ var bufferify = function(table) {
 var buf = bufferify(icon_table2);
 </script>
 <script>
+// Image attr
+var IMG = {};
+IMG.width = 16;
+IMG.height = IMG.width;
+IMG.colors = 16;
 // Encoder & Decoder
-var ICON = {};
-ICON.header = [
-  "00 00 01 00 01 00 10 10 10 00 01 00 04 00 28 01",
-  "00 00 16 00 00 00 28 00 00 00 10 00 00 00 20 00",
-  "00 00 01 00 04 00 00 00 00 00 00 00 00 00 00 00",
-  "00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+var ICO = {};
+ICO.header = [
+  "00 00 01 00 01 00",
+  "10", // width
+  "10", // height
+  "10", // color count
+  "00", //reserved
+  "01 00", // color plane
+  "04 00", // 1px = ?bit
+  "28 01 00 00", // bitmap size
+  "16 00 00 00", // bitmap offset
+  // bitmap header
+  "28 00 00 00", // header size
+  "10 00 00 00", // bitmap width
+  "20 00 00 00", // bitmap height (xor+and)
+  "01 00", // color plane
+  "04 00", // 1px = ?bit
+  "00 00 00 00", // compression type
+  "00 00 00 00", // info size
+  "00 00 00 00", // horizontal dpi
+  "00 00 00 00", // vertical dpi
+  "00 00 00 00", // used palette count
+  "00 00 00 00" // important palette index
 ];
-ICON.bufferify = function(table) {
-  var arr = [];
-  table.forEach(function(e) {
-    arr = arr.concat(e.split(/\s+/).map(function(chr) {
-      return parseInt(chr, 16);
-    }));
-  });
-  return arr.map(function(n) {
-    return String.fromCharCode(n);
-  }).join("");
-};
-ICON.encode = function() {
-  var header = ICON.bufferify(ICON.header);
+ICO.encode = function() {
+  var header = UTIL.bufferify(ICO.header);
   var palette = [];
   M.palette.colors.forEach(function(e) {
     palette.push(e >> 0 & 0xff);
@@ -151,20 +165,20 @@ ICON.encode = function() {
   });
   var bitmap = [];
   var arr = M.bitmap.main.slice(), newarr = [];
-  for (var i = 0, n = 0; i < 256; ++i) {
+  for (var i = 0, n = 0; i < IMG.width * IMG.height; ++i) {
     n = n << 4 | arr[i];
     if (-~i % 2 === 0) {
       newarr.push(n);
       n = 0;
     }
-    if (-~i % 16 === 0) {
+    if (-~i % IMG.width === 0) {
       bitmap = newarr.concat(bitmap);
       newarr = [];
     }
   }
   var transparents = [];
   var arr = M.bitmap.transparents.slice(), newarr = [];
-  for (var i = 0, n = 0; i < 256; ++i) {
+  for (var i = 0, n = 0; i < IMG.width * IMG.height; ++i) {
     n = n << 1 | arr[i];
     if (-~i % 8 === 0) {
       newarr.push(n);
@@ -223,6 +237,10 @@ M.eraser = {
 M.currentPen = M.pen;
 // Model operators
 M.paint = function(pos) {
+  var old = {
+    bitmap: M.bitmap.main.slice(),
+    transparent: M.bitmap.transparents.slice()
+  };
   if (M.currentPen === M.pen) {
     M.bitmap.main[pos] = M.pen.color;
     M.bitmap.transparents[pos] = false;
@@ -231,6 +249,7 @@ M.paint = function(pos) {
   } else {
     alert("currently has no pen");
   }
+  return old;
 };
 
 // Utility
@@ -259,6 +278,17 @@ UTIL.rgb2hsl = function(R, G, B) {
   L = Math.round(L) | 0;
   return [H, S, L];
 };
+UTIL.bufferify = function(table) {
+  var arr = [];
+  table.forEach(function(e) {
+    arr = arr.concat(e.split(/\s+/).map(function(chr) {
+      return parseInt(chr, 16);
+    }));
+  });
+  return arr.map(function(n) {
+    return String.fromCharCode(n);
+  }).join("");
+};
 
 // DOM
 var V = {};
@@ -274,9 +304,13 @@ V.updateScreen = function() {
       td.style.backgroundColor = UTIL.rgb(color);
     }
     var hsl = color === "transparent" ? [0xff, 0xff, 0xff] :
-      UTIL.rgb2hsl(color & 0xff0000, color & 0x00ff00, color & 0x0000ff);
-    td.dataset.brightness = hsl[2] > 50 ? "fine" : "dark";
+      UTIL.rgb2hsl(color >> 16 & 0xff, color >> 8 & 0xff, color >> 0 & 0xff);
+    td.dataset.brightness = hsl[2] > 35 ? "fine" : "dark";
   });
+  // Opera 12.17 force re-rendering
+  var canvas = document.querySelector("#bitmap_canvas");
+  var s = getComputedStyle(canvas).listStyleType;
+  canvas.style.listStyle = s === "none" ? "disc" : "none";
 };
 // Canvas (drawing area : <td>s)
 V.canvas = {};
@@ -284,7 +318,7 @@ V.canvas.cells = [];
 V.canvas.onClick = function(e) {
   var cell = e.target;
   var pos = cell.dataset.position;
-  M.paint(pos);
+  var old = M.paint(pos);
   V.updateScreen();
 };
 V.canvas.onMouseMove = function(e) {
@@ -292,10 +326,10 @@ V.canvas.onMouseMove = function(e) {
 };
 V.canvas.init = function() {
   var tds = document.querySelector("#bitmap_canvas");
-  for (var h = 0; h < 16; ++h) {
+  for (var h = 0; h < IMG.height; ++h) {
     var tr = document.createElement("tr");
-    for (var w = 0; w < 16; ++w) {
-      var index = (h * 16) + w;
+    for (var w = 0; w < IMG.width; ++w) {
+      var index = (h * IMG.width) + w;
       var td = document.createElement("td");
       td.addEventListener("keypress", function(e) {
         if (e.key === "Enter") {
@@ -360,8 +394,8 @@ V.mouse.init = function() {
 };
 // Main
 addEventListener("load", function() {
-  for (var i = 0; i < 256; ++i) {
-    M.bitmap.main[i] = 0xF,
+  for (var i = 0; i < IMG.width * IMG.height; ++i) {
+    M.bitmap.main[i] = 0x0,
     M.bitmap.transparents[i] = true;
   }
   V.canvas.init();
@@ -372,9 +406,6 @@ addEventListener("load", function() {
 });
 </script>
 <title>Favicon editor</title>
-<script>//document.write("<img width=300 src=data:image/vnd.microsoft.icon;base64," + btoa(buf) + ">")</script>
-<!--p style="background:yellow">pen.color: <span id="pen_color_say"></span>, pen.transparent: <span id="pen_transparent_say"></span>, </p-->
 <table id="bitmap_canvas"></table>
 <div id="palette">
 </div>
-<!--button onclick="V.updateScreen(true)">YO</button-->
