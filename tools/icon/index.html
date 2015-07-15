@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <style>
 * {
   margin: 0;
@@ -15,9 +16,26 @@ table#bitmap_canvas {
   width: 512px;
 }
 table#bitmap_canvas td {
-  border: 1px solid rgba(0,0,0,.3);
-  width: 31px;
+  box-sizing: border-box;
+  width: 32px;
   height: 32px;
+}
+table#bitmap_canvas td[data-brightness=fine] {
+  border: 1px solid rgba(0, 0, 0, .5);
+}
+table#bitmap_canvas td[data-brightness=dark] {
+  border: 1px solid rgba(255, 255, 255, .5);
+}
+#palette .palcolor {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+}
+.eraser {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background: url(tp.ico);
 }
 </style>
 <script>
@@ -81,10 +99,6 @@ var icon_transparent = [
   "00 00",
   "11 11"
 ];
-var colors16 = icon_palette.map(function(e) {
-  return "#" + e.split(" ").reverse().join("");
-});
-colors16[16] = "transparent";
 var icon_table2 =
   icon_header.concat(
     icon_palette.map(function(e) { return e + " 00" })
@@ -105,75 +119,262 @@ var bufferify = function(table) {
   }).join("");
 };
 var buf = bufferify(icon_table2);
-var cellmap = Array(16 * 16);
-var transparentmap = Array(16 * 16);
-var pencolor = 0x0;
-var paint = function(pos) {
-  cellmap[pos] = pencolor;
-  cellsall[pos].style.backgroundColor = colors16[pencolor];
-};
-var onCellClick = function(e) {
-  var cell = e.target;
-  var pos = cell.dataset.position;
-  paint(pos);
-};
-var onMouseMoveOnCell = function(e) {
-  if (!dragging) return;
-  var cell = e.target;
-  var pos = cell.dataset.position;
-  paint(pos);
-};
-var onClickPaletteColor = function(e) {
-  var pa = e.target;
-  pencolor = palette_map[pa.dataset.position];
-};
-var palette_map = [
-  0x0, 0xF, 0x10
+</script>
+<script>
+// Encoder & Decoder
+var ICON = {};
+ICON.header = [
+  "00 00 01 00 01 00 10 10 10 00 01 00 04 00 28 01",
+  "00 00 16 00 00 00 28 00 00 00 10 00 00 00 20 00",
+  "00 00 01 00 04 00 00 00 00 00 00 00 00 00 00 00",
+  "00 00 00 00 00 00 00 00 00 00 00 00 00 00"
 ];
-var dragging = false;
-var cellsall = [];
-addEventListener("mousedown", function() {
-  dragging = true;
-});
-addEventListener("mouseup", function() {
-  dragging = false;
-});
-addEventListener("load", function() {
-  var tds = document.querySelector("#bitmap_canvas").querySelectorAll("td");
-  cellsall = [].slice.call(tds);
-  [].forEach.call(tds, function(td, i) {
-    td.addEventListener("mousedown", onCellClick);
-    td.addEventListener("mousemove", onMouseMoveOnCell);
-    td.dataset.position = i;
+ICON.bufferify = function(table) {
+  var arr = [];
+  table.forEach(function(e) {
+    arr = arr.concat(e.split(/\s+/).map(function(chr) {
+      return parseInt(chr, 16);
+    }));
   });
-  var pals = document.querySelector("#palette").querySelectorAll(".palcolor");
-  [].forEach.call(pals, function(pa, i) {
+  return arr.map(function(n) {
+    return String.fromCharCode(n);
+  }).join("");
+};
+ICON.encode = function() {
+  var header = ICON.bufferify(ICON.header);
+  var palette = [];
+  M.palette.colors.forEach(function(e) {
+    palette.push(e >> 0 & 0xff);
+    palette.push(e >> 8 & 0xff);
+    palette.push(e >> 16 & 0xff);
+    palette.push(0);
+  });
+  var bitmap = [];
+  var arr = M.bitmap.main.slice(), newarr = [];
+  for (var i = 0, n = 0; i < 256; ++i) {
+    n = n << 4 | arr[i];
+    if (-~i % 2 === 0) {
+      newarr.push(n);
+      n = 0;
+    }
+    if (-~i % 16 === 0) {
+      bitmap = newarr.concat(bitmap);
+      newarr = [];
+    }
+  }
+  var transparents = [];
+  var arr = M.bitmap.transparents.slice(), newarr = [];
+  for (var i = 0, n = 0; i < 256; ++i) {
+    n = n << 1 | arr[i];
+    if (-~i % 8 === 0) {
+      newarr.push(n);
+      n = 0;
+    }
+    if (-~i % 16 === 0) {
+      transparents = newarr.concat([0xff, 0xff]).concat(transparents);
+      newarr = [];
+    }
+  }
+  palette =
+    palette.map(function(e) { return String.fromCharCode(e); }).join("");
+  bitmap = bitmap.map(function(e) { return String.fromCharCode(e); }).join("");
+  transparents =
+    transparents.map(function(e) { return String.fromCharCode(e); }).join("");
+  return header + palette + bitmap + transparents;
+};
+// Model
+var M = {};
+// Palette
+M.palette = {};
+M.palette.colors = [
+  0x000000,
+  0x000080,
+  0x008000,
+  0x008080,
+  0x800000,
+  0x800080,
+  0x808000,
+  0x808080,
+  0xc0c0c0,
+  0x0000ff,
+  0x00ff00,
+  0x00ffff,
+  0xff0000,
+  0xff00ff,
+  0xffff00,
+  0xffffff
+];
+M.palette.sample = [
+  0x0, 0x8, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6,
+  0x7, 0xf, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe
+];
+// Bitmap & Transparent map
+M.bitmap = {};
+M.bitmap.main = [];
+M.bitmap.transparents = [];
+// Pen
+M.pen = {
+  color: M.palette.sample[0]
+};
+// Transparent Pen
+M.eraser = {
+};
+// Current pen
+M.currentPen = M.pen;
+// Model operators
+M.paint = function(pos) {
+  if (M.currentPen === M.pen) {
+    M.bitmap.main[pos] = M.pen.color;
+    M.bitmap.transparents[pos] = false;
+  } else if (M.currentPen === M.eraser) {
+    M.bitmap.transparents[pos] = true;
+  } else {
+    alert("currently has no pen");
+  }
+};
+
+// Utility
+var UTIL = {};
+UTIL.rgb = function(n) {
+  return "#" + ("00000" + n.toString(16)).slice(-6);
+};
+UTIL.rgb2hsl = function(R, G, B) {
+  R /= 255;
+  G /= 255;
+  B /= 255;
+  var max = Math.max(R, G, B);
+  var min = Math.min(R, G, B);
+  var c = max - min;
+  var h = max === R ? ((G - B) / c) % 6 :
+          max === G ? ((B - R) / c) + 2 :
+                      ((R - G) / c) + 4;
+  var H = 60 * h;
+  var L = (max + min) / 2;
+  var S = (L <= 1/2) ? c / (2 * L) : c / (2 - (2 * L));
+  H = (H + 360) % 360;
+  S *= 100;
+  L *= 100;
+  H = Math.round(H) | 0;
+  S = Math.round(S) | 0;
+  L = Math.round(L) | 0;
+  return [H, S, L];
+};
+
+// DOM
+var V = {};
+V.updateScreen = function() {
+  M.bitmap.main.forEach(function(cell, i) {
+    var td = V.canvas.cells[i];
+    var color;
+    if (M.bitmap.transparents[i]) {
+      color = "transparent";
+      td.style.backgroundColor = color;
+    } else {
+      color = M.palette.colors[cell];
+      td.style.backgroundColor = UTIL.rgb(color);
+    }
+    var hsl = color === "transparent" ? [0xff, 0xff, 0xff] :
+      UTIL.rgb2hsl(color & 0xff0000, color & 0x00ff00, color & 0x0000ff);
+    td.dataset.brightness = hsl[2] > 50 ? "fine" : "dark";
+  });
+};
+// Canvas (drawing area : <td>s)
+V.canvas = {};
+V.canvas.cells = [];
+V.canvas.onClick = function(e) {
+  var cell = e.target;
+  var pos = cell.dataset.position;
+  M.paint(pos);
+  V.updateScreen();
+};
+V.canvas.onMouseMove = function(e) {
+  if (V.mouse.dragging) V.canvas.onClick(e);
+};
+V.canvas.init = function() {
+  var tds = document.querySelector("#bitmap_canvas");
+  for (var h = 0; h < 16; ++h) {
+    var tr = document.createElement("tr");
+    for (var w = 0; w < 16; ++w) {
+      var index = (h * 16) + w;
+      var td = document.createElement("td");
+      td.addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+          V.canvas.onClick(e);
+        }
+      });
+      td.addEventListener("mousedown", V.canvas.onClick);
+      td.addEventListener("mouseenter", V.canvas.onMouseMove);
+      td.dataset.position = index;
+      tr.appendChild(td);
+      V.canvas.cells[index] = td;
+    }
+    tds.appendChild(tr);
+  }
+};
+// Palette (selection colors)
+V.palette = {};
+V.palette.onClickColor = function(e) {
+  var pa = e.target;
+  var color = M.palette.sample[pa.dataset.position];
+  M.currentPen = M.pen;
+  M.pen.color = color;
+};
+V.palette.init = function() {
+  [].forEach.call(M.palette.sample, function(pav, i) {
+    var pals = document.querySelector("#palette");
+    var pa = document.createElement("button");
+    pa.className = "palcolor";
+    pa.title = UTIL.rgb(M.palette.colors[pav]);
     pa.dataset.position = i;
-    pa.addEventListener("click", onClickPaletteColor);
+    pa.style.backgroundColor = UTIL.rgb(M.palette.colors[pav]);
+    pa.addEventListener("click", V.palette.onClickColor);
+    pals.appendChild(pa);
+    if (-~i % 8 === 0) {
+      pals.appendChild(document.createElement("br"));
+    }
   });
+};
+// Eraser
+V.eraser = {};
+V.eraser.onClick = function() {
+  M.currentPen = M.eraser;
+};
+V.eraser.init = function() {
+  var box = document.querySelector("#palette");
+  var btn = document.createElement("button");
+  btn.className = "eraser";
+  btn.title = "TRANSPARENT";
+  btn.addEventListener("click", V.eraser.onClick);
+  box.insertBefore(btn, box.childNodes[9]);
+};
+// Mouse (input device)
+V.mouse = {};
+V.mouse.dragging = false;
+V.mouse.init = function() {
+  addEventListener("mousedown", function() {
+    V.mouse.dragging = true;
+  });
+  addEventListener("mouseup", function() {
+    V.mouse.dragging = false;
+  });
+};
+// Main
+addEventListener("load", function() {
+  for (var i = 0; i < 256; ++i) {
+    M.bitmap.main[i] = 0xF,
+    M.bitmap.transparents[i] = true;
+  }
+  V.canvas.init();
+  V.palette.init();
+  V.eraser.init();
+  V.mouse.init();
+  V.updateScreen();
 });
 </script>
 <title>Favicon editor</title>
-<script>document.write("<img width=300 src=data:image/vnd.microsoft.icon;base64," + btoa(buf) + ">")</script>
-<table id="bitmap_canvas">
-<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
-<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
-<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
-<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
-<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
-<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
-<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
-<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
-<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
-<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
-<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
-<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
-<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
-<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
-<tr><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td><td>
-</table>
+<script>//document.write("<img width=300 src=data:image/vnd.microsoft.icon;base64," + btoa(buf) + ">")</script>
+<!--p style="background:yellow">pen.color: <span id="pen_color_say"></span>, pen.transparent: <span id="pen_transparent_say"></span>, </p-->
+<table id="bitmap_canvas"></table>
 <div id="palette">
-<button class="palcolor" id="palette_0">BLACK</button>
-<button class="palcolor" id="palette_1">WHITE</button>
-<button class="palcolor" id="palette_2">Transparent</button>
 </div>
+<!--button onclick="V.updateScreen(true)">YO</button-->
