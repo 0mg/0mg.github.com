@@ -7,26 +7,16 @@ button {
   margin: 0;
   line-height: 1;
 }
-table#bitmap_canvas {
-  border: 4px outset white;
-  empty-cells: show;
-  width: 512px;
-  table-layout: fixed;
-  border-collapse: collapse;
-  background: fixed;
+#bitmap_canvas {
+  border: 4px groove white;
 }
-table#bitmap_canvas, .eraser {
+#bitmap_canvas, .eraser {
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAMFBMVEUAAACAAAAAgACAgAAAAICAAIAAgIDAwMCAgID/AAAA/wD//wAAAP//AP8A//////9PEyZJAAAAEHRSTlP/AP//////////////////0XJbHgAAABdJREFUGJVj4IcCdihgGCABGAMmMUACANlbCwGIRk+3AAAAAElFTkSuQmCC");
 }
-table#bitmap_canvas td {
-  box-sizing: border-box;
-  width: 32px;
-  height: 32px;
-}
-table#bitmap_canvas td[data-brightness=fine] {
+#bitmap_canvas td[data-brightness=fine] {
   border: 1px solid rgba(0, 0, 0, .5);
 }
-table#bitmap_canvas td[data-brightness=dark] {
+#bitmap_canvas td[data-brightness=dark] {
   border: 1px solid rgba(255, 255, 255, .5);
 }
 #palette {
@@ -219,74 +209,66 @@ UTIL.bufferify = function(table) {
 // DOM
 var V = {};
 V.updateScreen = function() {
+  // draw to Canvas
   M.bitmap.main.forEach(function(cell, i) {
-    var td = V.canvas.cells[i];
+    var canvas = V.canvas.node;
+    var ctx = canvas.getContext("2d");
+    var x = i % IMG.height, y = i / IMG.height | 0;
+    var w = V.canvas.dot.width;
+    var dx = x * w, dy = y * w;
     var color;
     if (M.bitmap.transparents[i]) {
       color = "transparent";
-      td.style.backgroundColor = color;
+      ctx.clearRect(dx, dy, w, w);
     } else {
       color = M.palette.colors[cell];
-      td.style.backgroundColor = UTIL.rgb(color);
+      ctx.fillStyle = UTIL.rgb(color);
+      ctx.fillRect(dx, dy, w, w);
     }
     var hsl = color === "transparent" ? [0xff, 0xff, 0xff] :
       UTIL.rgb2hsl(color >> 16 & 0xff, color >> 8 & 0xff, color >> 0 & 0xff);
-    td.dataset.brightness = hsl[2] > 35 ? "fine" : "dark";
+    //td.dataset.brightness = hsl[2] > 35 ? "fine" : "dark";
   });
-  // Opera 12.17 force re-rendering
-  var canvas = document.querySelector("#bitmap_canvas");
-  var s = getComputedStyle(canvas).listStyleType;
-  canvas.style.listStyle = s === "none" ? "disc" : "none";
   // set PNG as background-image
-  var canv = document.createElement("canvas");
-  canv.width = IMG.width;
-  canv.height = IMG.height;
-  var ctx = canv.getContext("2d");
-  M.bitmap.main.forEach(function(cell, i) {
-    var x = i % IMG.height, y = i / IMG.height | 0;
-    if (M.bitmap.transparents[i]) {
-      ctx.clearRect(x, y, 1, 1);
-    } else {
-      var color = M.palette.colors[cell];
-      ctx.fillStyle = UTIL.rgb(color);
-      ctx.fillRect(x, y, 1, 1);
-    }
-  });
-  var img = canv.toDataURL();
+  var canvas = V.canvas.node;
+  var thumb = document.createElement("canvas");
+  thumb.width = IMG.width, thumb.height = IMG.height;
+  var ctx = thumb.getContext("2d");
+  ctx.drawImage(canvas, 0, 0, V.canvas.width, V.canvas.height,
+    0, 0, IMG.width, IMG.height);
+  var img = thumb.toDataURL();
   document.querySelector("#preview").style.backgroundImage = "url("+ img + ")";
 };
 // Canvas (drawing area : <td>s)
 V.canvas = {};
-V.canvas.cells = [];
+V.canvas.dot = {
+  width: 32
+};
+V.canvas.width = IMG.width * V.canvas.dot.width;
+V.canvas.height = IMG.height * V.canvas.dot.width;
+V.canvas.node = null;
 V.canvas.onClick = function(e) {
-  var cell = e.target;
-  var pos = cell.dataset.position;
-  var old = M.paint(pos);
+  var canvas = e.target;
+  var x = e.offsetX, y = e.offsetY;
+  if (x < 0 || y < 0) return;
+  if (x >= IMG.width * V.canvas.dot.width ||
+    y >= IMG.width * V.canvas.dot.height) return;
+  var dx = x / V.canvas.dot.width | 0;
+  var dy = y / V.canvas.dot.width | 0;
+  var pos = dx + dy * IMG.width;
+  M.paint(pos);
   V.updateScreen();
 };
 V.canvas.onMouseMove = function(e) {
   if (V.mouse.dragging) V.canvas.onClick(e);
 };
 V.canvas.init = function() {
-  var tds = document.querySelector("#bitmap_canvas");
-  for (var h = 0; h < IMG.height; ++h) {
-    var tr = document.createElement("tr");
-    for (var w = 0; w < IMG.width; ++w) {
-      var index = (h * IMG.width) + w;
-      var td = document.createElement("td");
-      td.addEventListener("keypress", function(e) {
-        if (e.key === "Enter") {
-          V.canvas.onClick(e);
-        }
-      });
-      td.addEventListener("mousedown", V.canvas.onClick);
-      td.addEventListener("mouseenter", V.canvas.onMouseMove);
-      td.dataset.position = index;
-      tr.appendChild(td);
-      V.canvas.cells[index] = td;
-    }
-    tds.appendChild(tr);
-  }
+  var canvas = document.querySelector("#bitmap_canvas");
+  canvas.width = V.canvas.dot.width * IMG.width;
+  canvas.height = V.canvas.dot.width * IMG.height;
+  canvas.addEventListener("mousedown", V.canvas.onClick);
+  canvas.addEventListener("mousemove", V.canvas.onMouseMove);
+  V.canvas.node = canvas;
 };
 // Palette (selection colors)
 V.palette = {};
@@ -362,5 +344,5 @@ addEventListener("load", function() {
 });
 </script>
 <title>Favicon editor</title>
-<table id="bitmap_canvas"></table>
+<canvas id="bitmap_canvas"></canvas>
 <div id="palette"></div>
