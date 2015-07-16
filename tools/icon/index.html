@@ -40,89 +40,13 @@ table#bitmap_canvas td[data-brightness=dark] {
   height: 32px;
   background: url(tp.ico);
 }
+#preview {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background: transparent 50% 50% no-repeat;
+}
 </style>
-<script>
-var icon_header = [
-  "00 00 01 00 01 00 10 10 10 00 01 00 04 00 28 01",
-  "00 00 16 00 00 00 28 00 00 00 10 00 00 00 20 00",
-  "00 00 01 00 04 00 00 00 00 00 00 00 00 00 00 00",
-  "00 00 00 00 00 00 00 00 00 00 00 00 00 00"
-];
-var icon_palette = [
-  "00 00 00",
-  "00 00 80",
-  "00 80 00",
-  "00 80 80",
-  "80 00 00",
-  "80 00 80",
-  "80 80 00",
-  "80 80 80",
-  "C0 C0 C0",
-  "00 00 FF",
-  "00 FF 00",
-  "00 FF FF",
-  "FF 00 00",
-  "FF 00 FF",
-  "FF FF 00",
-  "FF FF FF"
-];
-var icon_bitmap = [
-  "BB 00 00 00 00 00 00 00",
-  "AA AA AA AA AA AA AA AA",
-  "CC CC CC CC CC CC CC CC",
-  "99 99 99 99 99 99 99 99",
-  "AA AA AA AA AA AA AA AA",
-  "CC CC CC CC CC CC CC CC",
-  "00 00 00 00 00 00 00 00",
-  "19 19 2A 2A 4C 4C BB BB",
-  "00 00 00 00 00 00 00 00",
-  "A0 AA AA AA AA AA AA AA",
-  "00 00 00 00 00 00 00 00",
-  "CC CC CC CC CC CC CC CC",
-  "00 00 00 00 00 00 00 00",
-  "FF FF FF FF FF FF FF FF",
-  "01 23 45 67 89 AB CD EF",
-  "CC CC CC CC CC CC CC CC"
-];
-var icon_transparent = [
-  "11 11",
-  "11 11",
-  "11 11",
-  "11 11",
-  "11 11",
-  "11 11",
-  "11 11",
-  "11 11",
-  "11 11",
-  "11 11",
-  "11 11",
-  "11 11",
-  "11 11",
-  "11 11",
-  "00 00",
-  "11 11"
-];
-var icon_table2 =
-  icon_header.concat(
-    icon_palette.map(function(e) { return e + " 00" })
-  ).concat(
-    icon_bitmap.reverse()
-  ).concat(
-    icon_transparent.map(function(e) { return e + " FF FF" }).reverse()
-  );
-var bufferify = function(table) {
-  var arr = [];
-  table.forEach(function(e) {
-    arr = arr.concat(e.split(/\s+/).map(function(chr) {
-      return parseInt(chr, 16);
-    }));
-  });
-  return arr.map(function(n) {
-    return String.fromCharCode(n);
-  }).join("");
-};
-var buf = bufferify(icon_table2);
-</script>
 <script>
 // Image attr
 var IMG = {};
@@ -311,6 +235,23 @@ V.updateScreen = function() {
   var canvas = document.querySelector("#bitmap_canvas");
   var s = getComputedStyle(canvas).listStyleType;
   canvas.style.listStyle = s === "none" ? "disc" : "none";
+  // set PNG as background-image
+  var canv = document.createElement("canvas");
+  canv.width = IMG.width;
+  canv.height = IMG.height;
+  var ctx = canv.getContext("2d");
+  M.bitmap.main.forEach(function(cell, i) {
+    var x = i % IMG.height, y = i / IMG.height | 0;
+    if (M.bitmap.transparents[i]) {
+      ctx.clearRect(x, y, 1, 1);
+    } else {
+      var color = M.palette.colors[cell];
+      ctx.fillStyle = UTIL.rgb(color);
+      ctx.fillRect(x, y, 1, 1);
+    }
+  });
+  var img = canv.toDataURL();
+  document.querySelector("#preview").style.backgroundImage = "url("+ img + ")";
 };
 // Canvas (drawing area : <td>s)
 V.canvas = {};
@@ -379,7 +320,18 @@ V.eraser.init = function() {
   btn.className = "eraser";
   btn.title = "TRANSPARENT";
   btn.addEventListener("click", V.eraser.onClick);
-  box.insertBefore(btn, box.childNodes[9]);
+  box.insertBefore(btn, box.childNodes[8]);
+};
+// Preview
+V.preview = {};
+V.preview.init = function() {
+  var box = document.querySelector("#palette");
+  var thumb = document.createElement("button");
+  thumb.id = "preview";
+  thumb.addEventListener("click", function() {
+    open("data:image/x-icon;base64," + btoa(ICO.encode()));
+  });
+  box.replaceChild(thumb, box.lastChild);
 };
 // Mouse (input device)
 V.mouse = {};
@@ -401,11 +353,11 @@ addEventListener("load", function() {
   V.canvas.init();
   V.palette.init();
   V.eraser.init();
+  V.preview.init();
   V.mouse.init();
   V.updateScreen();
 });
 </script>
 <title>Favicon editor</title>
 <table id="bitmap_canvas"></table>
-<div id="palette">
-</div>
+<div id="palette"></div>
