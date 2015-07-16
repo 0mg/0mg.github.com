@@ -22,6 +22,7 @@ table#bitmap_canvas td {
   box-sizing: border-box;
   width: 32px;
   height: 32px;
+  border: 1px solid rgba(0, 0, 0, .5);
 }
 table#bitmap_canvas td[data-brightness=fine] {
   border: 1px solid rgba(0, 0, 0, .5);
@@ -164,8 +165,8 @@ M.currentPen = M.pen;
 // Model operators
 M.paint = function(pos) {
   var old = {
-    bitmap: M.bitmap.main.slice(),
-    transparent: M.bitmap.transparents.slice()
+    main: M.bitmap.main.slice(),
+    transparents: M.bitmap.transparents.slice()
   };
   if (M.currentPen === M.pen) {
     M.bitmap.main[pos] = M.pen.color;
@@ -218,8 +219,8 @@ UTIL.bufferify = function(table) {
 
 // DOM
 var V = {};
-V.updateScreen = function() {
-  M.bitmap.main.forEach(function(cell, i) {
+V.updateScreen = function(pos) {
+  var draw = function(cell, i) {
     var td = V.canvas.cells[i];
     var color;
     if (M.bitmap.transparents[i]) {
@@ -232,7 +233,12 @@ V.updateScreen = function() {
     var hsl = color === "transparent" ? [0xff, 0xff, 0xff] :
       UTIL.rgb2hsl(color >> 16 & 0xff, color >> 8 & 0xff, color >> 0 & 0xff);
     td.dataset.brightness = hsl[2] > 35 ? "fine" : "dark";
-  });
+  };
+  if (arguments.length) {
+    draw(M.bitmap.main[pos], pos);
+  } else {
+    M.bitmap.main.forEach(draw);
+  }
   // Opera 12.17 force re-rendering
   var canvas = document.querySelector("#bitmap_canvas");
   var s = getComputedStyle(canvas).listStyleType;
@@ -262,7 +268,7 @@ V.canvas.onClick = function(e) {
   var cell = e.target;
   var pos = cell.dataset.position;
   var old = M.paint(pos);
-  V.updateScreen();
+  V.updateScreen(pos);
 };
 V.canvas.onMouseMove = function(e) {
   if (V.mouse.dragging) V.canvas.onClick(e);
@@ -358,7 +364,6 @@ addEventListener("load", function() {
   V.eraser.init();
   V.preview.init();
   V.mouse.init();
-  V.updateScreen();
 });
 </script>
 <title>Favicon editor</title>
