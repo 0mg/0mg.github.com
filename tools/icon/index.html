@@ -285,6 +285,7 @@ V.canvas.init = function() {
           V.canvas.onClick(e);
         }
       });
+      td.addEventListener("touchstart", V.canvas.onClick);
       td.addEventListener("mousedown", V.canvas.onClick);
       td.addEventListener("mouseenter", V.canvas.onMouseMove);
       td.dataset.position = index;
