@@ -13,7 +13,10 @@ table#bitmap_canvas {
   width: 512px;
   table-layout: fixed;
   border-collapse: collapse;
-  background: transparent url(tp.ico) fixed;
+  background: fixed;
+}
+table#bitmap_canvas, .eraser {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAMFBMVEUAAACAAAAAgACAgAAAAICAAIAAgIDAwMCAgID/AAAA/wD//wAAAP//AP8A//////9PEyZJAAAAEHRSTlP/AP//////////////////0XJbHgAAABdJREFUGJVj4IcCdihgGCABGAMmMUACANlbCwGIRk+3AAAAAElFTkSuQmCC");
 }
 table#bitmap_canvas td {
   box-sizing: border-box;
@@ -38,7 +41,6 @@ table#bitmap_canvas td[data-brightness=dark] {
   display: inline-block;
   width: 32px;
   height: 32px;
-  background: url(tp.ico);
 }
 #preview {
   display: inline-block;
