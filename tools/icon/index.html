@@ -7,6 +7,9 @@ button {
   margin: 0;
   line-height: 1;
 }
+body {
+  display: flex;
+}
 table#bitmap_canvas {
   border: 4px outset white;
   empty-cells: show;
@@ -32,6 +35,10 @@ table#bitmap_canvas td[data-brightness=dark] {
 }
 #palette {
   line-height: 0;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  height: 256px;
 }
 #palette .palcolor {
   display: inline-block;
@@ -51,6 +58,10 @@ table#bitmap_canvas td[data-brightness=dark] {
 }
 </style>
 <script>
+// Const Value
+var C = {
+  ns: "icon_bHXoqQbK"
+};
 // Image attr
 var IMG = {};
 IMG.width = 16;
@@ -170,9 +181,9 @@ M.paint = function(pos) {
   };
   if (M.currentPen === M.pen) {
     M.bitmap.main[pos] = M.pen.color;
-    M.bitmap.transparents[pos] = false;
+    M.bitmap.transparents[pos] = 0;
   } else if (M.currentPen === M.eraser) {
-    M.bitmap.transparents[pos] = true;
+    M.bitmap.transparents[pos] = 1;
   } else {
     alert("currently has no pen");
   }
@@ -269,6 +280,7 @@ V.canvas.onClick = function(e) {
   var pos = cell.dataset.position;
   var old = M.paint(pos);
   V.updateScreen(pos);
+  localStorage[C.ns] = JSON.stringify(M.bitmap);
 };
 V.canvas.onMouseMove = function(e) {
   if (V.mouse.dragging) V.canvas.onClick(e);
@@ -313,9 +325,6 @@ V.palette.init = function() {
     pa.style.backgroundColor = UTIL.rgb(M.palette.colors[pav]);
     pa.addEventListener("click", V.palette.onClickColor);
     pals.appendChild(pa);
-    if (-~i % 8 === 0) {
-      pals.appendChild(document.createElement("br"));
-    }
   });
 };
 // Eraser
@@ -329,7 +338,7 @@ V.eraser.init = function() {
   btn.className = "eraser";
   btn.title = "TRANSPARENT";
   btn.addEventListener("click", V.eraser.onClick);
-  box.insertBefore(btn, box.childNodes[8]);
+  box.appendChild(btn, box.childNodes[8]);
 };
 // Preview
 V.preview = {};
@@ -341,7 +350,7 @@ V.preview.init = function() {
     open("data:text/html,<img src=\"data:image/vnd.microsoft.icon;base64," +
       btoa(ICO.encode()) + "\" width=\"500\">");
   });
-  box.replaceChild(thumb, box.lastChild);
+  box.appendChild(thumb);
 };
 // Mouse (input device)
 V.mouse = {};
@@ -358,13 +367,35 @@ V.mouse.init = function() {
 addEventListener("load", function() {
   for (var i = 0; i < IMG.width * IMG.height; ++i) {
     M.bitmap.main[i] = 0x0,
-    M.bitmap.transparents[i] = true;
+    M.bitmap.transparents[i] = 1;
+  }
+  var ls = localStorage[C.ns];
+  if (ls) {
+    try {
+      var json = JSON.parse(ls);
+      var x = json.main.length === IMG.width * IMG.height;
+      var y = json.transparents.length === IMG.width * IMG.height;
+      var a = json.main.every(function(e) {
+        return typeof e === "number" && e >= 0 && e < 0x10;
+      });
+      var b = json.transparents.every(function(e) {
+        return typeof e === "number" && e >= 0 && e <= 1;
+      });
+      if (x && y && a && b) {
+        M.bitmap = json;
+      } else {
+        delete localStorage[C.ns];
+      }
+    } catch (e) {
+      delete localStorage[C.ns];
+    }
   }
   V.canvas.init();
   V.palette.init();
   V.eraser.init();
   V.preview.init();
   V.mouse.init();
+  V.updateScreen();
 });
 </script>
 <title>Favicon editor</title>
