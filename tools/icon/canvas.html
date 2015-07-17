@@ -2,13 +2,21 @@
 <style>
 body {
   background: #e0eeff;
+  display: flex;
+}
+body > * {
+  flex: 0 0 auto;
+  position: relative;
 }
 button {
   margin: 0;
   line-height: 1;
 }
-#bitmap_canvas {
+#grid_canvas, #bitmap_canvas {
   border: 4px groove white;
+}
+#bitmap_canvas {
+  position: absolute;
 }
 #bitmap_canvas, .eraser {
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAMFBMVEUAAACAAAAAgACAgAAAAICAAIAAgIDAwMCAgID/AAAA/wD//wAAAP//AP8A//////9PEyZJAAAAEHRSTlP/AP//////////////////0XJbHgAAABdJREFUGJVj4IcCdihgGCABGAMmMUACANlbCwGIRk+3AAAAAElFTkSuQmCC");
@@ -21,6 +29,10 @@ button {
 }
 #palette {
   line-height: 0;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  height: 256px;
 }
 #palette .palcolor {
   display: inline-block;
@@ -40,6 +52,14 @@ button {
 }
 </style>
 <script>
+// IE
+if (!window.localStorage) {
+  Object.defineProperty(window, "localStorage", { value: {} });
+}
+// Const Value
+var C = {
+  ns: "icon_bHXoqQbK"
+};
 // Image attr
 var IMG = {};
 IMG.width = 16;
@@ -153,19 +173,14 @@ M.eraser = {
 M.currentPen = M.pen;
 // Model operators
 M.paint = function(pos) {
-  var old = {
-    bitmap: M.bitmap.main.slice(),
-    transparent: M.bitmap.transparents.slice()
-  };
   if (M.currentPen === M.pen) {
     M.bitmap.main[pos] = M.pen.color;
-    M.bitmap.transparents[pos] = false;
+    M.bitmap.transparents[pos] = 0;
   } else if (M.currentPen === M.eraser) {
-    M.bitmap.transparents[pos] = true;
+    M.bitmap.transparents[pos] = 1;
   } else {
     alert("currently has no pen");
   }
-  return old;
 };
 
 // Utility
@@ -208,9 +223,10 @@ UTIL.bufferify = function(table) {
 
 // DOM
 var V = {};
-V.updateScreen = function() {
+V.updateScreen = function(pos) {
   // draw to Canvas
-  M.bitmap.main.forEach(function(cell, i) {
+  var draw = function(cell, i) {
+    // paint cell
     var canvas = V.canvas.node;
     var ctx = canvas.getContext("2d");
     var x = i % IMG.height, y = i / IMG.height | 0;
@@ -225,10 +241,20 @@ V.updateScreen = function() {
       ctx.fillStyle = UTIL.rgb(color);
       ctx.fillRect(dx, dy, w, w);
     }
+    // draw grid
     var hsl = color === "transparent" ? [0xff, 0xff, 0xff] :
       UTIL.rgb2hsl(color >> 16 & 0xff, color >> 8 & 0xff, color >> 0 & 0xff);
-    //td.dataset.brightness = hsl[2] > 35 ? "fine" : "dark";
-  });
+    var grid = V.canvas.grid.node;
+    var ctx = grid.getContext("2d");
+    ctx.fillStyle = "hsla(0, 0%, " + (hsl[2] > 35 ? "20%" : "70%") + ", 1)";
+    ctx.fillRect(dx + w - 1, dy, 1, w);
+    ctx.fillRect(dx, dy + w - 1, w, 1);
+  };
+  if (arguments.length) {
+    draw(M.bitmap.main[pos], pos);
+  } else {
+    M.bitmap.main.forEach(draw);
+  }
   // set PNG as background-image
   var canvas = V.canvas.node;
   var thumb = document.createElement("canvas");
@@ -247,17 +273,22 @@ V.canvas.dot = {
 V.canvas.width = IMG.width * V.canvas.dot.width;
 V.canvas.height = IMG.height * V.canvas.dot.width;
 V.canvas.node = null;
+V.canvas.grid = {
+  node: null
+};
 V.canvas.onClick = function(e) {
+  e.preventDefault();
   var canvas = e.target;
   var x = e.offsetX, y = e.offsetY;
   if (x < 0 || y < 0) return;
   if (x >= IMG.width * V.canvas.dot.width ||
-    y >= IMG.width * V.canvas.dot.height) return;
+    y >= IMG.width * V.canvas.dot.width) return;
   var dx = x / V.canvas.dot.width | 0;
   var dy = y / V.canvas.dot.width | 0;
   var pos = dx + dy * IMG.width;
   M.paint(pos);
-  V.updateScreen();
+  V.updateScreen(pos);
+  localStorage[C.ns] = JSON.stringify(M.bitmap);
 };
 V.canvas.onMouseMove = function(e) {
   if (V.mouse.dragging) V.canvas.onClick(e);
@@ -266,9 +297,14 @@ V.canvas.init = function() {
   var canvas = document.querySelector("#bitmap_canvas");
   canvas.width = V.canvas.dot.width * IMG.width;
   canvas.height = V.canvas.dot.width * IMG.height;
-  canvas.addEventListener("mousedown", V.canvas.onClick);
-  canvas.addEventListener("mousemove", V.canvas.onMouseMove);
   V.canvas.node = canvas;
+  var grid = document.querySelector("#grid_canvas");
+  grid.width = canvas.width;
+  grid.height = canvas.height;
+  grid.addEventListener("touchstart", V.canvas.onClick);
+  grid.addEventListener("mousedown", V.canvas.onClick);
+  grid.addEventListener("mousemove", V.canvas.onMouseMove);
+  V.canvas.grid.node = grid;
 };
 // Palette (selection colors)
 V.palette = {};
@@ -288,9 +324,6 @@ V.palette.init = function() {
     pa.style.backgroundColor = UTIL.rgb(M.palette.colors[pav]);
     pa.addEventListener("click", V.palette.onClickColor);
     pals.appendChild(pa);
-    if (-~i % 8 === 0) {
-      pals.appendChild(document.createElement("br"));
-    }
   });
 };
 // Eraser
@@ -304,7 +337,7 @@ V.eraser.init = function() {
   btn.className = "eraser";
   btn.title = "TRANSPARENT";
   btn.addEventListener("click", V.eraser.onClick);
-  box.insertBefore(btn, box.childNodes[8]);
+  box.appendChild(btn);
 };
 // Preview
 V.preview = {};
@@ -316,7 +349,7 @@ V.preview.init = function() {
     open("data:text/html,<img src=\"data:image/vnd.microsoft.icon;base64," +
       btoa(ICO.encode()) + "\" width=\"500\">");
   });
-  box.replaceChild(thumb, box.lastChild);
+  box.appendChild(thumb);
 };
 // Mouse (input device)
 V.mouse = {};
@@ -333,7 +366,28 @@ V.mouse.init = function() {
 addEventListener("load", function() {
   for (var i = 0; i < IMG.width * IMG.height; ++i) {
     M.bitmap.main[i] = 0x0,
-    M.bitmap.transparents[i] = true;
+    M.bitmap.transparents[i] = 1;
+  }
+  var ls = localStorage[C.ns];
+  if (ls) {
+    try {
+      var json = JSON.parse(ls);
+      var x = json.main.length === IMG.width * IMG.height;
+      var y = json.transparents.length === IMG.width * IMG.height;
+      var a = json.main.every(function(e) {
+        return typeof e === "number" && e >= 0 && e < 0x10;
+      });
+      var b = json.transparents.every(function(e) {
+        return typeof e === "number" && e >= 0 && e <= 1;
+      });
+      if (x && y && a && b) {
+        M.bitmap = json;
+      } else {
+        delete localStorage[C.ns];
+      }
+    } catch (e) {
+      delete localStorage[C.ns];
+    }
   }
   V.canvas.init();
   V.palette.init();
@@ -345,4 +399,5 @@ addEventListener("load", function() {
 </script>
 <title>Favicon editor</title>
 <canvas id="bitmap_canvas"></canvas>
+<canvas id="grid_canvas"></canvas>
 <div id="palette"></div>
