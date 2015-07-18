@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<meta charset="utf-8">
 <style>
 body {
   background: #e0eeff;
@@ -10,16 +11,28 @@ body > * {
 }
 button {
   margin: 0;
+  padding: 0;
   line-height: 1;
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background: #fff;
 }
 #grid_canvas, #bitmap_canvas {
+  position: absolute;
   border: 4px groove white;
 }
+#canvas_folder {
+  position: relative;
+  width: 520px;
+  height: 520px;
+}
 #bitmap_canvas {
-  position: absolute;
+}
+#grid_canvas {
 }
 #bitmap_canvas, .eraser {
-  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAMFBMVEUAAACAAAAAgACAgAAAAICAAIAAgIDAwMCAgID/AAAA/wD//wAAAP//AP8A//////9PEyZJAAAAEHRSTlP/AP//////////////////0XJbHgAAABdJREFUGJVj4IcCdihgGCABGAMmMUACANlbCwGIRk+3AAAAAElFTkSuQmCC");
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAMFBMVEUAAACAAAAAgACAgAAAAICAAIAAgIDAwMCAgID/AAAA/wD//wAAAP//AP8A//////9PEyZJAAAAFklEQVQI12P4DwTlQMBAIQNEgDgUMgBOFl2BstM1QwAAAABJRU5ErkJggg==");
 }
 #bitmap_canvas td[data-brightness=fine] {
   border: 1px solid rgba(0, 0, 0, .5);
@@ -35,20 +48,17 @@ button {
   height: 256px;
 }
 #palette .palcolor {
-  display: inline-block;
-  width: 32px;
-  height: 32px;
 }
 .eraser {
-  display: inline-block;
-  width: 32px;
-  height: 32px;
 }
 #preview {
-  display: inline-block;
-  width: 32px;
-  height: 32px;
   background: transparent 50% 50% no-repeat;
+}
+#grid_switch {
+  background: #fff url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEUAAAAAAIBI3zrvAAAAAnRSTlP/AOW3MEoAAAARSURBVAjXY2BgYKi+h0CEuACCDRAtPbvpnwAAAABJRU5ErkJggg==") 50% 50% no-repeat;
+}
+#clear_canvas_btn {
+  font-size: 20px;
 }
 </style>
 <script>
@@ -155,8 +165,8 @@ M.palette.colors = [
   0xffffff
 ];
 M.palette.sample = [
-  0x0, 0x8, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6,
-  0x7, 0xf, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe
+  0x0, 0x7, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6,
+  0xf, 0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe
 ];
 // Bitmap & Transparent map
 M.bitmap = {};
@@ -177,6 +187,7 @@ M.paint = function(pos) {
     M.bitmap.main[pos] = M.pen.color;
     M.bitmap.transparents[pos] = 0;
   } else if (M.currentPen === M.eraser) {
+    M.bitmap.main[pos] = 0x0;
     M.bitmap.transparents[pos] = 1;
   } else {
     alert("currently has no pen");
@@ -301,10 +312,11 @@ V.canvas.init = function() {
   var grid = document.querySelector("#grid_canvas");
   grid.width = canvas.width;
   grid.height = canvas.height;
-  grid.addEventListener("touchstart", V.canvas.onClick);
-  grid.addEventListener("mousedown", V.canvas.onClick);
-  grid.addEventListener("mousemove", V.canvas.onMouseMove);
   V.canvas.grid.node = grid;
+  var folder = document.querySelector("#canvas_folder");
+  folder.addEventListener("touchstart", V.canvas.onClick);
+  folder.addEventListener("mousedown", V.canvas.onClick);
+  folder.addEventListener("mousemove", V.canvas.onMouseMove);
 };
 // Palette (selection colors)
 V.palette = {};
@@ -351,6 +363,51 @@ V.preview.init = function() {
   });
   box.appendChild(thumb);
 };
+// Buttons (brid on/off..)
+V.control = {};
+V.control.init = function() {
+  var box = document.querySelector("#palette");
+  var grid = document.querySelector("#grid_canvas");
+  // Grid on/off
+  var gridbtn = document.createElement("button");
+  gridbtn.id = "grid_switch";
+  gridbtn.addEventListener("click", function() {
+    grid.hidden = !grid.hidden;
+  });
+  var reset = document.createElement("button");
+  reset.id = "clear_canvas_btn";
+  reset.textContent = "\u2718";
+  reset.addEventListener("click", function() {
+    if (confirm("sure?")) {
+      for (var i = 0; i < IMG.width * IMG.height; ++i) {
+        M.bitmap.main[i] = 0x0,
+        M.bitmap.transparents[i] = 1;
+      }
+    }
+    V.updateScreen();
+  });
+  // Clear canvas
+  var reset = document.createElement("button");
+  reset.id = "clear_canvas_btn";
+  reset.textContent = "\u2718";
+  reset.addEventListener("click", function() {
+    if (confirm("sure?")) {
+      for (var i = 0; i < IMG.width * IMG.height; ++i) {
+        M.bitmap.main[i] = 0x0,
+        M.bitmap.transparents[i] = 1;
+      }
+    }
+    V.updateScreen();
+  });
+  // Move canvas left
+  var left = document.createElement("button");
+  left.id = "left_canvas_btn";
+  left.textContent = "-";
+  left.addEventListener("click", function() {
+  });
+  box.appendChild(gridbtn);
+  box.appendChild(reset);
+};
 // Mouse (input device)
 V.mouse = {};
 V.mouse.dragging = false;
@@ -393,11 +450,14 @@ addEventListener("load", function() {
   V.palette.init();
   V.eraser.init();
   V.preview.init();
+  V.control.init();
   V.mouse.init();
   V.updateScreen();
 });
 </script>
 <title>Favicon editor</title>
-<canvas id="bitmap_canvas"></canvas>
-<canvas id="grid_canvas"></canvas>
+<div id="canvas_folder">
+  <canvas id="bitmap_canvas"></canvas>
+  <canvas id="grid_canvas"></canvas>
+</div>
 <div id="palette"></div>
