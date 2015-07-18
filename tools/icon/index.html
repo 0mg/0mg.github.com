@@ -434,6 +434,17 @@ V.control.init = function() {
       localStorage[C.ns] = JSON.stringify(M.bitmap);
     }
   });
+  // move down
+  var down = document.createElement("button");
+  down.id = "movedown";
+  down.textContent = "v";
+  down.addEventListener("click", function() {
+    M.bitmap.main = M.bitmap.main.splice(-IMG.width).concat(M.bitmap.main);
+    M.bitmap.transparents =
+      M.bitmap.transparents.splice(-IMG.width).concat(M.bitmap.transparents);
+    V.updateScreen();
+  });
+  box.appendChild(down);
   box.appendChild(back);
   box.appendChild(fwd);
   box.appendChild(gridbtn);
