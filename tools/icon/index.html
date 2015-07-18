@@ -181,6 +181,11 @@ M.eraser = {
 };
 // Current pen
 M.currentPen = M.pen;
+// History
+M.history = {
+  data: [],
+  index: -1
+};
 // Model operators
 M.paint = function(pos) {
   if (M.currentPen === M.pen) {
@@ -288,6 +293,7 @@ V.canvas.grid = {
   node: null
 };
 V.canvas.onClick = function(e) {
+  V.mouse.drawn = true;
   e.preventDefault();
   var canvas = e.target;
   var x = e.offsetX, y = e.offsetY;
@@ -299,7 +305,6 @@ V.canvas.onClick = function(e) {
   var pos = dx + dy * IMG.width;
   M.paint(pos);
   V.updateScreen(pos);
-  localStorage[C.ns] = JSON.stringify(M.bitmap);
 };
 V.canvas.onMouseMove = function(e) {
   if (V.mouse.dragging) V.canvas.onClick(e);
@@ -399,24 +404,61 @@ V.control.init = function() {
     }
     V.updateScreen();
   });
-  // Move canvas left
-  var left = document.createElement("button");
-  left.id = "left_canvas_btn";
-  left.textContent = "-";
-  left.addEventListener("click", function() {
+  // History back
+  var back = document.createElement("button");
+  back.id = "back";
+  back.textContent = "<";
+  back.addEventListener("click", function() {
+    if (M.history.index > 0) {
+      M.history.index--;
+      M.bitmap.main = M.history.data[M.history.index].main.slice();
+      M.bitmap.transparents =
+        M.history.data[M.history.index].transparents.slice();
+      document.title = [M.history.index];
+      V.updateScreen();
+      localStorage[C.ns] = JSON.stringify(M.bitmap);
+    }
   });
+  // History forward
+  var fwd = document.createElement("button");
+  fwd.id = "forward";
+  fwd.textContent = ">";
+  fwd.addEventListener("click", function() {
+    if (M.history.index < M.history.data.length - 1) {
+      M.history.index++;
+      M.bitmap.main = M.history.data[M.history.index].main.slice();
+      M.bitmap.transparents =
+        M.history.data[M.history.index].transparents.slice();
+      document.title = [M.history.index];
+      V.updateScreen();
+      localStorage[C.ns] = JSON.stringify(M.bitmap);
+    }
+  });
+  box.appendChild(back);
+  box.appendChild(fwd);
   box.appendChild(gridbtn);
   box.appendChild(reset);
 };
 // Mouse (input device)
 V.mouse = {};
 V.mouse.dragging = false;
+V.mouse.drawn = false;
 V.mouse.init = function() {
   addEventListener("mousedown", function() {
     V.mouse.dragging = true;
   });
   addEventListener("mouseup", function() {
     V.mouse.dragging = false;
+    if (V.mouse.drawn) {
+      V.mouse.drawn = false;
+      M.history.data[++M.history.index] = {
+        main: M.bitmap.main.slice(),
+        transparents: M.bitmap.transparents.slice()
+      };
+      M.history.data.length = M.history.index + 1;
+      document.title = [M.history.index];
+      localStorage[C.ns] = JSON.stringify(M.bitmap);
+    }
   });
 };
 // Main
@@ -446,6 +488,11 @@ addEventListener("load", function() {
       delete localStorage[C.ns];
     }
   }
+  M.history.data[0] = {
+    main: M.bitmap.main.slice(),
+    transparents: M.bitmap.transparents.slice()
+  };
+  M.history.index = 0;
   V.canvas.init();
   V.palette.init();
   V.eraser.init();
