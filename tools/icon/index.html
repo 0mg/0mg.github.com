@@ -16,7 +16,11 @@ button {
   display: inline-block;
   width: 32px;
   height: 32px;
-  background: #fff;
+  background: #fff 50% 50% no-repeat;
+  font-size: 20px;
+}
+button:disabled {
+  opacity: 0.5;
 }
 #grid_canvas, #bitmap_canvas {
   position: absolute;
@@ -27,18 +31,8 @@ button {
   width: 520px;
   height: 520px;
 }
-#bitmap_canvas {
-}
-#grid_canvas {
-}
-#bitmap_canvas, .eraser {
+#bitmap_canvas, #eraser {
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAMFBMVEUAAACAAAAAgACAgAAAAICAAIAAgIDAwMCAgID/AAAA/wD//wAAAP//AP8A//////9PEyZJAAAAFklEQVQI12P4DwTlQMBAIQNEgDgUMgBOFl2BstM1QwAAAABJRU5ErkJggg==");
-}
-#bitmap_canvas td[data-brightness=fine] {
-  border: 1px solid rgba(0, 0, 0, .5);
-}
-#bitmap_canvas td[data-brightness=dark] {
-  border: 1px solid rgba(255, 255, 255, .5);
 }
 #palette {
   line-height: 0;
@@ -47,18 +41,11 @@ button {
   flex-wrap: wrap;
   height: 256px;
 }
-#palette .palcolor {
-}
-.eraser {
-}
-#preview {
-  background: transparent 50% 50% no-repeat;
-}
 #grid_switch {
-  background: #fff url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEUAAAAAAIBI3zrvAAAAAnRSTlP/AOW3MEoAAAARSURBVAjXY2BgYKi+h0CEuACCDRAtPbvpnwAAAABJRU5ErkJggg==") 50% 50% no-repeat;
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEUAAAAAAIBI3zrvAAAAAnRSTlP/AOW3MEoAAAARSURBVAjXY2BgYKi+h0CEuACCDRAtPbvpnwAAAABJRU5ErkJggg==");
 }
-#clear_canvas_btn {
-  font-size: 20px;
+#eraser {
+  background-repeat: repeat;
 }
 </style>
 <script>
@@ -319,7 +306,6 @@ V.canvas.init = function() {
   grid.height = canvas.height;
   V.canvas.grid.node = grid;
   var folder = document.querySelector("#canvas_folder");
-  folder.addEventListener("touchstart", V.canvas.onClick);
   folder.addEventListener("mousedown", V.canvas.onClick);
   folder.addEventListener("mousemove", V.canvas.onMouseMove);
 };
@@ -351,7 +337,7 @@ V.eraser.onClick = function() {
 V.eraser.init = function() {
   var box = document.querySelector("#palette");
   var btn = document.createElement("button");
-  btn.className = "eraser";
+  btn.id = "eraser";
   btn.title = "TRANSPARENT";
   btn.addEventListener("click", V.eraser.onClick);
   box.appendChild(btn);
@@ -407,44 +393,42 @@ V.control.init = function() {
   // History back
   var back = document.createElement("button");
   back.id = "back";
-  back.textContent = "<";
+  back.textContent = "\u2baa";
   back.addEventListener("click", function() {
     if (M.history.index > 0) {
       M.history.index--;
-      M.bitmap.main = M.history.data[M.history.index].main.slice();
-      M.bitmap.transparents =
-        M.history.data[M.history.index].transparents.slice();
+      M.bitmap =
+        JSON.parse(JSON.stringify(M.history.data[M.history.index]));
       document.title = [M.history.index];
       V.updateScreen();
       localStorage[C.ns] = JSON.stringify(M.bitmap);
+      if (M.history.index <= 0) {
+        back.disabled = true;
+      }
+      fwd.disabled = false;
     }
   });
+  back.disabled = true;
   // History forward
   var fwd = document.createElement("button");
   fwd.id = "forward";
-  fwd.textContent = ">";
+  fwd.textContent = "\u2bab";
   fwd.addEventListener("click", function() {
     if (M.history.index < M.history.data.length - 1) {
       M.history.index++;
-      M.bitmap.main = M.history.data[M.history.index].main.slice();
-      M.bitmap.transparents =
-        M.history.data[M.history.index].transparents.slice();
-      document.title = [M.history.index];
+      M.bitmap =
+        JSON.parse(JSON.stringify(M.history.data[M.history.index]));
+      document.title = [M.history.index, M.history.data.length];
       V.updateScreen();
       localStorage[C.ns] = JSON.stringify(M.bitmap);
+      if (M.history.index >= M.history.data.length - 1) {
+        fwd.disabled = true;
+      }
+      back.disabled = false;
     }
   });
-  // move down
-  var down = document.createElement("button");
-  down.id = "movedown";
-  down.textContent = "v";
-  down.addEventListener("click", function() {
-    M.bitmap.main = M.bitmap.main.splice(-IMG.width).concat(M.bitmap.main);
-    M.bitmap.transparents =
-      M.bitmap.transparents.splice(-IMG.width).concat(M.bitmap.transparents);
-    V.updateScreen();
-  });
-  box.appendChild(down);
+  fwd.disabled = true;
+  // Show
   box.appendChild(back);
   box.appendChild(fwd);
   box.appendChild(gridbtn);
@@ -462,13 +446,16 @@ V.mouse.init = function() {
     V.mouse.dragging = false;
     if (V.mouse.drawn) {
       V.mouse.drawn = false;
-      M.history.data[++M.history.index] = {
-        main: M.bitmap.main.slice(),
-        transparents: M.bitmap.transparents.slice()
-      };
+      if (JSON.stringify(M.history.data[M.history.index]) ===
+        JSON.stringify(M.bitmap)) {
+        return;
+      }
+      M.history.data[++M.history.index] = JSON.parse(JSON.stringify(M.bitmap));
       M.history.data.length = M.history.index + 1;
       document.title = [M.history.index];
       localStorage[C.ns] = JSON.stringify(M.bitmap);
+      document.querySelector("#back").disabled = false;
+      document.querySelector("#fwd").disabled = true;
     }
   });
 };
@@ -499,10 +486,7 @@ addEventListener("load", function() {
       delete localStorage[C.ns];
     }
   }
-  M.history.data[0] = {
-    main: M.bitmap.main.slice(),
-    transparents: M.bitmap.transparents.slice()
-  };
+  M.history.data[0] = JSON.parse(JSON.stringify(M.bitmap));
   M.history.index = 0;
   V.canvas.init();
   V.palette.init();
