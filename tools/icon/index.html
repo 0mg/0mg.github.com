@@ -280,6 +280,7 @@ V.canvas.grid = {
   node: null
 };
 V.canvas.onClick = function(e) {
+  if (e.button === 2) return V.canvas.onRightClick(e);
   V.mouse.drawn = true;
   e.preventDefault();
   var canvas = e.target;
@@ -292,6 +293,24 @@ V.canvas.onClick = function(e) {
   var pos = dx + dy * IMG.width;
   M.paint(pos);
   V.updateScreen(pos);
+};
+V.canvas.onRightClick = function(e) {
+  e.preventDefault();
+  var canvas = e.target;
+  var x = e.offsetX, y = e.offsetY;
+  if (x < 0 || y < 0) return;
+  if (x >= IMG.width * V.canvas.dot.width ||
+    y >= IMG.width * V.canvas.dot.width) return;
+  var dx = x / V.canvas.dot.width | 0;
+  var dy = y / V.canvas.dot.width | 0;
+  var pos = dx + dy * IMG.width;
+  if (M.bitmap.transparents[pos]) {
+    M.currentPen = M.eraser;
+  } else {
+    var color = M.bitmap.main[pos];
+    M.currentPen = M.pen;
+    M.pen.color = color;
+  }
 };
 V.canvas.onMouseMove = function(e) {
   if (V.mouse.dragging) V.canvas.onClick(e);
@@ -308,6 +327,9 @@ V.canvas.init = function() {
   var folder = document.querySelector("#canvas_folder");
   folder.addEventListener("mousedown", V.canvas.onClick);
   folder.addEventListener("mousemove", V.canvas.onMouseMove);
+  folder.addEventListener("contextmenu", function(e) {
+    e.preventDefault();
+  });
 };
 // Palette (selection colors)
 V.palette = {};
@@ -455,7 +477,7 @@ V.mouse.init = function() {
       document.title = [M.history.index];
       localStorage[C.ns] = JSON.stringify(M.bitmap);
       document.querySelector("#back").disabled = false;
-      document.querySelector("#fwd").disabled = true;
+      document.querySelector("#forward").disabled = true;
     }
   });
 };
