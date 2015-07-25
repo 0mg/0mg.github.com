@@ -22,8 +22,9 @@ button {
 button:disabled {
   opacity: 0.5;
 }
-.palcolor[data-checked=true] {
-  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAL0lEQVR42mNgGAU4wX80QEg9CoBqQMFEG4JNMwMphgwDA0CAokCEgf9ogJD6kQwAff5vkWQrc5UAAAAASUVORK5CYII=");
+#eraser[data-checked=true]::after,
+.palcolor[data-checked=true]::after {
+  content: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVElEQVR42sWQOQ4AMAjD8v9PtwuRKkS4lnol9gDwi2NUuxATdwHK2AReGdOAl8FA5xlSfo8qksp+4COlHI04aMnFsJazSFsmKtKSifrHCEZWMpnIF1ZtzzF1YaCvAAAAAElFTkSuQmCC");
 }
 #grid_canvas, #bitmap_canvas {
   position: absolute;
@@ -332,11 +333,12 @@ V.canvas.onRightClick = function(e) {
   var dy = y / V.canvas.dot.width | 0;
   var pos = dx + dy * IMG.width;
   if (M.bitmap.transparents[pos]) {
-    M.currentPen = M.eraser;
+    V.eraser.onClick();
   } else {
-    var color = M.bitmap.main[pos];
-    M.currentPen = M.pen;
-    M.pen.color = color;
+    V.palette.onClickColor({
+      target: document.querySelector(".palcolor[data-position='" +
+        M.palette.sample.indexOf(M.bitmap.main[pos]) + "']")
+    });
   }
 };
 V.canvas.onMouseMove = function(e) {
@@ -365,7 +367,12 @@ V.palette.onClickColor = function(e) {
   var color = M.palette.sample[pa.dataset.position];
   M.currentPen = M.pen;
   M.pen.color = color;
+  V.eraser.node.dataset.checked = false;
+  V.palette.nodes.forEach(function(e) {
+    e.dataset.checked = M.pen.color === M.palette.sample[e.dataset.position];
+  });
 };
+V.palette.nodes = [];
 V.palette.init = function() {
   [].forEach.call(M.palette.sample, function(pav, i) {
     var pals = document.querySelector("#palette");
@@ -376,12 +383,17 @@ V.palette.init = function() {
     pa.style.backgroundColor = UTIL.rgb(M.palette.colors[pav]);
     pa.addEventListener("click", V.palette.onClickColor);
     pals.appendChild(pa);
+    V.palette.nodes.push(pa);
   });
 };
 // Eraser
 V.eraser = {};
 V.eraser.onClick = function() {
   M.currentPen = M.eraser;
+  V.eraser.node.dataset.checked = true;
+  V.palette.nodes.forEach(function(e) {
+    e.dataset.checked = false;
+  });
 };
 V.eraser.init = function() {
   var box = document.querySelector("#palette");
@@ -390,6 +402,7 @@ V.eraser.init = function() {
   btn.title = "TRANSPARENT";
   btn.addEventListener("click", V.eraser.onClick);
   box.appendChild(btn);
+  V.eraser.node = btn;
 };
 // Preview
 V.preview = {};
@@ -446,7 +459,6 @@ V.control.init = function() {
       M.history.index--;
       M.bitmap =
         JSON.parse(JSON.stringify(M.history.data[M.history.index]));
-      document.title = [M.history.index];
       V.updateScreen();
       localStorage[C.ns] = JSON.stringify(M.bitmap);
       if (M.history.index <= 0) {
@@ -464,7 +476,6 @@ V.control.init = function() {
       M.history.index++;
       M.bitmap =
         JSON.parse(JSON.stringify(M.history.data[M.history.index]));
-      document.title = [M.history.index, M.history.data.length];
       V.updateScreen();
       localStorage[C.ns] = JSON.stringify(M.bitmap);
       if (M.history.index >= M.history.data.length - 1) {
@@ -498,7 +509,6 @@ V.mouse.init = function() {
       }
       M.history.data[++M.history.index] = JSON.parse(JSON.stringify(M.bitmap));
       M.history.data.length = M.history.index + 1;
-      document.title = [M.history.index];
       localStorage[C.ns] = JSON.stringify(M.bitmap);
       document.querySelector("#back").disabled = false;
       document.querySelector("#forward").disabled = true;
@@ -540,6 +550,9 @@ addEventListener("load", function() {
   V.preview.init();
   V.control.init();
   V.mouse.init();
+  V.palette.onClickColor({
+    target: V.palette.nodes[M.palette.sample.indexOf(M.pen.color)]
+  });
   V.updateScreen();
 });
 </script>
