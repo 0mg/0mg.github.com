@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+<link rel="shortcut icon" href="favicon.ico">
 <style>
 body {
   background: #e0eeff;
@@ -7,7 +8,6 @@ body {
 }
 body > * {
   flex: 0 0 auto;
-  position: relative;
 }
 button {
   margin: 0;
@@ -21,6 +21,9 @@ button {
 }
 button:disabled {
   opacity: 0.5;
+}
+.palcolor[data-checked=true] {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAL0lEQVR42mNgGAU4wX80QEg9CoBqQMFEG4JNMwMphgwDA0CAokCEgf9ogJD6kQwAff5vkWQrc5UAAAAASUVORK5CYII=");
 }
 #grid_canvas, #bitmap_canvas {
   position: absolute;
@@ -41,11 +44,28 @@ button:disabled {
   flex-wrap: wrap;
   height: 256px;
 }
+#preview {
+  background-color: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+}
 #grid_switch {
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEUAAAAAAIBI3zrvAAAAAnRSTlP/AOW3MEoAAAARSURBVAjXY2BgYKi+h0CEuACCDRAtPbvpnwAAAABJRU5ErkJggg==");
 }
 #eraser {
   background-repeat: repeat;
+}
+#back {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAP0lEQVR42s2MsQ0AIAzD8v/TYUVINKVesNSpjqVfcRIqLBCwQMACATcPjctQGowiIycFTu/9uREjHbreFRzgLEwVQb+xr+pTAAAAAElFTkSuQmCC");
+}
+#forward {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAP0lEQVR42tWMQQ4AQAQD+/9Pd+MqFuVkEiczBS7BSqggliPEcoQQRti8cRiOVKIUR6ROFnpnFBtfrxMblB83eJWvQb+y6lUcAAAAAElFTkSuQmCC");
+}
+#clear_canvas_btn {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAMFBMVEUAAAAAAIAAgAAAgICAAACAAICAgACAgIDAwMAAAP8A/wAA////AAD/AP///wD///+eKbM2AAAAAnRSTlP/AOW3MEoAAAAuSURBVAjXYxCEAgZBBiAAM/j////ACGN8gDH+M0IZQFVgBpBJOYMBDAQZYM4AACo4OO4D4dLcAAAAAElFTkSuQmCC");
 }
 </style>
 <script>
@@ -265,8 +285,15 @@ V.updateScreen = function(pos) {
   var ctx = thumb.getContext("2d");
   ctx.drawImage(canvas, 0, 0, V.canvas.width, V.canvas.height,
     0, 0, IMG.width, IMG.height);
-  var img = thumb.toDataURL();
-  document.querySelector("#preview").style.backgroundImage = "url("+ img + ")";
+  var imgurl = thumb.toDataURL();
+  var img = document.createElement("img");
+  img.src = imgurl;
+  img.width = IMG.width;
+  img.height = IMG.height;
+  img.alt = ".ico";
+  var box = document.querySelector("#preview");
+  while (box.hasChildNodes()) box.removeChild(box.lastChild);
+  box.appendChild(img);
 };
 // Canvas (drawing area : <td>s)
 V.canvas = {};
@@ -368,7 +395,7 @@ V.eraser.init = function() {
 V.preview = {};
 V.preview.init = function() {
   var box = document.querySelector("#palette");
-  var thumb = document.createElement("button");
+  var thumb = document.createElement("span");
   thumb.id = "preview";
   thumb.addEventListener("click", function() {
     open("data:text/html,<img src=\"data:image/vnd.microsoft.icon;base64," +
@@ -402,7 +429,6 @@ V.control.init = function() {
   // Clear canvas
   var reset = document.createElement("button");
   reset.id = "clear_canvas_btn";
-  reset.textContent = "\u2718";
   reset.addEventListener("click", function() {
     if (confirm("sure?")) {
       for (var i = 0; i < IMG.width * IMG.height; ++i) {
@@ -415,7 +441,6 @@ V.control.init = function() {
   // History back
   var back = document.createElement("button");
   back.id = "back";
-  back.textContent = "\u2baa";
   back.addEventListener("click", function() {
     if (M.history.index > 0) {
       M.history.index--;
@@ -434,7 +459,6 @@ V.control.init = function() {
   // History forward
   var fwd = document.createElement("button");
   fwd.id = "forward";
-  fwd.textContent = "\u2bab";
   fwd.addEventListener("click", function() {
     if (M.history.index < M.history.data.length - 1) {
       M.history.index++;
