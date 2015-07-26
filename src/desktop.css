@@ -127,6 +127,9 @@ a:hover {
 .applinks a[href^="tools/event/"] {
   background-image: url(../tools/event/favicon.ico);
 }
+.applinks a[href^="tools/icon/"] {
+  background-image: url(../tools/icon/favicon.ico);
+}
 .applinks a[href^="tools/jseval/"] {
   background-image: url(../tools/jseval/favicon.ico);
 }
