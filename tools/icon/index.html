@@ -7,7 +7,7 @@ body {
   display: flex;
 }
 body > * {
-  flex: 0 0 auto;
+  flex-shrink: 0;
 }
 button {
   margin: 0;
@@ -22,8 +22,8 @@ button {
 button:disabled {
   opacity: 0.5;
 }
-#eraser[data-checked=true]::after,
-.palcolor[data-checked=true]::after {
+#eraser[data-checked=true]:after,
+.palcolor[data-checked=true]:after {
   content: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVElEQVR42sWQOQ4AMAjD8v9PtwuRKkS4lnol9gDwi2NUuxATdwHK2AReGdOAl8FA5xlSfo8qksp+4COlHI04aMnFsJazSFsmKtKSifrHCEZWMpnIF1ZtzzF1YaCvAAAAAElFTkSuQmCC");
 }
 #grid_canvas, #bitmap_canvas {
@@ -50,8 +50,12 @@ button:disabled {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
+  border: 2px outset #fff;
+}
+#preview:active {
+  border-style: inset;
 }
 #grid_switch {
   background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAABlBMVEUAAAAAAIBI3zrvAAAAAnRSTlP/AOW3MEoAAAARSURBVAjXY2BgYKi+h0CEuACCDRAtPbvpnwAAAABJRU5ErkJggg==");
@@ -138,16 +142,15 @@ ICO.encode = function() {
       newarr.push(n);
       n = 0;
     }
-    if (-~i % 16 === 0) {
-      transparents = newarr.concat([0xff, 0xff]).concat(transparents);
+    if (-~i % IMG.width === 0) {
+      newarr.push(0xff, 0xff);
+      transparents = newarr.concat(transparents);
       newarr = [];
     }
   }
-  palette =
-    palette.map(function(e) { return String.fromCharCode(e); }).join("");
-  bitmap = bitmap.map(function(e) { return String.fromCharCode(e); }).join("");
-  transparents =
-    transparents.map(function(e) { return String.fromCharCode(e); }).join("");
+  palette = String.fromCharCode.apply(null, palette);
+  bitmap = String.fromCharCode.apply(null, bitmap);
+  transparents = String.fromCharCode.apply(null, transparents);
   return header + palette + bitmap + transparents;
 };
 // Model
@@ -240,9 +243,7 @@ UTIL.bufferify = function(table) {
       return parseInt(chr, 16);
     }));
   });
-  return arr.map(function(n) {
-    return String.fromCharCode(n);
-  }).join("");
+  return String.fromCharCode.apply(null, arr);
 };
 
 // DOM
