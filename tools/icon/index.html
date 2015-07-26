@@ -22,8 +22,8 @@ button {
 button:disabled {
   opacity: 0.5;
 }
-#eraser[data-checked=true]:after,
-.palcolor[data-checked=true]:after {
+#eraser[data-current=true]:after,
+.palcolor[data-current=true]:after {
   content: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVElEQVR42sWQOQ4AMAjD8v9PtwuRKkS4lnol9gDwi2NUuxATdwHK2AReGdOAl8FA5xlSfo8qksp+4COlHI04aMnFsJazSFsmKtKSifrHCEZWMpnIF1ZtzzF1YaCvAAAAAElFTkSuQmCC");
 }
 #grid_canvas, #bitmap_canvas {
@@ -368,10 +368,12 @@ V.palette.onClickColor = function(e) {
   var color = M.palette.sample[pa.dataset.position];
   M.currentPen = M.pen;
   M.pen.color = color;
-  V.eraser.node.dataset.checked = false;
+  V.eraser.node.dataset.current = false;
   V.palette.nodes.forEach(function(e) {
-    e.dataset.checked = M.pen.color === M.palette.sample[e.dataset.position];
+    e.dataset.current = M.pen.color === M.palette.sample[e.dataset.position];
   });
+  // IE11 force re-render
+  document.body.style.clip = "auto";
 };
 V.palette.nodes = [];
 V.palette.init = function() {
@@ -391,10 +393,12 @@ V.palette.init = function() {
 V.eraser = {};
 V.eraser.onClick = function() {
   M.currentPen = M.eraser;
-  V.eraser.node.dataset.checked = true;
+  V.eraser.node.dataset.current = true;
   V.palette.nodes.forEach(function(e) {
-    e.dataset.checked = false;
+    e.dataset.current = false;
   });
+  // IE11 force re-render
+  document.body.style.clip = "auto";
 };
 V.eraser.init = function() {
   var box = document.querySelector("#palette");
@@ -409,11 +413,13 @@ V.eraser.init = function() {
 V.preview = {};
 V.preview.init = function() {
   var box = document.querySelector("#palette");
-  var thumb = document.createElement("span");
+  var thumb = document.createElement("a");
+  thumb.href = "data:image/vnd.microsoft.icon;base64," + btoa(ICO.encode());
   thumb.id = "preview";
-  thumb.addEventListener("click", function() {
+  thumb.addEventListener("click", function(e) {
+    e.preventDefault();
     open("data:text/html,<img src=\"data:image/vnd.microsoft.icon;base64," +
-      btoa(ICO.encode()) + "\" width=\"500\">");
+      btoa(ICO.encode()) + "\" width=\"512\">");
   });
   box.appendChild(thumb);
 };
