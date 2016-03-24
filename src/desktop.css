@@ -151,3 +151,9 @@ a:hover {
 .applinks a[href^="https://tw-minus.herokuapp.com/"] {
   background-image: url(../img/tw-min16.png)
 }
+#winapp .applinks a {
+  background-image: url(../img/icons/exe.ico)
+}
+#winapp .applinks a[href^="https://github.com/0mg/sustimer/releases/download/"] {
+  background-image: url(../img/icons/sustimer.ico)
+}
