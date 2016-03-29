@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<script>
+var DOTWIDTH = 1;
+var CWIDTH = 32;
+var CHEIGHT = CWIDTH;
+var COLORS = ["black", "gray", "silver", "white",
+"#ff0000", "#ffff00", "#00ff00", "#00ffff", "#0000ff", "#ff00ff",
+"#800000", "#808000", "#008000", "#008080", "#000080", "#800080"
+];
+var paint = function(canvas, color1, color2) {
+  var ctx = canvas.getContext("2d");
+  var c = true;
+  for (var y = 0; y < CHEIGHT; y += DOTWIDTH) {
+    for (var x = 0; x < CWIDTH; x += DOTWIDTH) {
+      ctx.fillStyle = c ? color1 : color2;
+      c = !c;
+      ctx.fillRect(x, y, x + DOTWIDTH, y + DOTWIDTH);
+    }
+    c = !c;
+  }
+  canvas.title = [color1, color2];
+};
+var main = function() {
+  var canvas = document.createElement("canvas");
+  canvas.width = CWIDTH;
+  canvas.height = CHEIGHT;
+  document.body.appendChild(canvas);
+  return canvas;
+};
+addEventListener("load", function() {
+  for (var i = 0; i < COLORS.length; i++) {
+    for (var k = 0; k < COLORS.length; k++) {
+      if (k < i,0) { main(); }
+      else paint(main(), COLORS[i], COLORS[k]);
+    }
+  }
+});
+(function() {
+  var x = true;
+  addEventListener("click", function() {
+    document.body.style.width = (x = !x) ? "512px" : "auto";
+  });
+})();
+</script>
+<style>
+body {
+  width: 512px;
+  line-height: 0;
+}
+canvas {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+</style>
+<title>diz</title>
