@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+html {
+  margin: 10px;
+  background: #c0c0c0;
+}
+body {
+  margin: 0;
+  line-height: 0;
+  background: #fff;
+}
+canvas {
+}
+</style>
+<script>
+var DOTWIDTH = 8;
+var genCanvas = function(w, h) {
+  var canvas = document.createElement("canvas");
+  canvas.width = DOTWIDTH * 3;
+  canvas.height = DOTWIDTH * 5;
+  return canvas;
+};
+var draw = function(x7f, style) {
+  var ctx = this.getContext("2d");
+  ctx.fillStyle = style || "#000";
+  var rend = function(a, b, c, d) {
+    var dw = DOTWIDTH;
+    ctx.fillRect(a * dw, b * dw, c * dw, d * dw);
+  };
+  if (x7f & 1) rend(0, 0, 3, 1);
+  if (x7f & 2) rend(0, 0, 1, 3);
+  if (x7f & 4) rend(2, 0, 2, 3);
+  if (x7f & 8) rend(0, 2, 4, 1);
+  if (x7f & 16) rend(0, 2, 1, 4);
+  if (x7f & 32) rend(2, 2, 2, 4);
+  if (x7f & 64) rend(0, 4, 3, 1);
+};
+var main = function() {
+  var df = document.createDocumentFragment();
+  for (var i = 0x0; i <= 0x7f; ++i) {
+    var canvas = genCanvas();
+    canvas.title = i.toString(2);
+    canvas.style.marginRight = DOTWIDTH + "px";
+    canvas.style.marginBottom = DOTWIDTH + "px";
+    draw.call(canvas, 0x7f, "#0ff");
+    draw.call(canvas, i);
+    df.appendChild(canvas);
+  }
+  document.body.style.paddingTop = DOTWIDTH + "px";
+  document.body.style.paddingLeft = DOTWIDTH + "px";
+  document.body.style.width = ((DOTWIDTH * 4) * 16) + "px";
+  document.body.appendChild(df);
+};
+addEventListener("load", main);
+</script>
+<title>seg7</title>
