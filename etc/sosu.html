@@ -1,9 +1,7 @@
 <!DOCTYPE html>
-<html>
-<head>
-<title>素数の分布</title>
-<meta charset="Shift_JIS" />
-<style type="text/css">
+<meta charset="utf-8">
+<title>邏謨ｰ縺ｮ蛻�蟶�</title>
+<style>
 body {
 	font-size: 8px;
 	font-family: monospace;
@@ -13,19 +11,18 @@ span {
 	width: 16px;
 }
 </style>
-</head>
 <body>
-<script type="text/javascript">
+<script>
 (function(d) {
-	for (var p = d.createElement("p"), i = 2; i <= 9999; ++i) {
-    	for (var j = 2; j < i && i % j; ++j);
-	    var s = d.createElement("span");
-	    s.appendChild(d.createTextNode(i === j ? "■" : i));
-	    p.appendChild(s);
-	    p.appendChild(d.createTextNode(" "));
-	}
-	d.body.appendChild(p);
+  var i = +location.search.slice(1) || 2;
+  for (var p = d.createElement("p"); i <= 9999; ++i) {
+    for (var j = 2; j < i && i % j; ++j);
+    var s = d.createElement("span");
+    s.appendChild(d.createTextNode(i === j ? "笆" : i));
+    p.appendChild(s);
+    p.appendChild(d.createTextNode(" "));
+  }
+  d.body.appendChild(p);
 })(document);
 </script>
 </body>
-</html>
