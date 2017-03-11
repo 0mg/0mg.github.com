@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width">
+<style>
+pre{background:#cde;}
+h1{color:#c00}
+hr{border:solid}
+</style>
+<script>addEventListener("click", function(e) {
+  var mode = ["00.html", "01.html", "10.html", "index.html"].indexOf(e.target.getAttribute("href"));
+  if (mode === -1) return;
+  e.preventDefault();
+  document.querySelector("[name='viewport']").content = ["", "width=device-width"][+!!(mode & 2)];
+  document.querySelector("pre").style.whiteSpace = ["pre", "pre-wrap"][+!!(mode & 1)];
+  document.body.style.clip = "auto";
+});
+</script>
+<title>.htm</title>
+<h1>H1</h1>
+<a href="index.html">11</a>
+<a href="10.html">10</a>
+<a href="01.html">01</a>
+<a href="00.html">00</a>
+<hr>
+plain text
+<hr>
+プレインテキスト
+<hr>
+<pre style="white-space:pre-wrap;">
+F.fixURLtoFileName = function(path) {
+  return "./" + path.replace(/\?.+/, "").replace(/\/$/, "/index.html"); // +7980 23456789
+};
+</pre>
+
+<h2>h2</h2>
+プレインテキストプレインテキストプレインテキストプレインテキストプレインテキストプレインテキストプレインテキストプレインテキストプレインテキストプレインテキストプレインテキストプレインテキストプレインテキストプレインテキストプレインテキストプレインテキストプレインテキストプレイン
+<hr>
+テキストプレイン
