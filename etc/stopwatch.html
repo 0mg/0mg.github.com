@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<title>STOP Watch</title>
+<h1 id='maindisp'>JavaScript:off</h1>
+<p>LAP1 <span id='lap1disp'></span>
+<p>LAP2 <span id='lap2disp'></span>
+<p>LAP3 <span id='lap3disp'></span>
+<script>
+var app = {
+  timerid: 0,
+  ticking: false,
+  maintime: 0,
+  latest: 0,
+  lap: [0, 0, 0]
+};
+var timestr = function(number) {
+  var num = number / 100 | 0;
+  var ms = number / 10 % 100 | 0;
+  var s = num / 10 % 60 | 0;
+  var m = num / 600 % 60 | 0;
+  var h = num / 36000 | 0;
+  if (ms < 10) ms = '0' + ms;
+  if (s < 10) s = '0' + s;
+  if (m < 10) m = '0' + m;
+  return h + ':' + m + ':' + s + '.' + ms;
+};
+var startstop = function() {
+  var now;
+  if (app.ticking) {
+    clearInterval(app.timerid);
+    app.latest = app.maintime;
+    app.ticking = false;
+  } else {
+    now = Date.now();
+    app.timerid = setInterval(function() {
+      app.maintime = app.latest + (Date.now() - now);
+      maindisp.textContent = timestr(app.maintime);
+    }, 10);
+    app.ticking = true;
+  }
+};
+var lap = function() {
+  if (app.ticking) {
+    app.lap.unshift(app.maintime);
+    app.lap.length = 3;
+    lap1disp.textContent = timestr(app.lap[0]);
+    lap2disp.textContent = timestr(app.lap[1]);
+    lap3disp.textContent = timestr(app.lap[2]);
+  } else {
+    app.latest = 0;
+    app.maintime = 0;
+    app.lap = [0, 0, 0];
+    maindisp.textContent = timestr(app.maintime);
+    lap1disp.textContent = timestr(app.lap[0]);
+    lap2disp.textContent = timestr(app.lap[1]);
+    lap3disp.textContent = timestr(app.lap[2]);
+  }
+};
+addEventListener('keydown', function(e) {
+  switch (e.keyCode) {
+  case 13: // start, stop
+    startstop();
+    break;
+  case 82:s114: // lap, reset
+    lap();
+    break;
+  }
+});
+maindisp.textContent = timestr(app.maintime);
+lap1disp.textContent = timestr(app.lap[0]);
+lap2disp.textContent = timestr(app.lap[1]);
+lap3disp.textContent = timestr(app.lap[2]);
+</script>
