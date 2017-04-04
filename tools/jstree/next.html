@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link rel="shortcut icon" href="favicon.ico">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  font-family: monospace;
+  line-height: 1.3;
+}
+button {
+  padding-left: 1ex;
+  padding-right: 1ex;
+}
+body {
+  color: #000;
+  background: #f9f9f9;
+  font-size: 15px;
+  padding: 1ex;
+}
+table {
+  border-collapse: collapse;
+}
+th, td {
+  vertical-align: top;
+  padding: 0.5ex;
+  border: 1px solid silver;
+}
+#z-address {
+  width: 100%;
+}
+#z-civalue {
+  white-space: pre-wrap;
+}
+#z-msg {
+  color: #c00;
+}
+.iname {
+  color: blue;
+  cursor: pointer;
+}
+.iname:hover {
+  color: red;
+  text-decoration: underline;
+}
+.iname:active,
+.iname.focus {
+  background: #fec;
+}
+.item.unknown .iname {
+  color: gray;
+  background: transparent;
+  text-decoration: none;
+  cursor: auto;
+}
+.item.object .itype {
+  background: #ffa;
+}
+.item.array .itype {
+  background: #fe8;
+}
+.item.number .itype {
+  background: #fcc;
+}
+.item.function .itype {
+  background: #bff;
+}
+.item.string .itype {
+  background: #9f9;
+}
+.item.boolean .itype {
+  background: #bbf;
+}
+.item.undefined .itype {
+  color: #fff;
+  background: #777;
+}
+.item.null .itype {
+  color: #fff;
+  background: #000;
+}
+.item.unknown .itype {
+  color: gray;
+  background: #fff;
+}
+.item.object .ivalue,
+.item.function .ivalue,
+.item.undefined .ivalue {
+  color: #333;
+}
+.item.number .ivalue,
+.item.string .ivalue,
+.item.boolean .ivalue,
+.item.null .ivalue {
+  font-weight: bold;
+}
+.item.string .ivalue:before,
+.item.string .ivalue:after {
+  color: gray;
+  font-weight: normal;
+  content: '"';
+}
+.sort_button {
+  display: inline-block;
+  width: 100%;
+}
+</style>
+<script>
+(function() {
+window.$testObj = {
+  "toString": function かんすう() { return -99; },
+  "1": 1201,
+  "10": 123,
+  "1.1": [1,2],
+  "0x1": 123,
+  "\0\b\f\n\r\t\x0b\'\"\\": 1201,
+  "for": '"\\hoge',
+  "func\u3333tion": function ﾌｧﾝｸｼｮﾝ() {},
+  "-Infinity": true,
+  "[\"obj\"][\\\"o\"]": {
+    "#": "fuga"
+  },
+  " u  n    d     ": void 0,
+  "": null,
+  [Symbol(3)]: "abc",
+  [Symbol(3)]: "xyz"
+};
+//delete window.$testObj;
+//"use strict";
+// Global vars
+var D, T, O, V, U, LS, Prop;
+
+// DOM Functions
+D = {
+  q: function(s) { return document.querySelector(s); },
+  qs: function(s) { return document.querySelectorAll(s); },
+  ce: function(s) { return document.createElement(s); },
+  cf: function() { return document.createDocumentFragment(); },
+  ct: function(s) { return document.createTextNode(s); }
+};
+
+// TEXT Functions
+T = {};
+T.strify = function(value) {
+  try { return String(value); }
+  catch(e) {}
+  try { return Object.prototype.toString.call(value); }
+  catch(e) {}
+};
+T.parsePath = function(path) {
+  var joinPath = function(path_arr) {
+    return path_arr.slice().map(function(d, i) {
+      return (i === 0 || d[0] === "[") ? d : "." + d;
+    }).join("");
+  };
+  var re = /[^\s.\[]+|\[\s*[^"'\]\/\s]+\s*\]|\[\s*("|')(?:\\?[\S\s])*?\1\s*\]/g;
+  var path_arr = path.match(re) || [""];
+  var current = joinPath(path_arr);
+  var parent = joinPath(path_arr.slice(0, -1));
+  var last = path_arr.slice().pop().replace(/^\[\s*["']?|["']?\s*\]$/g, "");
+  var dirs = {
+    current: current,
+    parent: parent,
+    last: last
+  };
+  return dirs;
+};
+T.escapeKey = function(key) {
+  return key.replace(/[\S\s]/g, function(c) {
+    var chr = {
+      "\0": "\\0",
+      "\b": "\\b",
+      "\f": "\\f",
+      "\n": "\\n",
+      "\r": "\\r",
+      "\t": "\\t",
+      "\x0b": "\\v",
+      "\"": "\\\"",
+      "\'": "\\\'",
+      "\\": "\\\\",
+      " " : "\xa0"
+    };
+    return chr[c] || c;
+  });
+};
+
+// VIEW Functions
+V = {};
+V.drawPropsList = function(props) {
+  var list = D.q("#z-list");
+  var df = D.cf();
+  var MAX = 1000;
+  props.some(function(prop, i) {
+    if (i + 1 > MAX) return true;
+    df.appendChild(prop.toNode());
+  });
+  while (list.hasChildNodes()) {
+    list.removeChild(list.lastChild);
+  }
+  list.appendChild(df);
+  if (list.childNodes.length < props.length) {
+    D.q("#z-msg").textContent =
+      "drew " + list.childNodes.length + " items of " + props.length;
+  }
+};
+V.drawCurrentProp = function(prop) {
+  D.q("#z-cname").textContent = prop.name;
+  D.q("#z-citem").className = "item " + prop.type;
+  D.q("#z-citype").textContent = prop.type;
+  D.q("#z-civalue").textContent = T.strify(prop.value);
+};
+V.openDir = function(prop) {
+  var props = prop.birthProps();
+  props.sortProps(LS.mem.getSort(prop.path));
+  LS.mem.setCurrent(prop);
+  LS.mem.setCurrentProps(props);
+  if (U.getQuery().path !== prop.path) U.setQuery(prop.path);
+  D.q("#z-msg").textContent = "";
+  D.q("#z-address").value = prop.path;
+  D.q("#z-cpath").textContent = prop.path;
+  V.drawCurrentProp(prop);
+  V.drawPropsList(props);
+  V.focusItem();
+};
+V.goPath = function(path) {
+  var prop = Prop.getProp(path);
+  if (prop) V.openDir(prop);
+};
+V.focusItem = function(key) {
+  if (typeof key === "string") {
+    [].some.call(D.qs(".iname"), function(e) {
+      if (e.textContent === key) {
+        e.classList.add("focus");
+        e.parentNode.scrollIntoView();
+        return true;
+      }
+    });
+  } else {
+    document.documentElement.scrollIntoView();
+  }
+};
+V.main = function() {
+  var address = D.q("#z-address");
+  var cup = D.q("#z-cup");
+  var cgo = D.q("#z-cgo");
+  var sort_type = D.q("#z-sort_type");
+  var sort_name = D.q("#z-sort_name");
+  var sort_value = D.q("#z-sort_value");
+  address.addEventListener("keypress", function(ev) {
+    switch (ev.keyCode) {
+    case 27:
+      address.value = LS.mem.getCurrent().path;
+      break;
+    case 13:
+      ev.preventDefault();
+      if (address.value !== LS.mem.getCurrent().path) V.goPath(address.value);
+      break;
+    }
+  });
+  cup.addEventListener("click", function() {
+    var cur_path = LS.mem.getCurrent().path;
+    var parent_path = T.parsePath(cur_path).parent || "window";
+    if (cur_path !== parent_path) V.goPath(parent_path);
+  });
+  cgo.addEventListener("click", function() {
+    V.goPath(address.value);
+  });
+  document.addEventListener("mousedown", function() {
+    var s = D.q(".focus");
+    if (s) s.classList.remove("focus");
+  });
+  sort_type.addEventListener("click", function() {
+    var props = LS.mem.getCurrentProps().sortProps("type");
+    LS.mem.setSort(LS.mem.getCurrent().path, "type");
+    V.drawPropsList(props);
+  });
+  sort_name.addEventListener("click", function() {
+    var props = LS.mem.getCurrentProps().sortProps("name");
+    LS.mem.setSort(LS.mem.getCurrent().path, "name");
+    V.drawPropsList(props);
+  });
+  sort_value.addEventListener("click", function() {
+    var props = LS.mem.getCurrentProps().sortProps("value");
+    LS.mem.setSort(LS.mem.getCurrent().path, "value");
+    V.drawPropsList(props);
+  });
+  cgo.addEventListener("dragover", function(e) {
+    e.preventDefault();
+  });
+  cgo.addEventListener("drop", function(ev) {
+    var fr = new FileReader;
+    fr.onload = function() {
+      var result;
+      try {
+        result = JSON.parse(fr.result);
+      } catch(err) {
+        result = fr.result;
+      }
+      var name = "_droppedFile_" + Date.now();
+      window[name] = result;
+      V.goPath("window." + name);
+    };
+    fr.readAsBinaryString(ev.dataTransfer.files[0]);
+  });
+  var h = U.getQuery().path;
+  V.goPath("window");
+  D.q("#z-address").value = h || "window";
+};
+
+// OBJECT Functions
+O = {};
+O.MemoMap = function() { "use strict";
+  var keys = [];
+  var values = [];
+  this.get = function(key) {
+    return values[keys.indexOf(key)];
+  };
+  this.has = function(key) {
+    return keys.indexOf(key) >= 0;
+  };
+  this.set = function(key, value) {
+    var i = keys.indexOf(key);
+    if (i >= 0) {
+      values[i] = value;
+    } else {
+      keys.push(key);
+      values.push(value);
+    }
+    if (keys.length !== values.length) {
+      throw Error("MemoMap's keys or values are broken");
+    }
+  };
+};
+
+// Load&Save Functions
+LS = {};
+LS.mem = new function() {
+  var ram = {};
+  ram.prop = {};
+  ram.sort = new O.MemoMap;
+  this.setSort = function(path, sorttype) {
+    ram.sort.set(path, sorttype);
+  };
+  this.getSort = function(path) {
+    return ram.sort.get(path);
+  };
+  this.setCurrentProps = function(props) {
+    ram.props = props;
+  };
+  this.getCurrentProps = function() {
+    return ram.props;
+  };
+  this.setCurrent = function(prop) {
+    ram.prop = prop;
+  };
+  this.getCurrent = function() {
+    return {
+      name: ram.prop.name,
+      type: ram.prop.type,
+      value: ram.prop.value,
+      path: ram.prop.path
+    };
+  };
+};
+
+// URL Functions
+U = {};
+U.getQuery = function() {
+  var sort = 0, path = "";
+  var qs = location.hash.slice(1).match(/^(?:(\d)?-)?([\S\s]*)$/);
+  if (qs) {
+    sort = +qs[1];
+    path = qs[2];
+    try { path = decodeURIComponent(path); } catch(e) {}
+  }
+  return {
+    sort: sort,
+    path: path
+  };
+};
+U.setQuery = function(path, sort) {
+  location.hash = (sort ? sort + "-" : "") + encodeURIComponent(path);
+};
+
+// PROP Functions
+Prop = function(name, value, path, type) {
+  this.name = name;
+  this.value = value;
+  this.path = path;
+  this.type =
+    type !== undefined ? type :
+    value === null ? "null" :
+    Array.isArray(value) ? "array" :
+    typeof value;
+};
+Prop.getProp = function(path) {
+  var name = T.parsePath(path).last, value;
+  try { value = eval(path); } catch (e) { value = e; }
+  return new Prop(name, value, path);
+};
+Prop.prototype.birth = function(key) {
+  if (typeof key === "symbol") {
+    // if String(key) is "Symbol(Symbol.foo)", key is maybe window.Symbol.foo
+    // e.g. window.Symbol.unscopables == "Symbol(Symbol.unscopables)"
+    var keyexp = String(key).replace(/^Symbol\((Symbol\..+)\)$/, "$1");
+    var path = this.path + "[" + keyexp + "]";
+    return new Prop(keyexp, this.value[key], path);
+  }
+  var fixname = T.escapeKey(key);
+  var name = fixname;
+  var value;
+  var type;
+  try {
+    value = this.value[key];
+  } catch(e) {
+    value = "";
+    type = "unknown";
+  }
+  // 0: . 1: [0] 2: ["0x1"]
+  var optype;
+  try {
+    eval("''." + key); optype = 0;
+  } catch(e) {
+    if (String(Number(key)) === key) optype = 1;
+    else optype = 2;
+  }
+  var path;
+  switch (optype) {
+  case 0:
+    path = this.path + "." + fixname;
+    break;
+  case 1:
+    path = this.path + "[" + fixname + "]";
+    break;
+  default:
+    path = this.path + '["' + fixname + '"]';
+  }
+  return new Prop(name, value, path, type);
+};
+Prop.prototype.birthProps = function() {
+  var keys = [];
+  try { [].push.apply(keys, Object.getOwnPropertyNames(this.value)); }
+  catch(e) {}
+  for (var key in this.value) {
+    keys.push(key);
+  }
+  if (this.type === "function") {
+    keys.push("prototype");
+  }
+  if (this.value !== undefined && this.value !== null) {
+    keys.push("__proto__");
+  }
+  keys.sort();
+  keys = keys.filter(function(key, i) {
+    return key !== keys[i + 1];
+  });
+  if (this.type === "string") {
+    keys = keys.filter(function(key) {
+      return !/^\d+$/.test(key);
+    });
+  }
+  try { [].push.apply(keys, Object.getOwnPropertySymbols(this.value)); }
+  catch(e) {}
+  var that = this;
+  var props;
+  props = keys.map(function(key) {
+    return that.birth(key);
+  });
+  props.sortProps = Prop.sortProps;
+  return props;
+};
+Prop.sortProps = function(sorttype) {
+  var sort = function(p, q, k) {
+    var pv = T.strify(p[k]);
+    var qv = T.strify(q[k]);
+    var p_num = isFinite(Number(pv)) && String(Number(pv)) === pv;
+    var q_num = isFinite(Number(qv)) && String(Number(qv)) === qv;
+    switch ((p_num * 1) | (q_num * 2)) {
+    case 0:
+      return pv.toLowerCase().localeCompare(qv.toLowerCase());
+    case 1:
+      return -1;
+    case 2:
+      return 1;
+    case 3:
+      return pv - qv;
+    }
+  };
+  switch (sorttype) {
+  case "type":
+    this.sort(function(p, q) {
+      return p.type === q.type ?
+        sort(p, q, "name") :
+        p.type.localeCompare(q.type);
+    });
+    break;
+  case "name":
+    this.sort(function(p, q) {
+      return sort(p, q, "name");
+    });
+    break;
+  case "value":
+    this.sort(function(p, q) {
+      var p_value = T.strify(p.value);
+      var q_value = T.strify(q.value);
+      return p_value === q_value ?
+        sort(p, q, "name") :
+        sort(p, q, "value");
+    });
+    break;
+  default:
+    this.sort(function(p, q) {
+      return sort(p, q, "name");
+    });
+    break;
+  }
+  return this;
+};
+Prop.prototype.toNode = function() {
+/*
+<tr class="item">
+  <td class="itype">number</td><td class="iname">length</td><td class="ivalue">30</td>
+*/
+  var prop = this;
+  var item = D.ce("tr");
+  var itype = D.ce("td");
+  var iname = D.ce("td");
+  var ivalue = D.ce("td");
+
+  item.className = "item " + this.type;
+  item.appendChild(itype);
+  item.appendChild(iname);
+  item.appendChild(ivalue);
+
+  itype.className = "itype"
+  itype.appendChild(D.ct(this.type));
+
+  iname.className = "iname";
+  iname.appendChild(D.ct(this.name));
+  this.type !== "unknown" && iname.addEventListener("click", function() {
+    V.openDir(prop);
+  });
+
+  ivalue.className = "ivalue";
+  var value = T.strify(this.value).replace(/([\S\s]{140})[^]+/, "$1...");
+  ivalue.appendChild(D.ct(value));
+
+  return item;
+};
+Prop.prototype.toString = function() {
+  return this.name;
+};
+
+// main
+addEventListener("hashchange", function() {
+  var que = U.getQuery();
+  var cur = LS.mem.getCurrent();
+  if (que.path !== cur.path) {
+    V.goPath(que.path);
+    if (que.path === T.parsePath(cur.path).parent) V.focusItem(cur.name);
+  }
+});
+if (document.readyState === "complete") V.main();
+else addEventListener("load", V.main);
+
+})();</script>
+<title>JSObjTree v3.1</title>
+<nav><input id="z-address" value=""><button id="z-cup">up</button><button id="z-cgo">go</button><strong id="z-msg"></strong></nav>
+<h1 id="z-cname"> </h1>
+<table>
+<tr id="z-citem" class="item">
+  <td id="z-citype" class="itype"><td><pre id="z-civalue" class="ivalue"></pre>
+</tr>
+</table>
+<table>
+<caption id="z-cpath"></caption>
+<thead><tr>
+  <th><button id="z-sort_type" class="sort_button">type</button>
+  <th><button id="z-sort_name" class="sort_button">key</button>
+  <th><button id="z-sort_value" class="sort_button">value</button>
+</tr></thead>
+<tbody id="z-list">
+<tr class="item">
+  <td class="itype"><td class="iname"><td class="ivalue">
+</tr>
+</tbody>
+</table>
