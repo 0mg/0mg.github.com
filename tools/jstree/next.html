@@ -39,6 +39,9 @@ th, td {
   color: blue;
   cursor: pointer;
 }
+.iname.iname-is-symbol {
+  font-weight: bold;
+}
 .iname:hover {
   color: red;
   text-decoration: underline;
@@ -78,6 +81,9 @@ th, td {
 .item.null .itype {
   color: #fff;
   background: #000;
+}
+.item.symbol .itype {
+  background: #e9f;
 }
 .item.unknown .itype {
   color: gray;
@@ -123,7 +129,8 @@ window.$testObj = {
   " u  n    d     ": void 0,
   "": null,
   [Symbol(3)]: "abc",
-  [Symbol(3)]: "xyz"
+  [Symbol(3)]: Symbol("xyz"),
+  "Symbol(3)": Symbol(String)
 };
 //delete window.$testObj;
 //"use strict";
@@ -383,7 +390,7 @@ U.setQuery = function(path, sort) {
 };
 
 // PROP Functions
-Prop = function(name, value, path, type) {
+Prop = function(name, value, path, type, nameIsSymbol) {
   this.name = name;
   this.value = value;
   this.path = path;
@@ -392,6 +399,7 @@ Prop = function(name, value, path, type) {
     value === null ? "null" :
     Array.isArray(value) ? "array" :
     typeof value;
+  this.nameIsSymbol = !!nameIsSymbol;
 };
 Prop.getProp = function(path) {
   var name = T.parsePath(path).last, value;
@@ -404,7 +412,8 @@ Prop.prototype.birth = function(key) {
     // e.g. window.Symbol.unscopables == "Symbol(Symbol.unscopables)"
     var keyexp = String(key).replace(/^Symbol\((Symbol\..+)\)$/, "$1");
     var path = this.path + "[" + keyexp + "]";
-    return new Prop(keyexp, this.value[key], path);
+    var value = this.value[key];
+    return new Prop(keyexp, value, path, typeof value, true);
   }
   var fixname = T.escapeKey(key);
   var name = fixname;
@@ -444,12 +453,14 @@ Prop.prototype.birthProps = function() {
   for (var key in this.value) {
     keys.push(key);
   }
+  // append hidden keys
   if (this.type === "function") {
     keys.push("prototype");
   }
   if (this.value !== undefined && this.value !== null) {
     keys.push("__proto__");
   }
+  // remove duplicated keys
   keys.sort();
   keys = keys.filter(function(key, i) {
     return key !== keys[i + 1];
@@ -459,8 +470,10 @@ Prop.prototype.birthProps = function() {
       return !/^\d+$/.test(key);
     });
   }
+  // append symbol keys
   try { [].push.apply(keys, Object.getOwnPropertySymbols(this.value)); }
   catch(e) {}
+  // finalize
   var that = this;
   var props;
   props = keys.map(function(key) {
@@ -540,6 +553,7 @@ Prop.prototype.toNode = function() {
   this.type !== "unknown" && iname.addEventListener("click", function() {
     V.openDir(prop);
   });
+  this.nameIsSymbol && iname.classList.add("iname-is-symbol");
 
   ivalue.className = "ivalue";
   var value = T.strify(this.value).replace(/([\S\s]{140})[^]+/, "$1...");
