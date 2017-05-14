@@ -157,3 +157,6 @@ a:hover {
 #winapp .applinks a[href^="https://github.com/0mg/sustimer/releases/download/"] {
   background-image: url(../img/icons/sustimer.ico)
 }
+#winapp .applinks a[href^="https://github.com/0mg/fulldraw/releases/download/"] {
+  background-image: url(../img/icons/fulldraw.ico)
+}
