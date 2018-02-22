@@ -11,7 +11,7 @@ body {
   background: #fff;
 }
 canvas {
-  opacity: 0.5;
+  opacity: 1;
 }
 canvas.alpha {
   opacity: 1;
@@ -42,7 +42,23 @@ var draw = function(x7f, style) {
   if (x7f & 128) rend(1, 2);
   if (x7f & 256) rend(2, 2);
 };
-var main = function() {
+var rendFreeText = function() {
+  var df = document.createDocumentFragment();
+  var mytext = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#%&'([{<|>}])@~^\\/`+;*:,.?_abcdefghijklmnopqrstuvwxyz";
+  for (var i in mytext) {
+    var canvas = genCanvas();
+    canvas.title = mytext[i];
+    canvas.style.marginRight = DOTWIDTH + "px";
+    canvas.style.marginBottom = DOTWIDTH + "px";
+    draw.call(canvas, 0x1ff, "#ddd");
+    var ref = map[mytext[i]];
+    draw.call(canvas, ref, "#000");
+    df.appendChild(canvas);
+  }
+  var dst = document.querySelector("#freetext");
+  dst.appendChild(df);
+};
+var rendAllBox9 = function() {
   var df = document.createDocumentFragment();
   for (var i = 0x0; i <= 0x1ff; ++i) {
     var canvas = genCanvas();
@@ -53,11 +69,16 @@ var main = function() {
     draw.call(canvas, i, "#000");
     df.appendChild(canvas);
   }
+  document.body.appendChild(df);
+};
+var main = function() {
   document.body.style.paddingTop = DOTWIDTH + "px";
   document.body.style.paddingLeft = DOTWIDTH + "px";
   document.body.style.width = ((DOTWIDTH * 4) * 16) + "px";
-  document.body.appendChild(df);
+  rendAllBox9();
+  rendFreeText();
 };
+addEventListener("load", main);
 addEventListener("click", function(e) {
   if (e.target instanceof HTMLCanvasElement) {
     e.target.classList.toggle("alpha");
@@ -65,29 +86,29 @@ addEventListener("click", function(e) {
 });
 var map = {
   // Number
-  "0": 0x1ef,
+  "0": 0x1ab,
   "1": 0x092,
-  "2": 0,
-  "3": 0,
+  "2": 0x193,
+  "3": 0x133,
   "4": 0x13d,
-  "5": 0,
-  "6": 0,
+  "5": 0x0d6,
+  "6": 0x0d9,
   "7": 0x127,
-  "8": 0,
-  "9": 0,
+  "8": 0x1bb,
+  "9": 0x09b,
   // Alphabet UPPERCASE(A-Z)
   "A": 0x17f,
-  "B": 0,
+  "B": 0x1fb,
   "C": 0x1cf,
   "D": 0x0eb,
-  "E": 0,
-  "F": 0,
-  "G": 0x1ce,
+  "E": 0x1df,
+  "F": 0x05f,
+  "G": 0x1eb,
   "H": 0x17d,
   "I": 0x092,
   "J": 0x1ec,
   "K": 0x15d,
-  "L": 0,
+  "L": 0x1c9,
   "M": 0x05e,
   "N": 0x07c,
   "O": 0x1ef,
@@ -96,12 +117,12 @@ var map = {
   "R": 0x15f,
   "S": 0x0d6,
   "T": 0x097,
-  "U": 0x1dc,
-  "V": 0,
+  "U": 0x1ed,
+  "V": 0x0ad,
   "W": 0x0f4,
   "X": 0x155,
-  "Y": 0x095,
-  "Z": 0,
+  "Y": 0x0bd,
+  "Z": 0x193,
   // Alphabet lowercase(a-z)
   "a": 0,
   "b": 0x1f9,
@@ -111,50 +132,50 @@ var map = {
   "f": 0,
   "g": 0,
   "h": 0x179,
-  "i": 0,
-  "j": 0,
+  "i": 0x091,
+  "j": 0x0d1,
   "k": 0,
-  "l": 0x0c6,
+  "l": 0x093,
   "m": 0,
-  "n": 0x178,
-  "o": 0,
+  "n": 0x158,
+  "o": 0x0d8,
   "p": 0x05b,
-  "q": 0,
-  "r": 0,
+  "q": 0x09b,
+  "r": 0x058,
   "s": 0,
-  "t": 0,
+  "t": 0x057,
   "u": 0x1e8,
   "v": 0x0a8,
   "w": 0,
   "x": 0x055,
-  "y": 0,
+  "y": 0x095,
   "z": 0,
   // Symbol Characters
   " ": 0x000,
-  "!": 0,
+  "!": 0x52,
   "\"": 0x02d,
   "#": 0,
   "$": 0,
   "%": 0x101,
   "&": 0,
   "'": 0x009,
-  "(": 0,
-  ")": 0,
+  "(": 0x18e,
+  ")": 0x0e3,
   "-": 0x038,
   "=": 0x1c7,
   "~": 0x033,
   "^": 0x02a,
   "\\": 0x111,
   "|": 0x049,
-  "@": 0,
+  "@": 0x1af,
   "`": 0x011,
-  "[": 0,
+  "[": 0x196,
   "{": 0x19e,
   ";": 0x042,
   "+": 0x0ba,
   ":": 0x082,
   "*": 0x0aa,
-  "]": 0,
+  "]": 0x0d3,
   "}": 0x0f3,
   ",": 0x048,
   "<": 0x08a,
@@ -162,7 +183,7 @@ var map = {
   "．": 0x040,
   ">": 0x0a2,
   "/": 0x054,
-  "?": 0,
+  "?": 0x053,
   "_": 0x1c0,
   // Katakana (カタカナ)
   "ア": 0x0f7,
@@ -180,7 +201,7 @@ var map = {
   "ス": 0,
   "セ": 0,
   "ソ": 0x125,
-  "タ": 0,
+  "タ": 0x0ae,
   "チ": 0,
   "ツ": 0,
   "テ": 0,
@@ -255,8 +276,10 @@ var map = {
   "▼": 0x1f4,
   "→": 0x1f5,
   "・": 0x010,
+  "👉": 0x0f9,
+  "！": 0x076,
+  "？": 0x077
 };
-addEventListener("load", main);
 </script>
 <title>box9</title>
 <div id="freetext"></div>
