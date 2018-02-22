@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+html {
+  margin: 10px;
+  background: #c0c0c0;
+}
+body {
+  margin: 0;
+  line-height: 0;
+  background: #fff;
+}
+canvas {
+  opacity: 0.5;
+}
+canvas.alpha {
+  opacity: 1;
+}
+</style>
+<script>
+var DOTWIDTH = 8;
+var genCanvas = function(w, h) {
+  var canvas = document.createElement("canvas");
+  canvas.width = DOTWIDTH * 3;
+  canvas.height = DOTWIDTH * 3;
+  return canvas;
+};
+var draw = function(x7f, style) {
+  var ctx = this.getContext("2d");
+  ctx.fillStyle = style || "#000";
+  var rend = function(a, b) {
+    var dw = DOTWIDTH;
+    ctx.fillRect(a * dw, b * dw, dw, dw);
+  };
+  if (x7f & 1) rend(0, 0);
+  if (x7f & 2) rend(1, 0);
+  if (x7f & 4) rend(2, 0);
+  if (x7f & 8) rend(0, 1);
+  if (x7f & 16) rend(1, 1);
+  if (x7f & 32) rend(2, 1);
+  if (x7f & 64) rend(0, 2);
+  if (x7f & 128) rend(1, 2);
+  if (x7f & 256) rend(2, 2);
+};
+var main = function() {
+  var df = document.createDocumentFragment();
+  for (var i = 0x0; i <= 0x1ff; ++i) {
+    var canvas = genCanvas();
+    canvas.title = i.toString(16);
+    canvas.style.marginRight = DOTWIDTH + "px";
+    canvas.style.marginBottom = DOTWIDTH + "px";
+    draw.call(canvas, 0x1ff, "#ddd");
+    draw.call(canvas, i, "#000");
+    df.appendChild(canvas);
+  }
+  document.body.style.paddingTop = DOTWIDTH + "px";
+  document.body.style.paddingLeft = DOTWIDTH + "px";
+  document.body.style.width = ((DOTWIDTH * 4) * 16) + "px";
+  document.body.appendChild(df);
+};
+addEventListener("click", function(e) {
+  if (e.target instanceof HTMLCanvasElement) {
+    e.target.classList.toggle("alpha");
+  }
+});
+var map = {
+  // Number
+  "0": 0x1ef,
+  "1": 0x092,
+  "2": 0,
+  "3": 0,
+  "4": 0x13d,
+  "5": 0,
+  "6": 0,
+  "7": 0x127,
+  "8": 0,
+  "9": 0,
+  // Alphabet UPPERCASE(A-Z)
+  "A": 0x17f,
+  "B": 0,
+  "C": 0x1cf,
+  "D": 0x0eb,
+  "E": 0,
+  "F": 0,
+  "G": 0x1ce,
+  "H": 0x17d,
+  "I": 0x092,
+  "J": 0x1ec,
+  "K": 0x15d,
+  "L": 0,
+  "M": 0x05e,
+  "N": 0x07c,
+  "O": 0x1ef,
+  "P": 0x07f,
+  "Q": 0x11b,
+  "R": 0x15f,
+  "S": 0x0d6,
+  "T": 0x097,
+  "U": 0x1dc,
+  "V": 0,
+  "W": 0x0f4,
+  "X": 0x155,
+  "Y": 0x095,
+  "Z": 0,
+  // Alphabet lowercase(a-z)
+  "a": 0,
+  "b": 0x1f9,
+  "c": 0x0cb,
+  "d": 0x1fc,
+  "e": 0,
+  "f": 0,
+  "g": 0,
+  "h": 0x179,
+  "i": 0,
+  "j": 0,
+  "k": 0,
+  "l": 0x0c6,
+  "m": 0,
+  "n": 0x178,
+  "o": 0,
+  "p": 0x05b,
+  "q": 0,
+  "r": 0,
+  "s": 0,
+  "t": 0,
+  "u": 0x1e8,
+  "v": 0x0a8,
+  "w": 0,
+  "x": 0x055,
+  "y": 0,
+  "z": 0,
+  // Symbol Characters
+  " ": 0x000,
+  "!": 0,
+  "\"": 0x02d,
+  "#": 0,
+  "$": 0,
+  "%": 0x101,
+  "&": 0,
+  "'": 0x009,
+  "(": 0,
+  ")": 0,
+  "-": 0x038,
+  "=": 0x1c7,
+  "~": 0x033,
+  "^": 0x02a,
+  "\\": 0x111,
+  "|": 0x049,
+  "@": 0,
+  "`": 0x011,
+  "[": 0,
+  "{": 0x19e,
+  ";": 0x042,
+  "+": 0x0ba,
+  ":": 0x082,
+  "*": 0x0aa,
+  "]": 0,
+  "}": 0x0f3,
+  ",": 0x048,
+  "<": 0x08a,
+  ".": 0x080,
+  "．": 0x040,
+  ">": 0x0a2,
+  "/": 0x054,
+  "?": 0,
+  "_": 0x1c0,
+  // Katakana (カタカナ)
+  "ア": 0x0f7,
+  "イ": 0x09c,
+  "ウ": 0,
+  "エ": 0x1d7,
+  "オ": 0,
+  "カ": 0,
+  "キ": 0,
+  "ク": 0x12f,
+  "ケ": 0,
+  "コ": 0x1e7,
+  "サ": 0,
+  "シ": 0,
+  "ス": 0,
+  "セ": 0,
+  "ソ": 0x125,
+  "タ": 0,
+  "チ": 0,
+  "ツ": 0,
+  "テ": 0,
+  "ト": 0x079,
+  "ナ": 0,
+  "ニ": 0x1c3,
+  "ヌ": 0,
+  "ネ": 0,
+  "ノ": 0x0e4,
+  "ハ": 0,
+  "ヒ": 0,
+  "フ": 0x127,
+  "ヘ": 0,
+  "ホ": 0,
+  "マ": 0x0a7,
+  "ミ": 0,
+  "ム": 0,
+  "メ": 0,
+  "モ": 0,
+  "ヤ": 0,
+  "ユ": 0x1d3,
+  "ヨ": 0,
+  "ラ": 0,
+  "リ": 0x12d,
+  "ル": 0,
+  "レ": 0,
+  "ロ": 0,
+  "ワ": 0,
+  "ヲ": 0,
+  "ン": 0x0e1,
+  "ヴ": 0,
+  "ガ": 0,
+  "ギ": 0,
+  "グ": 0,
+  "ゲ": 0,
+  "ゴ": 0,
+  "ザ": 0,
+  "ジ": 0,
+  "ズ": 0,
+  "ダ": 0,
+  "ヂ": 0,
+  "ヅ": 0,
+  "デ": 0,
+  "ド": 0x05d,
+  "ゼ": 0,
+  "ゾ": 0,
+  "バ": 0,
+  "ビ": 0,
+  "ブ": 0,
+  "ベ": 0,
+  "ボ": 0,
+  "パ": 0,
+  "ピ": 0,
+  "プ": 0,
+  "ペ": 0,
+  "ポ": 0,
+  "ｱ": 0x0a6,
+  "ﾄ": 0x0b2,
+  "ﾆ": 0x0c3,
+  "ﾝ": 0x0c1,
+  //
+  "「": 0x04f,
+  "」": 0x1e4,
+  "｢": 0x04b,
+  "｣": 0,
+  "凸": 0x1fa,
+  "凹": 0x1fd,
+  "■": 0x1ff,
+  "█": 0x0db,
+  "△": 0x1ea,
+  "▲": 0x05f,
+  "▼": 0x1f4,
+  "→": 0x1f5,
+  "・": 0x010,
+};
+addEventListener("load", main);
+</script>
+<title>box9</title>
+<div id="freetext"></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
