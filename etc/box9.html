@@ -44,7 +44,7 @@ var draw = function(x7f, style) {
 };
 var rendFreeText = function() {
   var df = document.createDocumentFragment();
-  var mytext = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#%&'([{<|>}])@~^\\/`+;*:,.?_abcdefghijklmnopqrstuvwxyz";
+  var mytext = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#$%&'()-=^~\\|@`[{}];+:*,<.>/?_";
   for (var i in mytext) {
     var canvas = genCanvas();
     canvas.title = mytext[i];
@@ -154,11 +154,11 @@ var map = {
   " ": 0x000,
   "!": 0x52,
   "\"": 0x02d,
-  "#": 0,
+  "#": 0x145,
   "$": 0,
   "%": 0x101,
-  "&": 0,
-  "'": 0x009,
+  "&": 0x0fe,
+  "'": 0x012,
   "(": 0x18e,
   ")": 0x0e3,
   "-": 0x038,
@@ -167,7 +167,7 @@ var map = {
   "^": 0x02a,
   "\\": 0x111,
   "|": 0x049,
-  "@": 0x1af,
+  "@": 0x0ef,
   "`": 0x011,
   "[": 0x196,
   "{": 0x19e,
@@ -177,7 +177,7 @@ var map = {
   "*": 0x0aa,
   "]": 0x0d3,
   "}": 0x0f3,
-  ",": 0x048,
+  ",": 0x090,
   "<": 0x08a,
   ".": 0x080,
   "．": 0x040,
