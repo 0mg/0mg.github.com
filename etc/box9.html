@@ -2,29 +2,19 @@
 <meta charset="utf-8">
 <style>
 html {
-  margin: 10px;
-  background: #c0c0c0;
+  background: #ddd;
 }
 body {
-  margin: 0;
+  margin: 10px;
   line-height: 0;
   background: #fff;
 }
 canvas {
-  opacity: 1;
-}
-canvas.alpha {
-  opacity: 1;
+  margin: 0 2px 8px 0;
 }
 </style>
 <script>
 var DOTWIDTH = 8;
-var genCanvas = function(w, h) {
-  var canvas = document.createElement("canvas");
-  canvas.width = DOTWIDTH * 3;
-  canvas.height = DOTWIDTH * 3;
-  return canvas;
-};
 var draw = function(x7f, style) {
   var ctx = this.getContext("2d");
   ctx.fillStyle = style || "#000";
@@ -42,43 +32,28 @@ var draw = function(x7f, style) {
   if (x7f & 128) rend(1, 2);
   if (x7f & 256) rend(2, 2);
 };
-var rendFreeText = function() {
-  var df = document.createDocumentFragment();
-  var mytext = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#$%&'()-=^~\\|@`[{}];+:*,<.>/?_";
-  for (var i in mytext) {
-    var canvas = genCanvas();
-    canvas.title = mytext[i];
-    canvas.style.marginRight = DOTWIDTH + "px";
-    canvas.style.marginBottom = DOTWIDTH + "px";
-    draw.call(canvas, 0x1ff, "#ddd");
-    var ref = map[mytext[i]];
-    draw.call(canvas, ref, "#000");
-    df.appendChild(canvas);
-  }
-  var dst = document.querySelector("#freetext");
-  dst.appendChild(df);
+var makeCharCanvas = function(number) {
+  var canvas = document.createElement("canvas");
+  canvas.width = DOTWIDTH * 3;
+  canvas.height = DOTWIDTH * 3;
+  canvas.style.marginRight = DOTWIDTH + "px";
+  canvas.style.marginBottom = DOTWIDTH + "px";
+  canvas.title = number.toString(16);
+  draw.call(canvas, 0x1ff, "#ddd");
+  draw.call(canvas, number, "#000");
+  return canvas;
 };
-var rendAllBox9 = function() {
-  var df = document.createDocumentFragment();
+addEventListener("load", function() {
+  document.body.style.padding = DOTWIDTH + "px";
   for (var i = 0x0; i <= 0x1ff; ++i) {
-    var canvas = genCanvas();
-    canvas.title = i.toString(16);
-    canvas.style.marginRight = DOTWIDTH + "px";
-    canvas.style.marginBottom = DOTWIDTH + "px";
-    draw.call(canvas, 0x1ff, "#ddd");
-    draw.call(canvas, i, "#000");
-    df.appendChild(canvas);
+    document.body.appendChild(makeCharCanvas(i));
   }
-  document.body.appendChild(df);
-};
-var main = function() {
-  document.body.style.paddingTop = DOTWIDTH + "px";
-  document.body.style.paddingLeft = DOTWIDTH + "px";
-  document.body.style.width = ((DOTWIDTH * 4) * 16) + "px";
-  rendAllBox9();
-  rendFreeText();
-};
-addEventListener("load", main);
+  var mytext = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#$%&'()-=^~\\|@`[{}];+:*,<.>/?_";
+  var dst = document.querySelector("#freetext");
+  for (var i in mytext) {
+    dst.appendChild(makeCharCanvas(map[mytext[i]]));
+  }
+});
 addEventListener("click", function(e) {
   if (e.target instanceof HTMLCanvasElement) {
     e.target.classList.toggle("alpha");
@@ -87,7 +62,7 @@ addEventListener("click", function(e) {
 var map = {
   // Number
   "0": 0x1ab,
-  "1": 0x092,
+  "1": 0x093,
   "2": 0x193,
   "3": 0x133,
   "4": 0x13d,
@@ -105,7 +80,7 @@ var map = {
   "F": 0x05f,
   "G": 0x1eb,
   "H": 0x17d,
-  "I": 0x092,
+  "I": 0x1d7,
   "J": 0x1ec,
   "K": 0x15d,
   "L": 0x1c9,
@@ -114,7 +89,7 @@ var map = {
   "O": 0x1ef,
   "P": 0x07f,
   "Q": 0x11b,
-  "R": 0x15f,
+  "R": 0x17b,
   "S": 0x0d6,
   "T": 0x097,
   "U": 0x1ed,
@@ -155,7 +130,7 @@ var map = {
   "!": 0x52,
   "\"": 0x02d,
   "#": 0x145,
-  "$": 0,
+  "$": 0x0d6,
   "%": 0x101,
   "&": 0x0fe,
   "'": 0x012,
@@ -166,7 +141,7 @@ var map = {
   "~": 0x033,
   "^": 0x02a,
   "\\": 0x111,
-  "|": 0x049,
+  "|": 0x092,
   "@": 0x0ef,
   "`": 0x011,
   "[": 0x196,
