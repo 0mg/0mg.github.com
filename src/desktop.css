@@ -1,5 +1,5 @@
 /* reset */
-html, body, h1, dl, dt, dd, ul, li {
+html, body, h1, dl, dt, dd, ul, li, p {
   margin: 0;
   padding: 0;
   font-size: 100%;
@@ -56,6 +56,7 @@ body > aside,
 body > nav {
   margin: 0 1ex 1ex 0;
   float: left;
+  max-width: 80ex;
 }
 /* @supports(not (display:flex)) { */
   /* window position */
@@ -87,9 +88,27 @@ body > nav {
   }
 }
 /* blocks */
-ul, dl,
+ul, dl, p,
 section, article, aside, nav {
   margin: 1ex 0 0;
+}
+hr {
+  width: 99%;
+  border: 1px inset #fff;
+}
+/* inline */
+code {
+  padding: 0.3ex;
+  word-break: keep-all;
+  font-family: monospace;
+  background: #e9e9e9;
+}
+kbd {
+  padding: 0.3ex;
+  border: 2px outset #fff;
+  word-break: keep-all;
+  font-family: monospace;
+  background: #e9e9e9;
 }
 /* lists */
 li {
@@ -102,7 +121,15 @@ ul li {
   list-style-type: none;
 }
 dt {
+  float: left;
+  margin: 0 1ex 0 0;
+  padding: 0 1ex;
+  border: solid #ccc;
+  border-width: 0 0 0 1ex;
+  font-size: small;
   font-weight: bold;
+  background: #eee;
+  color: #222;
 }
 /* links */
 a {
