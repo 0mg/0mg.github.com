@@ -414,8 +414,9 @@ V.preview.init = function() {
   var box = document.querySelector("#palette");
   var thumb = document.createElement("a");
   thumb.href = "data:image/vnd.microsoft.icon;base64," + btoa(ICO.encode());
+  thumb.download = "favicon.ico";
   thumb.id = "preview";
-  thumb.addEventListener("click", function(e) {
+  thumb.addEventListener("click", function(e) {return;
     e.preventDefault();
     open("data:text/html,<img src=\"data:image/vnd.microsoft.icon;base64," +
       btoa(ICO.encode()) + "\" width=\"512\">");
