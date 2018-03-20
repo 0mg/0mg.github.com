@@ -1,5 +1,5 @@
 /* reset */
-html, body, h1, dl, dt, dd, ul, li, p {
+html, body, h1, dl, dt, dd, ul, li, p, hr {
   margin: 0;
   padding: 0;
   font-size: 100%;
@@ -58,6 +58,9 @@ body > nav {
   float: left;
   max-width: 80ex;
 }
+body > * {
+  margin: 0 1ex 1ex 0;
+}
 /* @supports(not (display:flex)) { */
   /* window position */
   body {
@@ -93,7 +96,7 @@ section, article, aside, nav {
   margin: 1ex 0 0;
 }
 hr {
-  width: 99%;
+  width: 100%;
   border: 1px inset #fff;
 }
 /* inline */
