@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>randimg</title>
+<style>
+html{background:#bbb}
+</style>
+<canvas id="canvas"></canvas>
+<p id="div"></p>
+<input id="reset" type="reset">
+<script>
+const width = 4;
+var dotSize = 32;
+var size = dotSize * width;
+var canvas = document.getElementById("canvas");
+canvas.setAttribute("width", size);
+canvas.setAttribute("height", size);
+var data = [];
+var cache = [], dup = 0;
+var init = function() {
+  data = [], cache = [], dup = 0;
+}
+var randy = function fn() {
+  while (1) {
+    for (let i = 0; i < width * width; ++i) {
+      data[i] = Math.random() * 2 | 0;
+    }
+    if (cache.length >= 2 ** (width * width)) {
+      return;
+    } else if (cache.includes(btoa(data))) {
+      ++dup;
+    } else {
+      break;
+    }
+  }
+  cache.push(btoa(data));
+  div.textContent = cache.length + " (duplicates:" + dup + ")";
+  var ctx = canvas.getContext("2d");
+  for (var i = 0; i < width; ++i) {
+    for (var j = 0; j < width; ++j) {
+      var color = data[width * i + j] ? "#000" : "#fff";
+      ctx.fillStyle = color;
+      ctx.fillRect(j * dotSize, i * dotSize, dotSize, dotSize);
+    }
+  }
+};
+reset.addEventListener("click", init);
+var c = 0, x = 0;
+canvas.addEventListener("click", function() {
+  if (c = !c) {
+    x = setInterval(function() {
+      randy();
+    }, 0);
+  } else clearInterval(x);
+});
+init();
+canvas.click();
+</script>
