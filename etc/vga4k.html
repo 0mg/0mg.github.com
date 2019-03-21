@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  background: #008080;
+  overflow: hidden;
+}
+section {
+  background: inherit;
+}
+div {
+  position: absolute;
+  box-sizing: border-box;
+  padding-top: .5ex;
+  padding-right: 1ex;
+  font-family: "Arial", monospace;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1;
+  text-align: right;
+  color: rgba(255, 255, 255, .2);
+  border: 1px solid rgba(0, 0, 0, .1);
+  border-width: 0 1px 1px 0;
+}
+div:nth-child(even) {
+  background: rgba(255, 255, 255, .05);
+}
+div:nth-child(odd) {
+  background: inherit;
+}
+#qvga {
+  width: 320px;
+  height: 240px;
+}
+#vga {
+  width: 640px;
+  height: 480px;
+}
+#svga {
+  width: 800px;
+  height: 600px;
+}
+#xga {
+  width: 1024px;
+  height: 768px;
+}
+#wxga {
+  width: 1280px;
+  height: 768px;
+}
+#fwxga {
+  width: 1366px;
+  height: 768px;
+}
+#uxga {
+  width: 1600px;
+  height: 1200px;
+}
+#s2k {
+  width: 1920px;
+  height: 1080px;
+}
+#wqhd {
+  width: 2560px;
+  height: 1440px;
+}
+#s4k {
+  width: 3840px;
+  height: 2160px;
+}
+</style>
+<title>VGA</title>
+<section>
+<div id="s4k">4K<br>3840x2160</div>
+<div id="wqhd">WQHD<br>2560x1440</div>
+<div id="s2k">2K<br>1920x1080</div>
+<div id="fwxga">FWXGA<br>1366x768</div>
+<div id="wxga">WXGA<br>1280x768</div>
+<div id="xga">XGA<br>1024x768</div>
+<div id="svga">SVGA<br>800x600</div>
+<div id="vga">VGA<br>640x480</div>
+<div id="qvga">QVGA<br>320x240</div>
+</section>
