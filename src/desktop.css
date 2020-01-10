@@ -18,6 +18,7 @@ body {
   padding: 1ex 0 1ex 1ex;
   color: #000;
   line-height: 1.2;
+  max-width: 80ex;
 }
 /* banner */
 body > h1 {
@@ -54,9 +55,12 @@ body > section,
 body > article,
 body > aside,
 body > nav {
-  margin: 0 1ex 1ex 0;
+  margin: 0 1ex 3ex 0;
   float: left;
-  max-width: 80ex;
+  width: 100%;
+}
+body > nav {
+  width: auto;
 }
 body > * {
   margin: 0 1ex 1ex 0;
@@ -138,9 +142,6 @@ dt {
 a {
   color: #0000dd;
   text-decoration: none;
-}
-a:visited {
-  color: #7777dd;
 }
 a:hover {
   text-decoration: underline;
