@@ -191,3 +191,6 @@ a:hover {
 #winapp .applinks a[href^="https://github.com/0mg/fulldraw/releases/download/"] {
   background-image: url(../img/icons/fulldraw.ico)
 }
+#winapp .applinks a[href^="https://github.com/0mg/nemtimer/releases/download/"] {
+  background-image: url(../img/icons/nemtimer.ico)
+}
