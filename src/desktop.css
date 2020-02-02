@@ -179,18 +179,15 @@ a:hover {
 .applinks a[href^="tools/uri/"] {
   background-image: url(../tools/uri/favicon.ico);
 }
-.applinks a[href^="https://tw-minus.herokuapp.com/"] {
-  background-image: url(../img/tw-min16.png)
-}
 #winapp .applinks a {
   background-image: url(../img/icons/exe.ico)
 }
-#winapp .applinks a[href^="https://github.com/0mg/sustimer/releases/download/"] {
+#winapp .applinks a[href^="https://github.com/0mg/sustimer/releases"] {
   background-image: url(../img/icons/sustimer.ico)
 }
-#winapp .applinks a[href^="https://github.com/0mg/fulldraw/releases/download/"] {
+#winapp .applinks a[href^="https://github.com/0mg/fulldraw/releases"] {
   background-image: url(../img/icons/fulldraw.ico)
 }
-#winapp .applinks a[href^="https://github.com/0mg/nemtimer/releases/download/"] {
-  background-image: url(../img/icons/nemtimer.ico)
+#winapp .applinks a[href^="https://github.com/0mg/nemtimer/releases"] {
+  background-image: url(../img/icons/nemtimer.png)
 }
