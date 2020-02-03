@@ -17,7 +17,7 @@ html {
 body {
   padding: 1ex 0 1ex 1ex;
   color: #000;
-  line-height: 1.2;
+  line-height: 1.6;
   max-width: 80ex;
 }
 /* banner */
@@ -138,6 +138,9 @@ dt {
   background: #eee;
   color: #222;
 }
+dd {
+  margin-bottom: 1ex;
+}
 /* links */
 a {
   color: #0000dd;
@@ -188,6 +191,6 @@ a:hover {
 #winapp .applinks a[href^="https://github.com/0mg/fulldraw/releases"] {
   background-image: url(../img/icons/fulldraw.ico)
 }
-#winapp .applinks a[href^="https://github.com/0mg/nemtimer/releases"] {
+#winapp .applinks a[href^="https://github.com/0mg/nemtimer"] {
   background-image: url(../img/icons/nemtimer.png)
 }
