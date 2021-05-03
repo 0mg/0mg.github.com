@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+}
+dt {
+  font-weight: bold;
+}
+textarea {
+  width: 100%;
+  height: 40ex;
+}
+table {
+  width: 100%;
+}
+tr {
+  vertical-align: top;
+}
+td {
+  width: 50%;
+  padding: 1ex;
+}
+#dst {
+  height: 83ex;
+}
+</style>
+<script>
+if (self === parent) addEventListener("DOMContentLoaded", function() {
+  var el = {
+    src: document.getElementById("src"),
+    dst: document.getElementById("dst"),
+    sinput: document.getElementById("sinput"),
+    err: document.getElementById("err"),
+    sand: document.getElementById("sand")
+  };
+  function evalRequest() {
+    var iframeFile = new Blob([el.sand.outerHTML], {type: "text/html"});
+    var old = document.getElementById("sandbox");
+    if (old) old.parentNode.removeChild(old);
+    var e = document.createElement("iframe");
+    e.id = "sandbox";
+    e.src = URL.createObjectURL(iframeFile);
+    e.hidden = true;
+    e.addEventListener("load", function() {
+      e.contentWindow.postMessage({
+        lines: el.sinput.value.split("\n"),
+        code: el.src.value
+      }, "*");
+    });
+    document.body.appendChild(e);
+  }
+  el.src.addEventListener("keypress", function(event) {
+    if (event.keyCode === 13 && !event.shiftKey) {
+      evalRequest();
+      event.preventDefault();
+    }
+  });
+  el.src.addEventListener("input", function(event) {
+    function get_statistics(s) {
+      var a  = [0, 0, 0, 0];
+      var an = /[a-zA-Z0-9]/;
+      var ws = /[ \t\n]/;
+      s.split("").forEach(function(c) {
+        var x = c.charCodeAt(0);
+        var z = encodeURI(c).substring(1).split("%").length;
+        a[an.test(c) ? 2 : ws.test(c) ? 1 : x < 127 && x > 32 ? 3 : 0] += z;
+      });
+      return a;
+    }
+    var code = event.target;
+    var stat = get_statistics(code.value);
+    stat = stat.reduce(function(x, y) { return x + y; }) + "B" +
+           " (" + stat[0] + "B / " + stat[2] + "B / " + stat[3] + "B)";
+    document.getElementById("stat").textContent = stat;
+  });
+  // Message
+  addEventListener("message", function(event) {
+    var raw = event.data;
+    el.dst.value = raw.stdout;
+    el.err.textContent = raw.stderr;
+  });
+});
+</script>
+<script id="sand">
+if (self !== parent) addEventListener("DOMContentLoaded", function() {
+  // Built-ins
+  function Shell(lines) {
+    var stdout = "", stderr = "";
+    function readline() {
+      return lines.length ? String(lines.shift()) : null;
+    }
+    function putstr(s) {
+      stdout += s;
+    }
+    function print() {
+      var s = Array.prototype.map.call(arguments, function(s) {
+        return String(s);
+      }).join(" ");
+      stdout += s + "\n";
+    }
+    var it = {
+      customRdOnly: void 0,
+      custom: void 0,
+      array: void 0,
+      funny: void 0,
+      width: void 0,
+      height: void 0,
+      color: void 0
+    };
+    Object.defineProperty(it, "toString",
+      { value: function() { return "undefined"; } });
+    Object.defineProperty(this, "stdout", {
+      get() { return stdout; }
+    });
+    Object.defineProperty(this, "stderr", {
+      get() { return stderr; },
+      set(s) { return stderr = s; }
+    });
+    this.readline = readline;
+    this.putstr = putstr;
+    this.print = print;
+    this.it = it;
+  }
+  var shell;
+  function evalSrc(raw) {
+    shell = new Shell(raw.lines);
+    window.putstr = shell.putstr;
+    window.print = shell.print;
+    window.readline = shell.readline;
+    window.it = shell.it;
+    var e = document.createElement("script");
+    e.textContent = raw.code;
+    document.body.appendChild(e);
+    parent.postMessage({stdout: shell.stdout, stderr: shell.stderr}, "*");
+  }
+  addEventListener("error", function(event) {
+    shell.stderr = event.error;
+    parent.postMessage({stdout: shell.stdout, stderr: shell.stderr}, "*");
+  });
+  addEventListener("message", function(event) {
+    var raw = event.data;
+    evalSrc(raw);
+  });
+});
+</script>
+<title>JavaScript Anarchy Golf Simulator</title>
+<table>
+<tr>
+  <td>
+    <dl>
+    <dt>Sample Input
+    <dd><textarea id="sinput"></textarea>
+    <dt>JavaScript
+    <dd><textarea id="src"></textarea>
+    <dt>Statistics
+    <dd><pre id="stat">0B</pre>
+    </dl>
+  <td>
+    <dl>
+    <dt>Result
+    <dd><textarea id="dst"></textarea>
+    </dl>
+<tr>
+  <td colspan="2">
+    <dl>
+    <dt>Error
+    <dd><pre id="err"></pre>
+    </dl>
+</table>
