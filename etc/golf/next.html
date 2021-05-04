@@ -36,12 +36,12 @@ if (self === parent) addEventListener("DOMContentLoaded", function() {
     sand: document.getElementById("sand")
   };
   function evalRequest() {
+    var iframeFile = new Blob([el.sand.outerHTML], {type: "text/html"});
     var old = document.getElementById("sandbox");
     if (old) old.parentNode.removeChild(old);
     var e = document.createElement("iframe");
     e.id = "sandbox";
-    e.src = location.href;
-    e.srcdoc = el.sand.outerHTML;
+    e.src = URL.createObjectURL(iframeFile);
     e.hidden = true;
     e.addEventListener("load", function() {
       e.contentWindow.postMessage({
