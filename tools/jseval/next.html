@@ -22,19 +22,17 @@ addEventListener("keypress", function(e) {
   if (e.target.id === "src" && e.key === "Enter" && !e.shiftKey) {
     var cevt = document.createEvent("event");
     cevt.initEvent("click", true, true);
-    document.getElementById("eval").dispatchEvent(cevt);
+    document.querySelector("#run").dispatchEvent(cevt);
     e.preventDefault();
   }
 });
 addEventListener("click", function(e) {
-  if (e.target.id === "eval") {
-    var script = document.createElement("script");
-    script.textContent = "throw eval(document.getElementById('src').value)";
-    document.body.appendChild(script);
+  if (e.target.id === "run") {
+    throw String((0, eval)(document.querySelector("#src").value));
   }
 });
 addEventListener("error", function(e) {
-  document.getElementById("dst").textContent = e.error;
+  document.querySelector("#dst").textContent = e.error;
 });
 window.puts = function(any) {
   document.querySelector("#puts").textContent =
@@ -43,7 +41,7 @@ window.puts = function(any) {
 </script>
 <title>JavaScript Evaluator</title>
 <dl>
-  <dt>JavaScript <button id="eval">></button>
+  <dt>JavaScript <button id="run">></button>
   <dd><textarea id="src"></textarea>
   <dt>Result
   <dd><pre id="dst"></pre>
