@@ -36,20 +36,18 @@ if (self === parent) addEventListener("DOMContentLoaded", function() {
     sand: document.getElementById("sand")
   };
   function evalRequest() {
-    var iframeFile = new Blob([el.sand.outerHTML], {type: "text/html"});
-    var old = document.getElementById("sandbox");
-    if (old) old.parentNode.removeChild(old);
-    var e = document.createElement("iframe");
-    e.id = "sandbox";
-    e.src = URL.createObjectURL(iframeFile);
-    e.hidden = true;
-    e.addEventListener("load", function() {
-      e.contentWindow.postMessage({
-        lines: el.sinput.value.split("\n"),
-        code: el.src.value
-      }, "*");
+    var codefile = new Blob([el.sand.textContent], {type: "text/javascript"});
+    var worker = new Worker(URL.createObjectURL(codefile));
+    worker.addEventListener("message", function(event) {
+      var raw = event.data;
+      el.dst.value = raw.stdout;
+      el.err.textContent = raw.stderr;
+      worker.terminate();
     });
-    document.body.appendChild(e);
+    worker.postMessage({
+      lines: el.sinput.value.split("\n"),
+      code: el.src.value
+    });
   }
   el.src.addEventListener("keypress", function(event) {
     if (event.keyCode === 13 && !event.shiftKey) {
@@ -75,15 +73,10 @@ if (self === parent) addEventListener("DOMContentLoaded", function() {
            " (" + stat[0] + "B / " + stat[2] + "B / " + stat[3] + "B)";
     document.getElementById("stat").textContent = stat;
   });
-  addEventListener("message", function(event) {
-    var raw = event.data;
-    el.dst.value = raw.stdout;
-    el.err.textContent = raw.stderr;
-  });
 });
 </script>
-<script id="sand">
-if (self !== parent) addEventListener("DOMContentLoaded", function() {
+<script id="sand" disabled>
+(function() {
   function Shell(lines) {
     var stdout = "", stderr = "";
     function readline() {
@@ -124,33 +117,29 @@ if (self !== parent) addEventListener("DOMContentLoaded", function() {
   var shell;
   function evalSrc(raw) {
     shell = new Shell(raw.lines);
+    var window = self;
     window.putstr = shell.putstr;
     window.print = shell.print;
     window.readline = shell.readline;
     window.it = shell.it;
-    var e = document.createElement("script");
-    e.textContent = raw.code;
-    document.body.appendChild(e);
-    parent.postMessage({stdout: shell.stdout, stderr: shell.stderr}, "*");
+    throw (0, eval)(raw.code), "";
   }
   addEventListener("error", function(event) {
-    shell.stderr = event.error.message;
-    parent.postMessage({stdout: shell.stdout, stderr: shell.stderr}, "*");
+    shell.stderr = String(event.error);
+    postMessage({stdout: shell.stdout, stderr: shell.stderr});
   });
   addEventListener("message", function(event) {
-    if (event.origin === location.origin) {
-      var raw = event.data;
-      evalSrc(raw);
-    }
+    var raw = event.data;
+    evalSrc(raw);
   });
-});
+})();
 </script>
 <title>JavaScript Anarchy Golf Simulator</title>
 <table>
 <tr>
   <td>
     <dl>
-    <dt>Sample Input
+    <dt>readline()
     <dd><textarea id="sinput"></textarea>
     <dt>JavaScript
     <dd><textarea id="src"></textarea>
@@ -159,7 +148,7 @@ if (self !== parent) addEventListener("DOMContentLoaded", function() {
     </dl>
   <td>
     <dl>
-    <dt>Result
+    <dt>print()
     <dd><textarea id="dst"></textarea>
     </dl>
 <tr>
