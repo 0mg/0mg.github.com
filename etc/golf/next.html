@@ -36,12 +36,12 @@ if (self === parent) addEventListener("DOMContentLoaded", function() {
     sand: document.getElementById("sand")
   };
   function evalRequest() {
-    var iframeFile = new Blob([el.sand.outerHTML], {type: "text/html"});
     var old = document.getElementById("sandbox");
     if (old) old.parentNode.removeChild(old);
     var e = document.createElement("iframe");
     e.id = "sandbox";
-    e.src = URL.createObjectURL(iframeFile);
+    e.src = location.href;
+    e.srcdoc = el.sand.outerHTML;
     e.hidden = true;
     e.addEventListener("load", function() {
       e.contentWindow.postMessage({
@@ -75,7 +75,6 @@ if (self === parent) addEventListener("DOMContentLoaded", function() {
            " (" + stat[0] + "B / " + stat[2] + "B / " + stat[3] + "B)";
     document.getElementById("stat").textContent = stat;
   });
-  // Message
   addEventListener("message", function(event) {
     var raw = event.data;
     el.dst.value = raw.stdout;
@@ -85,14 +84,13 @@ if (self === parent) addEventListener("DOMContentLoaded", function() {
 </script>
 <script id="sand">
 if (self !== parent) addEventListener("DOMContentLoaded", function() {
-  // Built-ins
   function Shell(lines) {
     var stdout = "", stderr = "";
     function readline() {
       return lines.length ? String(lines.shift()) : null;
     }
     function putstr(s) {
-      stdout += s;
+      stdout += String(s);
     }
     function print() {
       var s = Array.prototype.map.call(arguments, function(s) {
@@ -116,7 +114,7 @@ if (self !== parent) addEventListener("DOMContentLoaded", function() {
     });
     Object.defineProperty(this, "stderr", {
       get() { return stderr; },
-      set(s) { return stderr = s; }
+      set(s) { return stderr = String(s); }
     });
     this.readline = readline;
     this.putstr = putstr;
@@ -136,7 +134,7 @@ if (self !== parent) addEventListener("DOMContentLoaded", function() {
     parent.postMessage({stdout: shell.stdout, stderr: shell.stderr}, "*");
   }
   addEventListener("error", function(event) {
-    shell.stderr = event.error;
+    shell.stderr = event.error.message;
     parent.postMessage({stdout: shell.stdout, stderr: shell.stderr}, "*");
   });
   addEventListener("message", function(event) {
