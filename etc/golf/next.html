@@ -138,8 +138,10 @@ if (self !== parent) addEventListener("DOMContentLoaded", function() {
     parent.postMessage({stdout: shell.stdout, stderr: shell.stderr}, "*");
   });
   addEventListener("message", function(event) {
-    var raw = event.data;
-    evalSrc(raw);
+    if (event.origin === location.origin) {
+      var raw = event.data;
+      evalSrc(raw);
+    }
   });
 });
 </script>
