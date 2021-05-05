@@ -75,10 +75,10 @@ if (self === parent) addEventListener("DOMContentLoaded", function() {
   });
 });
 </script>
-<script id="sand" disabled>
-(function() {
+<script id="sand">
+if (typeof window === "undefined") (function() {
   function Shell(lines) {
-    var stdout = "", stderr = "";
+    var stdout = "";
     function readline() {
       return lines.length ? String(lines.shift()) : null;
     }
@@ -105,10 +105,7 @@ if (self === parent) addEventListener("DOMContentLoaded", function() {
     Object.defineProperty(this, "stdout", {
       get() { return stdout; }
     });
-    Object.defineProperty(this, "stderr", {
-      get() { return stderr; },
-      set(s) { return stderr = String(s); }
-    });
+    this.stderr = "";
     this.readline = readline;
     this.putstr = putstr;
     this.print = print;
