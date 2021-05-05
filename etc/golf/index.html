@@ -1,12 +1,9 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<style>/*<![CDATA[*/
+<style>
 * {
   margin: 0;
   padding: 0;
-}
-body {
-  padding-right: 1ex;
 }
 dt {
   font-weight: bold;
@@ -14,7 +11,6 @@ dt {
 textarea {
   width: 100%;
   height: 40ex;
-  word-wrap: break-word;
 }
 table {
   width: 100%;
@@ -29,86 +25,37 @@ td {
 #dst {
   height: 83ex;
 }
-/*]]>*/</style>
-<script>//<![CDATA["use strict";
-addEventListener("DOMContentLoaded", function() {
+</style>
+<script>
+if (self === parent) addEventListener("DOMContentLoaded", function() {
   var el = {
     src: document.getElementById("src"),
     dst: document.getElementById("dst"),
     sinput: document.getElementById("sinput"),
-    err: document.getElementById("err")
+    err: document.getElementById("err"),
+    sand: document.getElementById("sand")
   };
-
-  var shell = new function() {
-    var lines = [];
-    function setlines() {
-      var s = el.sinput.value.replace(/\r\n|\r/g, "\n");
-      lines = s ? s.split("\n") : [];
-    }
-    function readline() {
-      return lines.length ? String(lines.shift()) : null;
-    }
-    function putstr(s) {
-      el.dst.value += s;
-    }
-    function print() {
-      var s = Array.prototype.map.call(arguments, function(s) {
-        return String(s);
-      }).join(" ");
-      el.dst.value += s + "\n";
-    }
-
-    var it = {
-      customRdOnly: void 0,
-      custom: void 0,
-      array: void 0,
-      funny: void 0,
-      width: void 0,
-      height: void 0,
-      color: void 0
-    };
-    Object.defineProperty(it, "toString",
-      { value: function() { return "undefined"; } });
-
-    this.setlines = setlines;
-    this.readline = readline;
-    this.putstr = putstr;
-    this.print = print;
-    this.it = it;
-  };
-
-  function reset() {
-    shell.setlines();
-    el.dst.value = "";
-    el.err.textContent = "";
+  function evalRequest() {
+    var codefile = new Blob([el.sand.textContent], {type: "text/javascript"});
+    var worker = new Worker(URL.createObjectURL(codefile));
+    worker.addEventListener("message", function(event) {
+      var raw = event.data;
+      el.dst.value = raw.stdout;
+      el.err.textContent = raw.stderr;
+      worker.terminate();
+    });
+    worker.postMessage({
+      lines: el.sinput.value.split("\n"),
+      code: el.src.value
+    });
   }
-
-  function evalSrc() {
-    var src_txt = "document.getElementById('src').value";
-    var err_txt = "document.getElementById('err').textContent";
-    var evar = "E" + Math.random().toFixed(20).slice(2);
-    location.href = "javascript:try{void(eval(" + src_txt + "))}" +
-                    "catch(" + evar + "){void(" + err_txt + "=" + evar + ")}";
-  }
-
-  window.putstr = shell.putstr;
-  window.print = shell.print;
-  window.readline = shell.readline;
-  window.it = shell.it;
-
-  reset();
-
   el.src.addEventListener("keypress", function(event) {
     if (event.keyCode === 13 && !event.shiftKey) {
-      reset();
-      evalSrc();
+      evalRequest();
       event.preventDefault();
     }
   });
-
-  addEventListener("input", function(event) {
-    if (event.target.id !== "src") return;
-
+  el.src.addEventListener("input", function(event) {
     function get_statistics(s) {
       var a  = [0, 0, 0, 0];
       var an = /[a-zA-Z0-9]/;
@@ -120,32 +67,85 @@ addEventListener("DOMContentLoaded", function() {
       });
       return a;
     }
-
     var code = event.target;
     var stat = get_statistics(code.value);
     stat = stat.reduce(function(x, y) { return x + y; }) + "B" +
            " (" + stat[0] + "B / " + stat[2] + "B / " + stat[3] + "B)";
-
     document.getElementById("stat").textContent = stat;
-
   });
 });
-//]]></script>
-<title>JavaScript Anarchy Golf Simulator</title>
+</script>
+<script id="sand">
+if (typeof window === "undefined") (function() {
+  function Shell(lines) {
+    var stdout = "";
+    function readline() {
+      return lines.length ? String(lines.shift()) : null;
+    }
+    function putstr(s) {
+      stdout += String(s);
+    }
+    function print() {
+      var s = Array.prototype.map.call(arguments, function(s) {
+        return String(s);
+      }).join(" ");
+      stdout += s + "\n";
+    }
+    var it = {
+      customRdOnly: void 0,
+      custom: void 0,
+      array: void 0,
+      funny: void 0,
+      width: void 0,
+      height: void 0,
+      color: void 0
+    };
+    Object.defineProperty(it, "toString",
+      { value: function() { return "undefined"; } });
+    Object.defineProperty(this, "stdout", {
+      get() { return stdout; }
+    });
+    this.stderr = "";
+    this.readline = readline;
+    this.putstr = putstr;
+    this.print = print;
+    this.it = it;
+  }
+  var shell;
+  function evalSrc(raw) {
+    shell = new Shell(raw.lines);
+    var window = self;
+    window.putstr = shell.putstr;
+    window.print = shell.print;
+    window.readline = shell.readline;
+    window.it = shell.it;
+    throw (0, eval)(raw.code), "";
+  }
+  addEventListener("error", function(event) {
+    shell.stderr = String(event.error);
+    postMessage({stdout: shell.stdout, stderr: shell.stderr});
+  });
+  addEventListener("message", function(event) {
+    var raw = event.data;
+    evalSrc(raw);
+  });
+})();
+</script>
+<title>JavaScript Anarchy Golf Simulator v2.5</title>
 <table>
 <tr>
   <td>
     <dl>
-    <dt>Sample Input
+    <dt>readline()
     <dd><textarea id="sinput"></textarea>
-    <dt>JavaScript</dt>
+    <dt>JavaScript
     <dd><textarea id="src"></textarea>
     <dt>Statistics
     <dd><pre id="stat">0B</pre>
     </dl>
   <td>
     <dl>
-    <dt>Result
+    <dt>print()
     <dd><textarea id="dst"></textarea>
     </dl>
 <tr>
