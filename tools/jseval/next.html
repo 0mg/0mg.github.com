@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link rel="shortcut icon" href="favicon.ico">
+<style>
+html, body, dl, dt, dd, pre {
+  margin: 0;
+  padding: 0;
+}
+body {
+  padding-right: 1ex;
+}
+dt {
+  font-weight: bold;
+}
+textarea {
+  width: 100%;
+  height: 12em;
+}
+</style>
+<script>
+addEventListener("keypress", function(e) {
+  if (e.target.id === "src" && e.key === "Enter" && !e.shiftKey) {
+    var cevt = document.createEvent("event");
+    cevt.initEvent("click", true, true);
+    document.querySelector("#run").dispatchEvent(cevt);
+    e.preventDefault();
+  }
+});
+addEventListener("click", function(e) {
+  if (e.target.id === "run") {
+    throw String((0, eval)(document.querySelector("#src").value));
+  }
+});
+addEventListener("error", function(e) {
+  document.querySelector("#dst").textContent = e.error;
+});
+window.puts = function(any) {
+  document.querySelector("#puts").textContent =
+    Array.from(arguments).map(function(it) { return String(it); }).join("\n");
+};
+</script>
+<title>JavaScript Evaluator v2.6</title>
+<dl>
+  <dt>JavaScript <button id="run">></button>
+  <dd><textarea id="src"></textarea>
+  <dt>Result
+  <dd><pre id="dst"></pre>
+  <dt>puts()
+  <dd><pre id="puts"></pre>
+</dl>
