@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<link rel="shortcut icon" href="favicon.ico" />
+<style>/* <![CDATA[ */
+html, body, dl, dt, dd, pre {
+  margin: 0;
+  padding: 0;
+}
+body {
+  padding-right: 1ex;
+}
+dt {
+  font-weight: bold;
+}
+textarea {
+  width: 100%;
+  height: 12em;
+  word-wrap: break-word;
+}
+/* ]]> */</style>
+<script>/* <![CDATA[ */
+if (!Event.prototype.preventDefault) {
+  Event.prototype.preventDefault = function() {
+    this.returnValue = false;
+  };
+}
+if (!("target" in Event.prototype)) {
+  Object.defineProperty(Event.prototype, "target", {
+    get: function() {
+      return this.srcElement;
+    }
+  });
+}
+if (!window.addEventListener) {
+  window.addEventListener = function(type, f) {
+    return this.attachEvent("on" + type, f);
+  };
+}
+if (!document.addEventListener) {
+  document.addEventListener = window.addEventListener;
+}
+if (!("textContent" in document.createElement("p"))) {
+  Object.defineProperty(Element.prototype, "textContent", {
+    get: function() { return this.innerText; },
+    set: function(s) { return this.innerText = s; }
+  });
+}
+/* ]]> */</script>
+<script>/* <![CDATA[ */
+document.addEventListener("keypress", function(e) {
+  if (e.target === document.getElementById("src") &&
+    e.keyCode === 13 && !e.shiftKey) {
+    var cevt = document.createEvent("event");
+    cevt.initEvent("click", true, true);
+    document.getElementById("eval").dispatchEvent(cevt);
+    e.preventDefault();
+  }
+});
+document.addEventListener("click", function(e) {
+  if (e.target !== document.getElementById("eval")) return;
+  var S = {
+    SRC: "document.getElementById('src').value",
+    DST: "document.getElementById('dst').textContent",
+    ERR: (function f() {
+      var s = "E" + String(Math.random()).slice(2);
+      return s in window ? f(): s;
+    })()
+  };
+  location.href = "javascript:" +
+    "try{void(" + S.DST + "=String(eval(" + S.SRC + ")))}" +
+    "catch(" + S.ERR + "){void(" + S.DST + "=" + S.ERR + ")}";
+});
+/* ]]> */</script>
+<title>JavaScript Evaluator v1.5</title>
+</head>
+<body>
+<dl>
+  <dt>JavaScript <button id="eval">></button></dt>
+  <dd><textarea id="src"></textarea></dd>
+  <dt>Result</dt>
+  <dd><pre id="dst"></pre></dd>
+</dl>
+<nav><a href="index.html">latest version</a> | <a href="/">home</a></nav>
+</body>
+</html>
