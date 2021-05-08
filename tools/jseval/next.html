@@ -18,33 +18,68 @@ textarea {
 }
 </style>
 <script>
-addEventListener("keypress", function(e) {
-  if (e.target.id === "src" && e.key === "Enter" && !e.shiftKey) {
-    var cevt = document.createEvent("event");
-    cevt.initEvent("click", true, true);
-    document.querySelector("#run").dispatchEvent(cevt);
-    e.preventDefault();
-  }
-});
-addEventListener("click", function(e) {
-  if (e.target.id === "run") {
-    throw String((0, eval)(document.querySelector("#src").value));
-  }
-});
-addEventListener("error", function(e) {
-  document.querySelector("#dst").textContent = e.error;
-});
-window.puts = function(any) {
-  document.querySelector("#puts").textContent =
-    Array.from(arguments).map(function(it) { return String(it); }).join("\n");
-};
+if (self === top) {
+  addEventListener("keypress", function(e) {
+    if (e.target.id === "src" && e.key === "Enter" && !e.shiftKey) {
+      document.querySelector("#run").click();
+      e.preventDefault();
+    }
+  });
+  addEventListener("keydown", function(e) {
+    if (e.key === "Escape") {
+      document.querySelector("#abort").click();
+    }
+  });
+  addEventListener("click", function(e) {
+    if (e.target.id === "abort") {
+      document.querySelector("#sandboxes").innerHTML = "";
+      document.querySelector("#src").disabled = false;
+      document.querySelector("#run").disabled = false;
+      document.querySelector("#src").focus();
+    } else if (e.target.id === "run") {
+      var html = new Blob([document.querySelector("#sand").outerHTML], {type: "text/html"});
+      var iframe = document.createElement("iframe");
+      iframe.src = URL.createObjectURL(html);
+      iframe.addEventListener("load", function() {
+        iframe.contentWindow.postMessage(document.querySelector("#src").value, "*");
+      });
+      document.querySelector("#src").disabled = true;
+      document.querySelector("#run").disabled = true;
+      document.querySelector("#sandboxes").appendChild(iframe);
+    }
+  });
+  addEventListener("message", function(event) {
+    document.querySelector("#dst").textContent = event.data.result;
+    document.querySelector("#puts").textContent = event.data.stdout;
+    document.querySelector("#sandboxes").innerHTML = "";
+    document.querySelector("#src").disabled = false;
+    document.querySelector("#run").disabled = false;
+    document.querySelector("#src").focus();
+  });
+}
+</script>
+<script id="sand">
+if (self !== top) (function() {
+  var puts = function puts(any) {
+    puts.stdout += Array.from(arguments).map(String).join(" ") + "\n";
+  };
+  puts.stdout = "";
+  self.puts = puts;
+  addEventListener("message", function(event) {
+    if (event.origin === location.origin) throw String((0, eval)(event.data));
+  });
+  addEventListener("error", function(e) {
+    top.postMessage({result: e.error, stdout: puts.stdout}, "*");
+  });
+})();
 </script>
 <title>JavaScript Evaluator v2.6</title>
 <dl>
-  <dt>JavaScript <button id="run">></button>
+  <dt>JavaScript <button id="run">></button> <button id="abort">X</button>
   <dd><textarea id="src"></textarea>
   <dt>Result
   <dd><pre id="dst"></pre>
   <dt>puts()
   <dd><pre id="puts"></pre>
 </dl>
+<div id="sandboxes" hidden></div>
