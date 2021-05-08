@@ -38,16 +38,33 @@ if (self === parent) addEventListener("DOMContentLoaded", function() {
   function evalRequest() {
     var codefile = new Blob([el.sand.textContent], {type: "text/javascript"});
     var worker = new Worker(URL.createObjectURL(codefile));
+    var closed = false;
+    function closeWorker() {
+      if (!closed) {
+        worker.terminate();
+        closed = true;
+        el.src.disabled = false;
+        el.src.focus();
+        removeEventListener("keydown", onAbortCommand);
+      }
+    }
+    function onAbortCommand(event) {
+      if (event.key === "Escape") {
+        closeWorker();
+      }
+    }
     worker.addEventListener("message", function(event) {
       var raw = event.data;
       el.dst.value = raw.stdout;
       el.err.textContent = raw.stderr;
-      worker.terminate();
+      closeWorker();
     });
     worker.postMessage({
       lines: el.sinput.value.split("\n"),
       code: el.src.value
     });
+    el.src.disabled = true;
+    addEventListener("keydown", onAbortCommand);
   }
   el.src.addEventListener("keypress", function(event) {
     if (event.keyCode === 13 && !event.shiftKey) {
