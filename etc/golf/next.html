@@ -79,7 +79,7 @@ if (self === parent) addEventListener("DOMContentLoaded", function() {
       var ws = /[ \t\n]/;
       s.split("").forEach(function(c) {
         var x = c.charCodeAt(0);
-        var z = encodeURI(c).substring(1).split("%").length;
+        var z = Math.round(x.toString(16).length / 2);
         a[an.test(c) ? 2 : ws.test(c) ? 1 : x < 127 && x > 32 ? 3 : 0] += z;
       });
       return a;
